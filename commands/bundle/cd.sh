@@ -10,7 +10,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     exit 1
 fi
 
-source "$_LP_SCRIPTS_DIR/config"
+source "$_LP_SCRIPTS_DIR/config.sh"
 
 BRANCH=$1
 

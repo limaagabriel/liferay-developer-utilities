@@ -5,7 +5,7 @@
 # `lp bundle cd` can change the current shell's directory.
 #
 # Add to ~/.zshrc or ~/.bashrc:
-#   source ~/dev/scripts/lp
+#   source ~/dev/scripts/lp.sh
 #
 # Usage:
 #   lp worktree add [-r <remote>] <branch>
@@ -41,7 +41,7 @@ lp() {
 
     local namespace="$1"
     local command="$2"
-    local script="$_LP_SCRIPTS_DIR/$namespace/$command"
+    local script="$_LP_SCRIPTS_DIR/commands/$namespace/$command.sh"
 
     echo script: "$script"
 

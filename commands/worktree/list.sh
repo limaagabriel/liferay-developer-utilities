@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: lp worktree list
 
-source "$(dirname "${BASH_SOURCE[0]}")/../config"
+source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh"
 
 echo "Active Liferay Portal worktrees:"
 echo "---------------------------------"
