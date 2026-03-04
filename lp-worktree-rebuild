@@ -1,0 +1,47 @@
+#!/bin/bash
+# filepath: ~/dev/scripts/lp-rebuild.sh
+
+# Usage: lp-rebuild <branch-name>
+
+set -e
+
+BRANCH=$1
+BASE_PROJECT_DIR=~/dev/projects
+
+if [ -z "$BRANCH" ]; then
+    echo "Usage: $0 <branch-name>"
+    exit 1
+fi
+
+WORKTREE_DIR=$BASE_PROJECT_DIR/liferay-portal-$BRANCH
+PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
+
+if [ ! -d "$WORKTREE_DIR" ]; then
+    echo "Worktree '$WORKTREE_DIR' does not exist."
+    exit 1
+fi
+
+if [ ! -f "$PROPS_FILE" ]; then
+    echo "app.server.me.properties not found at '$WORKTREE_DIR'."
+    exit 1
+fi
+
+BUNDLE_DIR=$(grep 'app.server.parent.dir' "$PROPS_FILE" | cut -d'=' -f2)
+
+read -p "This will delete '$BUNDLE_DIR' and rebuild. Continue? [y/N] " confirm
+if [[ "$confirm" != "y" ]]; then
+    echo "Aborted."
+    exit 0
+fi
+
+echo "Removing bundle directory '$BUNDLE_DIR'..."
+rm -rf "$BUNDLE_DIR"
+
+echo "Recreating bundle directory..."
+mkdir -p "$BUNDLE_DIR"
+
+echo "Building in '$WORKTREE_DIR'..."
+cd "$WORKTREE_DIR"
+ant all
+
+echo "Done! Bundle rebuilt at '$BUNDLE_DIR'."

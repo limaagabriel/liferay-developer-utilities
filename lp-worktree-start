@@ -1,0 +1,41 @@
+#!/bin/bash
+# filepath: ~/dev/scripts/lp-start.sh
+
+# Usage: lp-start.sh [-b] [branch-name]
+# If no branch is given, uses the current directory
+# -b: run the build step (skipped by default)
+
+set -e
+
+BUILD=false
+
+while getopts ":b" opt; do
+    case $opt in
+        b) BUILD=true ;;
+        \?) echo "Unknown option: -$OPTARG" >&2; exit 1 ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+BRANCH=$1
+BASE_PROJECT_DIR=~/dev/projects
+
+if [ -z "$BRANCH" ]; then
+    WORKTREE_DIR=$(pwd)
+else
+    WORKTREE_DIR=$BASE_PROJECT_DIR/liferay-portal-$BRANCH
+fi
+
+BUNDLE_DIR=$(grep 'app.server.parent.dir' "$WORKTREE_DIR/app.server.me.properties" | cut -d'=' -f2)
+
+cd "$WORKTREE_DIR"
+
+if [ "$BUILD" = true ]; then
+    echo "Building in $WORKTREE_DIR..."
+    ant setup-profile-dxp
+    ant all
+fi
+
+echo "Starting server from $BUNDLE_DIR..."
+cd "$BUNDLE_DIR"/tomcat-*/bin
+./catalina.sh jpda run
