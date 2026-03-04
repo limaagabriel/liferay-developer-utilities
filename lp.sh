@@ -6,47 +6,52 @@
 #
 # Add to ~/.zshrc or ~/.bashrc:
 #   source ~/dev/scripts/lp.sh
-#
-# Usage:
-#   lp worktree add [-r <remote>] <branch>
-#   lp worktree cd <branch>
-#   lp worktree code <branch>
-#   lp worktree list
-#   lp worktree rebuild <branch>
-#   lp worktree remove <branch>
-#   lp worktree start [-b] [branch]
-#   lp mysql start
-#   lp mysql reset
-#   lp bundle cd <branch>
 
 _LP_SCRIPTS_DIR="/home/me/dev/scripts"
 
+source "$_LP_SCRIPTS_DIR/lib/help.sh"
+
 lp() {
-    if [[ $# -lt 2 ]]; then
-        echo "Usage: lp <namespace> <command> [args...]"
-        echo ""
-        echo "Available commands:"
-        echo "  lp worktree add [-r <remote>] <branch>"
-        echo "  lp worktree cd <branch>"
-        echo "  lp worktree code <branch>"
-        echo "  lp worktree list"
-        echo "  lp worktree rebuild <branch>"
-        echo "  lp worktree remove <branch>"
-        echo "  lp worktree start [-b] [branch]"
-        echo "  lp mysql start"
-        echo "  lp mysql reset"
-        echo "  lp bundle cd <branch>"
+    # No arguments — show top-level help
+    if [[ $# -eq 0 ]]; then
+        lp_top_level_help
         return 1
     fi
 
     local namespace="$1"
+
+    # lp help — top-level help
+    if [[ "$namespace" == "help" ]]; then
+        lp_top_level_help
+        return 0
+    fi
+
+    # Validate namespace
+    local ns_cmds
+    ns_cmds=$(_lp_ns_cmds "$namespace")
+    if [[ -z "$ns_cmds" ]]; then
+        echo "lp: unknown namespace '$namespace'" >&2
+        return 1
+    fi
+
+    # lp <ns> — namespace-level help
+    if [[ $# -eq 1 ]]; then
+        lp_namespace_help "$namespace"
+        return 1
+    fi
+
     local command="$2"
+
+    # lp <ns> help — namespace-level help
+    if [[ "$command" == "help" ]]; then
+        lp_namespace_help "$namespace"
+        return 0
+    fi
+
     local script="$_LP_SCRIPTS_DIR/commands/$namespace/$command.sh"
 
-    echo script: "$script"
-
     if [[ ! -f "$script" ]]; then
-        echo "lp: unknown command '$namespace $command'"
+        echo "lp: unknown command '$namespace $command'" >&2
         return 1
     fi
 

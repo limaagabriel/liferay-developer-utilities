@@ -10,21 +10,36 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     exit 1
 fi
 
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
+
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    echo "Change the current directory to a worktree."
+    echo ""
+    echo "Usage: lp worktree cd <branch>"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help   Show this help"
+    echo ""
+    echo "Examples:"
+    echo "  lp worktree cd main"
+    return 0
+fi
+
 source "$_LP_SCRIPTS_DIR/config.sh"
 
 BRANCH=$1
 
-if [ -z "$BRANCH" ]; then
-    echo "Usage: lp worktree cd <branch-name>"
+if [[ -z "$BRANCH" ]]; then
+    lp_error "Usage: lp worktree cd <branch>"
     return 1
 fi
 
 lp_branch_vars "$BRANCH"
 
-if [ ! -d "$WORKTREE_DIR" ]; then
-    echo "Worktree '$WORKTREE_DIR' does not exist."
+if [[ ! -d "$WORKTREE_DIR" ]]; then
+    lp_error "Worktree '$WORKTREE_DIR' does not exist."
     return 1
 fi
 
-echo "Changing directory to $WORKTREE_DIR..."
+lp_info "Changing directory to $WORKTREE_DIR..."
 cd "$WORKTREE_DIR"

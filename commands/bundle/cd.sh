@@ -10,29 +10,44 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     exit 1
 fi
 
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
+
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    echo "Change the current directory to a bundle."
+    echo ""
+    echo "Usage: lp bundle cd <branch>"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help   Show this help"
+    echo ""
+    echo "Examples:"
+    echo "  lp bundle cd main"
+    return 0
+fi
+
 source "$_LP_SCRIPTS_DIR/config.sh"
 
 BRANCH=$1
 
-if [ -z "$BRANCH" ]; then
-    echo "Usage: lp bundle cd <branch-name>"
+if [[ -z "$BRANCH" ]]; then
+    lp_error "Usage: lp bundle cd <branch>"
     return 1
 fi
 
 lp_branch_vars "$BRANCH"
 PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
 
-if [ ! -f "$PROPS_FILE" ]; then
-    echo "app.server.me.properties not found at '$WORKTREE_DIR'."
+if [[ ! -f "$PROPS_FILE" ]]; then
+    lp_error "app.server.me.properties not found at '$WORKTREE_DIR'."
     return 1
 fi
 
 BUNDLE_DIR=$(grep 'app.server.parent.dir' "$PROPS_FILE" | cut -d'=' -f2)
 
-if [ ! -d "$BUNDLE_DIR" ]; then
-    echo "Bundle directory '$BUNDLE_DIR' does not exist."
+if [[ ! -d "$BUNDLE_DIR" ]]; then
+    lp_error "Bundle directory '$BUNDLE_DIR' does not exist."
     return 1
 fi
 
-echo "Changing directory to $BUNDLE_DIR..."
+lp_info "Changing directory to $BUNDLE_DIR..."
 cd "$BUNDLE_DIR"
