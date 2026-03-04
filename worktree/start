@@ -1,8 +1,6 @@
 #!/bin/bash
-# filepath: ~/dev/scripts/lp-start.sh
-
-# Usage: lp-start.sh [-b] [branch-name]
-# If no branch is given, uses the current directory
+# Usage: lp worktree start [-b] [branch-name]
+# If no branch is given, uses the current directory.
 # -b: run the build step (skipped by default)
 
 set -e
@@ -17,13 +15,14 @@ while getopts ":b" opt; do
 done
 shift $((OPTIND - 1))
 
+source "$(dirname "${BASH_SOURCE[0]}")/../config"
+
 BRANCH=$1
-BASE_PROJECT_DIR=~/dev/projects
 
 if [ -z "$BRANCH" ]; then
     WORKTREE_DIR=$(pwd)
 else
-    WORKTREE_DIR=$BASE_PROJECT_DIR/liferay-portal-$BRANCH
+    lp_branch_vars "$BRANCH"
 fi
 
 BUNDLE_DIR=$(grep 'app.server.parent.dir' "$WORKTREE_DIR/app.server.me.properties" | cut -d'=' -f2)
@@ -32,6 +31,9 @@ cd "$WORKTREE_DIR"
 
 if [ "$BUILD" = true ]; then
     echo "Building in $WORKTREE_DIR..."
+
+    rm -rf "$BUNDLE_DIR"
+
     ant setup-profile-dxp
     ant all
 fi
