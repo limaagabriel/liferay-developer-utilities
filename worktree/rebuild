@@ -41,6 +41,8 @@ mkdir -p "$BUNDLE_DIR"
 
 echo "Building in '$WORKTREE_DIR'..."
 cd "$WORKTREE_DIR"
+
+ant setup-profile-dxp
 ant all
 
 echo "Done! Bundle rebuilt at '$BUNDLE_DIR'."
