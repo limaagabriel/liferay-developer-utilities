@@ -1,0 +1,32 @@
+#!/bin/bash
+# filepath: ~/dev/scripts/lp-cd-bundle.sh
+
+# Usage: source lp-cd-bundle <branch-name>
+# NOTE: This script must be sourced, not executed, to change the current shell directory
+# Add to ~/.bashrc or ~/.zshrc:
+#   alias lp-cd-bundle=". ~/dev/scripts/lp-cd-bundle.sh"
+
+BRANCH=$1
+BASE_PROJECT_DIR=~/dev/projects
+
+if [ -z "$BRANCH" ]; then
+    echo "Usage: lp-cd-bundle <branch-name>"
+    return 1
+fi
+
+WORKTREE_DIR=$BASE_PROJECT_DIR/liferay-portal-$BRANCH
+PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
+
+if [ ! -f "$PROPS_FILE" ]; then
+    echo "app.server.me.properties not found at '$WORKTREE_DIR'."
+    return 1
+fi
+
+BUNDLE_DIR=$(grep 'app.server.parent.dir' "$PROPS_FILE" | cut -d'=' -f2)
+
+if [ ! -d "$BUNDLE_DIR" ]; then
+    echo "Bundle directory '$BUNDLE_DIR' does not exist."
+    return 1
+fi
+
+cd "$BUNDLE_DIR"
