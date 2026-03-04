@@ -1,0 +1,15 @@
+services:
+  mysql:
+    image: mysql:8.0.31
+    container_name: mysql
+    command: --max_allowed_packet=24M
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - db:/opt/me/data
+
+volumes:
+  db:
+    driver: local

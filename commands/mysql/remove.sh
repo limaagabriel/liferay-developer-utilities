@@ -1,19 +1,19 @@
 #!/bin/bash
-# Usage: lp mysql reset [-v]
+# Usage: lp mysql remove [-v]
 
 source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Reset the lportal database (drop and recreate)."
+    echo "Remove MySQL via Docker Compose."
     echo ""
-    echo "Usage: lp mysql reset [-v]"
+    echo "Usage: lp mysql remove [-v]"
     echo ""
     echo "Options:"
     echo "  -v, --verbose   Show full docker output"
     echo "  -h, --help      Show this help"
     echo ""
     echo "Examples:"
-    echo "  lp mysql reset"
+    echo "  lp mysql remove"
     exit 0
 fi
 
@@ -31,10 +31,9 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-lp_step 1 2 "Dropping lportal database"
-lp_run docker exec mysql mysql -uroot -proot -e "drop database lportal;"
+ORIGINAL_DIR=$(pwd)
 
-lp_step 2 2 "Creating lportal database"
-lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;"
+lp_step 1 1 "Removing MySQL container"
+lp_run docker compose -f template.yaml down
 
-lp_success "Database reset complete."
+lp_success "MySQL has been removed."
