@@ -15,7 +15,7 @@ while getopts ":b" opt; do
 done
 shift $((OPTIND - 1))
 
-source "$(dirname "${BASH_SOURCE[0]}")/../config"
+source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh"
 
 BRANCH=$1
 

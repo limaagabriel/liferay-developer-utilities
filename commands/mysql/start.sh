@@ -8,6 +8,6 @@ docker compose -f mysql.yml up -d
 
 sleep 2
 
-"$(dirname "$0")/reset"
+"$(dirname "$0")/reset.sh"
 
 cd "$ORIGINAL_DIR"

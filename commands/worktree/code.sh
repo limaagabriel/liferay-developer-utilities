@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: lp worktree code <branch-name>
 
-source "$(dirname "${BASH_SOURCE[0]}")/../config"
+source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh"
 
 BRANCH=$1
 
