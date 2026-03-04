@@ -30,9 +30,10 @@ BUNDLE_DIR=$(grep 'app.server.parent.dir' "$WORKTREE_DIR/app.server.me.propertie
 cd "$WORKTREE_DIR"
 
 if [ "$BUILD" = true ]; then
-    echo "Building in $WORKTREE_DIR..."
-
+    echo "Removing bundle directory '$BUNDLE_DIR'..."
     rm -rf "$BUNDLE_DIR"
+
+    echo "Building in $WORKTREE_DIR..."
 
     ant setup-profile-dxp
     ant all
