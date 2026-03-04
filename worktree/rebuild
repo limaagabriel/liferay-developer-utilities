@@ -1,19 +1,18 @@
 #!/bin/bash
-# filepath: ~/dev/scripts/lp-rebuild.sh
-
-# Usage: lp-rebuild <branch-name>
+# Usage: lp worktree rebuild <branch-name>
 
 set -e
 
+source "$(dirname "${BASH_SOURCE[0]}")/../config"
+
 BRANCH=$1
-BASE_PROJECT_DIR=~/dev/projects
 
 if [ -z "$BRANCH" ]; then
-    echo "Usage: $0 <branch-name>"
+    echo "Usage: lp worktree rebuild <branch-name>"
     exit 1
 fi
 
-WORKTREE_DIR=$BASE_PROJECT_DIR/liferay-portal-$BRANCH
+lp_branch_vars "$BRANCH"
 PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
 
 if [ ! -d "$WORKTREE_DIR" ]; then

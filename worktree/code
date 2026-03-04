@@ -1,0 +1,20 @@
+#!/bin/bash
+# Usage: lp worktree code <branch-name>
+
+source "$(dirname "${BASH_SOURCE[0]}")/../config"
+
+BRANCH=$1
+
+if [ -z "$BRANCH" ]; then
+    echo "Usage: lp worktree code <branch-name>"
+    exit 1
+fi
+
+lp_branch_vars "$BRANCH"
+
+if [ ! -d "$WORKTREE_DIR" ]; then
+    echo "Worktree '$WORKTREE_DIR' does not exist."
+    exit 1
+fi
+
+code "$WORKTREE_DIR"

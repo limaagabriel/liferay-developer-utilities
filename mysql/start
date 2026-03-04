@@ -1,5 +1,5 @@
 #!/bin/bash
-# filepath: ~/dev/scripts/lp-mysql-start
+# Usage: lp mysql start
 
 ORIGINAL_DIR=$(pwd)
 
@@ -8,6 +8,6 @@ docker compose -f mysql.yml up -d
 
 sleep 2
 
-lp-mysql-reset
+"$(dirname "$0")/reset"
 
 cd "$ORIGINAL_DIR"
