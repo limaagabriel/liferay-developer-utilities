@@ -16,7 +16,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     exit 0
 fi
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh" || exit 1
 
 BRANCH=$1
 

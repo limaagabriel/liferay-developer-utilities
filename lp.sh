@@ -7,7 +7,11 @@
 # Add to ~/.zshrc or ~/.bashrc:
 #   source ~/dev/scripts/lp.sh
 
-_LP_SCRIPTS_DIR="/home/me/dev/scripts"
+if [[ -n "${ZSH_VERSION:-}" ]]; then
+    eval '_LP_SCRIPTS_DIR="$(cd "$(dirname "${(%):-%x}")" && pwd)"'
+else
+    _LP_SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 
 source "$_LP_SCRIPTS_DIR/lib/help.sh"
 
@@ -34,8 +38,12 @@ lp() {
         return 1
     fi
 
-    # lp <ns> — namespace-level help
+    # lp <ns> — namespace-level help (config defaults to show)
     if [[ $# -eq 1 ]]; then
+        if [[ "$namespace" == "config" ]]; then
+            "$_LP_SCRIPTS_DIR/commands/config/show.sh"
+            return $?
+        fi
         lp_namespace_help "$namespace"
         return 1
     fi

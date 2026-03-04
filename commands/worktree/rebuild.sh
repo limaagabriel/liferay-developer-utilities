@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh" || exit 1
 
 if [[ -z "$BRANCH" ]]; then
     lp_error "Usage: lp worktree rebuild [-v] <branch>"

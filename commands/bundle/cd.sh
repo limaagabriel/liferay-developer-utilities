@@ -25,7 +25,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     return 0
 fi
 
-source "$_LP_SCRIPTS_DIR/config.sh"
+source "$_LP_SCRIPTS_DIR/config.sh" || return 1
 
 BRANCH=$1
 

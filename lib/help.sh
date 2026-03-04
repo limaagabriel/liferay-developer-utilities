@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle mysql"
+_LP_NAMESPACES="worktree bundle mysql config"
 
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
@@ -23,6 +23,7 @@ _lp_ns_desc() {
         worktree) echo "Manage git worktrees for portal branches" ;;
         bundle)   echo "Manage Liferay bundle directories" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
+        config)   echo "Manage per-user lp configuration" ;;
         *)        echo "" ;;
     esac
 }
@@ -33,6 +34,7 @@ _lp_ns_cmds() {
         worktree) echo "add cd code list rebuild remove start" ;;
         bundle)   echo "cd remove" ;;
         mysql)    echo "reset start" ;;
+        config)   echo "show init" ;;
         *)        echo "" ;;
     esac
 }
@@ -51,6 +53,8 @@ _lp_cmd_desc() {
         bundle/remove)    echo "Remove a bundle directory" ;;
         mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
         mysql/start)      echo "Start MySQL via Docker Compose and reset the database" ;;
+        config/show)      echo "Show the currently resolved lp configuration" ;;
+        config/init)      echo "Interactively create the per-user config file" ;;
         *)                echo "" ;;
     esac
 }
@@ -69,6 +73,8 @@ _lp_cmd_usage() {
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-v]" ;;
         mysql/start)      echo "lp mysql start [-v]" ;;
+        config/show)      echo "lp config" ;;
+        config/init)      echo "lp config init" ;;
         *)                echo "" ;;
     esac
 }
@@ -118,6 +124,12 @@ _lp_cmd_opts() {
             echo "  -v, --verbose   Show full docker output"
             echo "  -h, --help      Show this help"
             ;;
+        config/show)
+            echo "  -h, --help   Show this help"
+            ;;
+        config/init)
+            echo "  -h, --help   Show this help"
+            ;;
         *)
             echo "  (none)"
             ;;
@@ -164,6 +176,12 @@ _lp_cmd_examples() {
             ;;
         mysql/start)
             echo "  lp mysql start"
+            ;;
+        config/show)
+            echo "  lp config"
+            ;;
+        config/init)
+            echo "  lp config init"
             ;;
         *)
             echo "  (none)"
