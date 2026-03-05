@@ -66,7 +66,9 @@ lp() {
     # Commands that must be sourced to affect the current shell's working directory
     case "$namespace/$command" in
         worktree/cd|bundle/cd)
-            source "$script" "${@:3}"
+            local _cd_args=("${@:3}")
+            set -- "${_cd_args[@]}"
+            source "$script"
             ;;
         *)
             "$script" "${@:3}"
