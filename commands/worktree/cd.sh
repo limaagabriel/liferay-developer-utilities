@@ -30,8 +30,13 @@ source "$_LP_SCRIPTS_DIR/config.sh" || return 1
 BRANCH=$1
 
 if [[ -z "$BRANCH" ]]; then
-    lp_error "Usage: lp worktree cd <branch>"
-    return 1
+    if [[ ! -d "$MAIN_REPO_DIR" ]]; then
+        lp_error "Main repository '$MAIN_REPO_DIR' does not exist."
+        return 1
+    fi
+    lp_info "Changing directory to $MAIN_REPO_DIR..."
+    cd "$MAIN_REPO_DIR"
+    return 0
 fi
 
 lp_branch_vars "$BRANCH"
