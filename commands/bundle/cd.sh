@@ -29,7 +29,7 @@ source "$_LP_SCRIPTS_DIR/config.sh" || return 1
 
 BRANCH=$1
 
-if [[ -z "$BRANCH" ]]; then
+if [[ -z "$BRANCH" || "$BRANCH" == "master" ]]; then
     WORKTREE_DIR="$MAIN_REPO_DIR"
 else
     lp_branch_vars "$BRANCH"

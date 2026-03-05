@@ -29,7 +29,7 @@ source "$_LP_SCRIPTS_DIR/config.sh" || return 1
 
 BRANCH=$1
 
-if [[ -z "$BRANCH" ]]; then
+if [[ -z "$BRANCH" || "$BRANCH" == "master" ]]; then
     if [[ ! -d "$MAIN_REPO_DIR" ]]; then
         lp_error "Main repository '$MAIN_REPO_DIR' does not exist."
         return 1
