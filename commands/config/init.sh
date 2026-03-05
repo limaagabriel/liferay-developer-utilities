@@ -55,6 +55,7 @@ _lp_prompt _BASE_PROJECT_DIR "Base project directory" "$HOME/dev/projects"
 _lp_prompt _MAIN_REPO_NAME   "Main repository name"   "liferay-portal"
 _lp_prompt _MAIN_REPO_DIR    "Main repository path"   "$_BASE_PROJECT_DIR/$_MAIN_REPO_NAME"
 _lp_prompt _BUNDLES_DIR      "Bundles directory"       "$HOME/dev/bundles"
+_lp_prompt _ENABLE_AUTOCOMPLETE "Enable tab completion (yes/no)" "yes"
 
 # Create config directory if needed (task 4.4)
 _LP_CONFIG_DIR="$(dirname "$_LP_USER_CONFIG")"
@@ -73,6 +74,7 @@ BASE_PROJECT_DIR=$_BASE_PROJECT_DIR
 MAIN_REPO_NAME=$_MAIN_REPO_NAME
 MAIN_REPO_DIR=$_MAIN_REPO_DIR
 BUNDLES_DIR=$_BUNDLES_DIR
+ENABLE_AUTOCOMPLETE=$_ENABLE_AUTOCOMPLETE
 EOF
 
 # Success message (task 4.6)

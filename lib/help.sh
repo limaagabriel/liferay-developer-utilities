@@ -212,6 +212,8 @@ lp_top_level_help() {
     done
     echo "Run 'lp <namespace> help' for details on a namespace."
     echo "Run 'lp <namespace> <command> --help' for details on a command."
+    echo ""
+    echo "Tip: source completions.sh to enable tab completion for branch names."
 }
 
 # lp_namespace_help <ns> — print all commands in a namespace with synopsis and example

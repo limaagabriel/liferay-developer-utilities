@@ -15,6 +15,18 @@ fi
 
 source "$_LP_SCRIPTS_DIR/lib/help.sh"
 
+# Enable tab completion if configured (or if no user config exists yet, default yes)
+_LP_USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
+if [[ -f "$_LP_USER_CONFIG" ]]; then
+    _LP_AUTOCOMPLETE=$(bash -c "source \"$_LP_USER_CONFIG\" 2>/dev/null; echo \${ENABLE_AUTOCOMPLETE:-yes}")
+else
+    _LP_AUTOCOMPLETE=yes
+fi
+if [[ "$_LP_AUTOCOMPLETE" == yes ]] && [[ -f "$_LP_SCRIPTS_DIR/completions.sh" ]]; then
+    source "$_LP_SCRIPTS_DIR/completions.sh"
+fi
+unset _LP_USER_CONFIG _LP_AUTOCOMPLETE
+
 lp() {
     # No arguments — show top-level help
     if [[ $# -eq 0 ]]; then
