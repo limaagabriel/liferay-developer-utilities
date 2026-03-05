@@ -31,12 +31,13 @@ BASE_PROJECT_DIR="${BASE_PROJECT_DIR:=$HOME/dev/projects}"
 MAIN_REPO_NAME="${MAIN_REPO_NAME:=liferay-portal}"
 MAIN_REPO_DIR="${MAIN_REPO_DIR:=$BASE_PROJECT_DIR/$MAIN_REPO_NAME}"
 BUNDLES_DIR="${BUNDLES_DIR:=$HOME/dev/bundles}"
+ENABLE_AUTOCOMPLETE="${ENABLE_AUTOCOMPLETE:=yes}"
 
 # ---------------------------------------------------------------------------
 # Warn for any expected variable that is still unset (task 2.6)
 # ---------------------------------------------------------------------------
 
-for _lp_var in BASE_PROJECT_DIR MAIN_REPO_NAME MAIN_REPO_DIR BUNDLES_DIR; do
+for _lp_var in BASE_PROJECT_DIR MAIN_REPO_NAME MAIN_REPO_DIR BUNDLES_DIR ENABLE_AUTOCOMPLETE; do
     if [[ -z "${!_lp_var}" ]]; then
         echo "lp: warning: '$_lp_var' is unset after loading config." >&2
     fi
