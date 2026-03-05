@@ -30,11 +30,11 @@ source "$_LP_SCRIPTS_DIR/config.sh" || return 1
 BRANCH=$1
 
 if [[ -z "$BRANCH" ]]; then
-    lp_error "Usage: lp bundle cd <branch>"
-    return 1
+    WORKTREE_DIR="$MAIN_REPO_DIR"
+else
+    lp_branch_vars "$BRANCH"
 fi
 
-lp_branch_vars "$BRANCH"
 PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
 
 if [[ ! -f "$PROPS_FILE" ]]; then
