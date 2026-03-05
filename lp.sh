@@ -71,7 +71,7 @@ lp() {
             source "$script"
             ;;
         *)
-            "$script" "${@:3}"
+            _LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$script" "${@:3}"
             ;;
     esac
 }
