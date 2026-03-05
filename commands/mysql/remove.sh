@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-ORIGINAL_DIR=$(pwd)
+cd "$_LP_SCRIPTS_DIR/commands/mysql" || exit 1
 
 lp_step 1 1 "Removing MySQL container"
 lp_run docker compose -f template.yaml down

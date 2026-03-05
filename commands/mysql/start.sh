@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-ORIGINAL_DIR=$(pwd)
+cd "$_LP_SCRIPTS_DIR/commands/mysql" || exit 1
 
 lp_step 1 1 "Starting MySQL container"
 lp_run docker compose -f ./template.yaml up -d
@@ -39,5 +39,4 @@ lp_run docker compose -f ./template.yaml up -d
 lp_step 2 2 "Creating lportal database"
 lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;"
 
-cd "$ORIGINAL_DIR"
 lp_success "MySQL is ready."
