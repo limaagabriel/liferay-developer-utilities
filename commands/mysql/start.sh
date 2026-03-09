@@ -34,9 +34,21 @@ done
 cd "$_LP_SCRIPTS_DIR/commands/mysql" || exit 1
 
 lp_step 1 1 "Starting MySQL container"
+
+if docker ps -a --format '{{.Names}}' | grep -q '^mysql$'; then
+    lp_run docker compose -f ./template.yaml down
+    lp_run docker rm -f mysql &> /dev/null || true
+fi
+
 lp_run docker compose -f ./template.yaml up -d
 
-lp_step 2 2 "Creating lportal database"
+lp_step 2 3 "Waiting for MySQL to be ready"
+until docker exec mysql mysql -uroot -proot -e "select 1" &> /dev/null; do
+    sleep 1
+done
+
+lp_step 3 3 "Creating lportal database"
+lp_run docker exec mysql mysql -uroot -proot -e "drop database lportal;"
 lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;"
 
 lp_success "MySQL is ready."

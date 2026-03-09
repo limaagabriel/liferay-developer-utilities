@@ -38,11 +38,12 @@ ENABLE_AUTOCOMPLETE="${ENABLE_AUTOCOMPLETE:=yes}"
 # ---------------------------------------------------------------------------
 
 for _lp_var in BASE_PROJECT_DIR MAIN_REPO_NAME MAIN_REPO_DIR BUNDLES_DIR ENABLE_AUTOCOMPLETE; do
-    if [[ -z "${!_lp_var}" ]]; then
+    eval "_lp_val=\"\${$_lp_var}\""
+    if [[ -z "$_lp_val" ]]; then
         echo "lp: warning: '$_lp_var' is unset after loading config." >&2
     fi
 done
-unset _lp_var
+unset _lp_var _lp_val
 
 # Sets WORKTREE_DIR and BUNDLE_DIR for a given branch name.
 # Usage: lp_branch_vars <branch-name>
