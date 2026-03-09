@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle mysql config"
+_LP_NAMESPACES="worktree bundle mysql config git"
 
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
@@ -24,6 +24,7 @@ _lp_ns_desc() {
         bundle)   echo "Manage Liferay bundle directories" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
         config)   echo "Manage per-user lp configuration" ;;
+        git)      echo "Git utilities" ;;
         *)        echo "" ;;
     esac
 }
@@ -35,6 +36,7 @@ _lp_ns_cmds() {
         bundle)   echo "cd remove" ;;
         mysql)    echo "reset start" ;;
         config)   echo "show init" ;;
+        git)      echo "patch" ;;
         *)        echo "" ;;
     esac
 }
@@ -55,6 +57,7 @@ _lp_cmd_desc() {
         mysql/start)      echo "Start MySQL via Docker Compose and reset the database" ;;
         config/show)      echo "Show the currently resolved lp configuration" ;;
         config/init)      echo "Interactively create the per-user config file" ;;
+        git/patch)        echo "Download a git patch from a URL and apply it" ;;
         *)                echo "" ;;
     esac
 }
@@ -75,6 +78,7 @@ _lp_cmd_usage() {
         mysql/start)      echo "lp mysql start [-v]" ;;
         config/show)      echo "lp config" ;;
         config/init)      echo "lp config init" ;;
+        git/patch)        echo "lp git patch [-c] [-v] <url>" ;;
         *)                echo "" ;;
     esac
 }
@@ -130,6 +134,11 @@ _lp_cmd_opts() {
         config/init)
             echo "  -h, --help   Show this help"
             ;;
+        git/patch)
+            echo "  -c, --commit    Apply the patch as a commit (default: leave changes uncommitted)"
+            echo "  -v, --verbose   Show full git output"
+            echo "  -h, --help      Show this help"
+            ;;
         *)
             echo "  (none)"
             ;;
@@ -182,6 +191,10 @@ _lp_cmd_examples() {
             ;;
         config/init)
             echo "  lp config init"
+            ;;
+        git/patch)
+            echo "  lp git patch https://example.com/fix.patch"
+            echo "  lp git patch --commit https://example.com/fix.patch"
             ;;
         *)
             echo "  (none)"
