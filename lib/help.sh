@@ -32,7 +32,7 @@ _lp_ns_desc() {
 # _lp_ns_cmds <ns> — space-separated command list for a namespace (defines display order)
 _lp_ns_cmds() {
     case "$1" in
-        worktree) echo "add cd code list rebuild remove start" ;;
+        worktree) echo "add cd list rebuild remove start" ;;
         bundle)   echo "cd remove" ;;
         mysql)    echo "reset start" ;;
         config)   echo "show init" ;;
@@ -46,7 +46,6 @@ _lp_cmd_desc() {
     case "$1/$2" in
         worktree/add)     echo "Add a new git worktree for a branch" ;;
         worktree/cd)      echo "Change the current directory to a worktree" ;;
-        worktree/code)    echo "Open a worktree in VS Code" ;;
         worktree/list)    echo "List all active worktrees and their bundles" ;;
         worktree/rebuild) echo "Delete the bundle and rebuild it from the worktree" ;;
         worktree/remove)  echo "Remove a worktree and its bundle directory" ;;
@@ -67,7 +66,6 @@ _lp_cmd_usage() {
     case "$1/$2" in
         worktree/add)     echo "lp worktree add [-r <remote>] [-v] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
-        worktree/code)    echo "lp worktree code <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
         worktree/rebuild) echo "lp worktree rebuild [-v] <branch>" ;;
         worktree/remove)  echo "lp worktree remove [-v] <branch>" ;;
@@ -92,9 +90,6 @@ _lp_cmd_opts() {
             echo "  -h, --help              Show this help"
             ;;
         worktree/cd)
-            echo "  -h, --help   Show this help"
-            ;;
-        worktree/code)
             echo "  -h, --help   Show this help"
             ;;
         worktree/list)
@@ -155,9 +150,6 @@ _lp_cmd_examples() {
             ;;
         worktree/cd)
             echo "  lp worktree cd main"
-            ;;
-        worktree/code)
-            echo "  lp worktree code main"
             ;;
         worktree/list)
             echo "  lp worktree list"
