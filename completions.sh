@@ -43,7 +43,7 @@ _lp_get_branches() {
 # worktree/add is intentionally excluded — it creates new worktrees.
 _lp_has_branch_arg() {
     case "$1/$2" in
-        worktree/cd|worktree/code|worktree/start|worktree/remove|\
+        worktree/cd|worktree/start|worktree/remove|\
         worktree/rebuild|worktree/clean|bundle/cd|bundle/remove|\
         mysql/reset|mysql/start)
             return 0 ;;
