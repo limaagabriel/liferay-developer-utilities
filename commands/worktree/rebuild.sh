@@ -1,12 +1,13 @@
 #!/bin/bash
-# Usage: lp worktree rebuild [-v] <branch>
+# Usage: lp worktree rebuild [-v] [branch]
+# If no branch is given, uses the current directory.
 
 source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Delete the bundle and rebuild it from the worktree."
     echo ""
-    echo "Usage: lp worktree rebuild [-v] <branch>"
+    echo "Usage: lp worktree rebuild [-v] [branch]"
     echo ""
     echo "Options:"
     echo "  -v, --verbose   Show full ant/git output"
@@ -15,6 +16,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Examples:"
     echo "  lp worktree rebuild main"
     echo "  lp worktree rebuild --verbose main"
+    echo "  lp worktree rebuild           # uses current directory"
     exit 0
 fi
 
@@ -36,11 +38,11 @@ done
 source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh" || exit 1
 
 if [[ -z "$BRANCH" ]]; then
-    lp_error "Usage: lp worktree rebuild [-v] <branch>"
-    exit 1
+    WORKTREE_DIR=$(pwd)
+else
+    lp_branch_vars "$BRANCH"
 fi
 
-lp_branch_vars "$BRANCH"
 PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
 
 if [[ ! -d "$WORKTREE_DIR" ]]; then
