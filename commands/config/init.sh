@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: lp config init
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Interactively create the per-user lp configuration file."

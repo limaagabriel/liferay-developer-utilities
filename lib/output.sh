@@ -2,7 +2,7 @@
 # lib/output.sh — Shared output helpers for lp scripts.
 #
 # Source this file at the top of lp scripts:
-#   source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
+#   source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 # lp_step N TOTAL "message" — print "[N/TOTAL] message..."
 lp_step() {
@@ -24,11 +24,41 @@ lp_error() {
     echo "$1" >&2
 }
 
-# lp_run <cmd> [args...] — run a command, suppressing stdout+stderr unless VERBOSE=1
+# lp_run <cmd> [args...] — run a command, suppressing stdout+stderr unless VERBOSE=1.
+# If the command fails in non-verbose mode, the last 100 lines of output are shown.
 lp_run() {
     if [[ "${VERBOSE:-0}" -eq 1 ]]; then
         "$@"
+        return $?
     else
-        "$@" > /dev/null 2>&1
+        local tmp_out
+        tmp_out=$(mktemp)
+        "$@" > "$tmp_out" 2>&1
+        local exit_code=$?
+        
+        if [[ $exit_code -ne 0 ]]; then
+            echo "Command failed with exit code $exit_code: $*" >&2
+            echo "Last 100 lines of output:" >&2
+            tail -n 100 "$tmp_out" >&2
+            rm -f "$tmp_out"
+            exit $exit_code
+        fi
+        
+        rm -f "$tmp_out"
+        return 0
     fi
+}
+
+# lp_format_duration <seconds> — format seconds into a human-readable string
+lp_format_duration() {
+    local T=$1
+    local D=$((T/60/60/24))
+    local H=$((T/60/60%24))
+    local M=$((T/60%60))
+    local S=$((T%60))
+    
+    [[ $D -gt 0 ]] && printf '%dd ' $D
+    [[ $H -gt 0 ]] && printf '%dh ' $H
+    [[ $M -gt 0 ]] && printf '%dm ' $M
+    printf '%ds' $S
 }
