@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle portal mysql config git"
+_LP_NAMESPACES="worktree bundle portal playwright mysql config git"
 
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
@@ -23,6 +23,7 @@ _lp_ns_desc() {
         worktree) echo "Manage git worktrees for portal branches" ;;
         bundle)   echo "Manage Liferay bundle directories" ;;
         portal)   echo "Liferay Portal development utilities" ;;
+        playwright) echo "Playwright test utilities" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
         config)   echo "Manage per-user lp configuration" ;;
         git)      echo "Git utilities" ;;
@@ -36,6 +37,7 @@ _lp_ns_cmds() {
         worktree) echo "add cd list rebuild remove start get set unset root" ;;
         bundle)   echo "cd remove" ;;
         portal)   echo "cdm gw" ;;
+        playwright) echo "test" ;;
         mysql)    echo "reset start" ;;
         config)   echo "show init" ;;
         git)      echo "patch" ;;
@@ -58,6 +60,7 @@ _lp_cmd_desc() {
         worktree/root)    echo "Change the current directory to the root of the active worktree" ;;
         portal/cdm)       echo "Fuzzy module search and cd in the current git repository" ;;
         portal/gw)        echo "Run gradle tasks in the current directory" ;;
+        playwright/test)  echo "Run Playwright tests in the current worktree" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
         mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
@@ -84,6 +87,7 @@ _lp_cmd_usage() {
         worktree/root)    echo "lp worktree root" ;;
         portal/cdm)       echo "lp portal cdm" ;;
         portal/gw)        echo "lp portal gw [tasks...]" ;;
+        playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-v]" ;;
@@ -138,6 +142,11 @@ _lp_cmd_opts() {
             echo "  Note: Requires 'fzf' to be installed"
             ;;
         portal/gw)
+            echo "  -h, --help      Show this help"
+            ;;
+        playwright/test)
+            echo "  -n <number>     Number of times to run the test (default: 1)"
+            echo "  -v, --verbose   Show full playwright output"
             echo "  -h, --help      Show this help"
             ;;
         bundle/cd)
@@ -215,6 +224,10 @@ _lp_cmd_examples() {
             ;;
         portal/gw)
             echo "  lp portal gw clean deploy"
+            ;;
+        playwright/test)
+            echo "  lp playwright test tests/my-test.spec.ts"
+            echo "  lp playwright test -n 5 tests/flaky-test.spec.ts"
             ;;
         bundle/cd)
             echo "  lp bundle cd main"
