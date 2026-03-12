@@ -36,10 +36,18 @@ done
 
 source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh" || exit 1
 
-if [[ -z "$BRANCH" ]]; then
-    WORKTREE_DIR=$(pwd)
+BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
+BRANCH="${BRANCH:-master}"
+
+if [[ "$BRANCH" == "master" ]]; then
+    WORKTREE_DIR="$MAIN_REPO_DIR"
 else
     lp_branch_vars "$BRANCH"
+fi
+
+if [[ ! -d "$WORKTREE_DIR" ]]; then
+    lp_error "Worktree '$WORKTREE_DIR' does not exist."
+    exit 1
 fi
 
 cd "$WORKTREE_DIR"

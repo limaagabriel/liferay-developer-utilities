@@ -69,7 +69,7 @@ _lp_cmd_usage() {
         worktree/list)    echo "lp worktree list" ;;
         worktree/rebuild) echo "lp worktree rebuild [-v] <branch>" ;;
         worktree/remove)  echo "lp worktree remove [-v] <branch>" ;;
-        worktree/start)   echo "lp worktree start [-b] [-v] [branch]" ;;
+        worktree/start)   echo "lp worktree start [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-v]" ;;
@@ -104,7 +104,6 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         worktree/start)
-            echo "  -b              Run the build step before starting"
             echo "  -v, --verbose   Show full ant output (catalina log always shown)"
             echo "  -h, --help      Show this help"
             ;;
@@ -163,7 +162,6 @@ _lp_cmd_examples() {
             ;;
         worktree/start)
             echo "  lp worktree start main"
-            echo "  lp worktree start -b main"
             echo "  lp worktree start           # uses current directory"
             ;;
         bundle/cd)

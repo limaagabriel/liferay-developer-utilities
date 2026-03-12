@@ -27,7 +27,7 @@ fi
 
 source "$_LP_SCRIPTS_DIR/config.sh" || return 1
 
-BRANCH=$1
+BRANCH="${1:-$LP_WORKTREE_REFERENCE_BRANCH}"
 
 if [[ -z "$BRANCH" || "$BRANCH" == "master" ]]; then
     if [[ ! -d "$MAIN_REPO_DIR" ]]; then

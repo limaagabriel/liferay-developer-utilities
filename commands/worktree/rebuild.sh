@@ -37,18 +37,21 @@ done
 
 source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh" || exit 1
 
-if [[ -z "$BRANCH" ]]; then
-    WORKTREE_DIR=$(pwd)
+BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
+BRANCH="${BRANCH:-master}"
+
+if [[ "$BRANCH" == "master" ]]; then
+    WORKTREE_DIR="$MAIN_REPO_DIR"
 else
     lp_branch_vars "$BRANCH"
 fi
-
-PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
 
 if [[ ! -d "$WORKTREE_DIR" ]]; then
     lp_error "Worktree '$WORKTREE_DIR' does not exist."
     exit 1
 fi
+
+PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
 
 if [[ ! -f "$PROPS_FILE" ]]; then
     lp_error "app.server.me.properties not found at '$WORKTREE_DIR'."
@@ -56,6 +59,11 @@ if [[ ! -f "$PROPS_FILE" ]]; then
 fi
 
 BUNDLE_DIR=$(grep 'app.server.parent.dir' "$PROPS_FILE" | cut -d'=' -f2)
+
+if [[ -z "$BUNDLE_DIR" ]]; then
+    lp_error "Could not find bundle directory for worktree '$WORKTREE_DIR'."
+    exit 1
+fi
 
 read -p "This will delete '$BUNDLE_DIR' and rebuild. Continue? [y/N] " confirm
 if [[ "$confirm" != "y" ]]; then
