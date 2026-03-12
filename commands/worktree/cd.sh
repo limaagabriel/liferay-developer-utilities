@@ -36,6 +36,7 @@ if [[ -z "$BRANCH" || "$BRANCH" == "master" ]]; then
     fi
     lp_info "Changing directory to $MAIN_REPO_DIR..."
     cd "$MAIN_REPO_DIR"
+    source "$_LP_SCRIPTS_DIR/commands/worktree/set.sh" "master"
     return 0
 fi
 
@@ -48,3 +49,4 @@ fi
 
 lp_info "Changing directory to $WORKTREE_DIR..."
 cd "$WORKTREE_DIR"
+source "$_LP_SCRIPTS_DIR/commands/worktree/set.sh" "$BRANCH"
