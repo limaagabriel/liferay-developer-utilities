@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: lp worktree list
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "List all active git worktrees and their bundles."
@@ -16,7 +16,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     exit 0
 fi
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh" || exit 1
+source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
 
 lp_info "Active Liferay Portal worktrees:"
 lp_info "---------------------------------"

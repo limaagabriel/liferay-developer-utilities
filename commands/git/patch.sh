@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: lp git patch [-c] [-v] <url>
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Download a git patch from a URL and apply it to the current repository."

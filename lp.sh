@@ -14,6 +14,7 @@ else
 fi
 
 source "$_LP_SCRIPTS_DIR/lib/help.sh"
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 # Enable tab completion if configured (or if no user config exists yet, default yes)
 _LP_USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
@@ -78,6 +79,7 @@ lp() {
 
     # Commands that must be sourced to affect the current shell's working directory
     # or environment (e.g. session-scoped variables)
+    local _lp_start_time=$(date +%s)
     case "$namespace/$command" in
         worktree/cd|bundle/cd|worktree/set|worktree/unset|worktree/get|worktree/root|portal/cdm|portal/gw)
             local _cd_args=("${@:3}")
@@ -88,4 +90,14 @@ lp() {
             _LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$script" "${@:3}"
             ;;
     esac
+    local _lp_exit_code=$?
+    local _lp_end_time=$(date +%s)
+
+    local _lp_duration=$((_lp_end_time - _lp_start_time))
+    echo ""
+    echo -n "Time spent: "
+    lp_format_duration $_lp_duration
+    echo ""
+
+    return $_lp_exit_code
 }

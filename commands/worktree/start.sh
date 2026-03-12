@@ -2,7 +2,7 @@
 # Usage: lp worktree start [-v] [branch]
 # If no branch is given, uses the current directory.
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Start the Liferay server for a worktree."
@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh" || exit 1
+source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
 
 BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
 BRANCH="${BRANCH:-master}"

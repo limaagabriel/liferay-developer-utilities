@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: lp config [show]
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Show the currently resolved lp configuration."
@@ -24,7 +24,7 @@ else
     lp_info "Config file: (none — using built-in defaults)"
 fi
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh" 2>/dev/null || true
+source "$_LP_SCRIPTS_DIR/config.sh" 2>/dev/null || true
 
 # If config.sh returned early (no user config), the defaults are not set.
 # Apply them directly here so show always prints something useful.

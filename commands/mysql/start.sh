@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: lp mysql start [-v]
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Start MySQL via Docker Compose and reset the database."

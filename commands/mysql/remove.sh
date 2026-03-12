@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: lp mysql remove [-v]
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Remove MySQL via Docker Compose."
