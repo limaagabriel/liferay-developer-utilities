@@ -34,8 +34,11 @@ done
 
 source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh" || exit 1
 
-if [[ -z "$BRANCH" ]]; then
-    lp_error "Usage: lp bundle remove [-v] <branch>"
+BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
+BRANCH="${BRANCH:-master}"
+
+if [[ "$BRANCH" == "master" ]]; then
+    lp_error "Cannot remove the master bundle."
     exit 1
 fi
 
