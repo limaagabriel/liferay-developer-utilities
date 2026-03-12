@@ -14,6 +14,11 @@ This project, `lp`, is a collection of Bash-based CLI tools designed to streamli
 
 ## Engineering Standards
 
+### Aliases & Shortcuts
+- **Simplified Commands:** Users can source `aliases.sh` to get shorter commands for common portal tasks:
+  - `source ~/dev/scripts/aliases.sh`
+  - This provides `cdm` (for `lp portal cdm`) and `gw` (for `lp portal gw`).
+
 ### Bash Style & Conventions
 - **Compatibility:** Scripts should be compatible with both Bash 3+ and Zsh.
 - **Sourcing Libraries:** Always use the `$_LP_SCRIPTS_DIR` variable (defined in `lp.sh`) when sourcing libraries. This is more robust than using `$(dirname "${BASH_SOURCE[0]}")`, which can fail when sourced in Zsh.
@@ -40,5 +45,6 @@ This project, `lp`, is a collection of Bash-based CLI tools designed to streamli
 ## Mandates for Gemini
 - **Strict Adherence:** Always follow the standardized output patterns defined in `lib/output.sh`.
 - **Help Synchronization:** When modifying or adding commands, ensure both the script's internal help and the centralized `lib/help.sh` are updated in sync.
+- **Config Synchronization:** When adding or modifying configuration variables in `config.sh` or `commands/config/init.sh`, always update `commands/config/show.sh` to ensure the new variables are visible to the user via `lp config`.
 - **Relative Paths:** Use relative path resolution (e.g., `$(dirname "${BASH_SOURCE[0]}")`) when sourcing files within scripts to ensure portability.
 - **Master Branch Safety:** Never perform destructive operations (like `remove` or `rebuild`) on the `master` branch or its bundle without explicit user confirmation.

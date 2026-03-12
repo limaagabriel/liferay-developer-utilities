@@ -20,13 +20,21 @@ source "$_LP_SCRIPTS_DIR/lib/output.sh"
 _LP_USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
 if [[ -f "$_LP_USER_CONFIG" ]]; then
     _LP_AUTOCOMPLETE=$(bash -c "source \"$_LP_USER_CONFIG\" 2>/dev/null; echo \${ENABLE_AUTOCOMPLETE:-yes}")
+    _LP_ENABLE_ALIASES=$(bash -c "source \"$_LP_USER_CONFIG\" 2>/dev/null; echo \${ENABLE_ALIASES:-yes}")
 else
     _LP_AUTOCOMPLETE=yes
+    _LP_ENABLE_ALIASES=yes
 fi
+
 if [[ "$_LP_AUTOCOMPLETE" == yes ]] && [[ -f "$_LP_SCRIPTS_DIR/completions.sh" ]]; then
     source "$_LP_SCRIPTS_DIR/completions.sh"
 fi
-unset _LP_USER_CONFIG _LP_AUTOCOMPLETE
+
+if [[ "$_LP_ENABLE_ALIASES" == yes ]] && [[ -f "$_LP_SCRIPTS_DIR/aliases.sh" ]]; then
+    source "$_LP_SCRIPTS_DIR/aliases.sh"
+fi
+
+unset _LP_USER_CONFIG _LP_AUTOCOMPLETE _LP_ENABLE_ALIASES
 
 lp() {
     # No arguments — show top-level help
