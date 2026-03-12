@@ -16,7 +16,9 @@ This project, `lp`, is a collection of Bash-based CLI tools designed to streamli
 
 ### Bash Style & Conventions
 - **Compatibility:** Scripts should be compatible with both Bash 3+ and Zsh.
-- **Sourcing:** Always use `source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"` (or similar relative paths) to include libraries.
+- **Sourcing Libraries:** Always use the `$_LP_SCRIPTS_DIR` variable (defined in `lp.sh`) when sourcing libraries. This is more robust than using `$(dirname "${BASH_SOURCE[0]}")`, which can fail when sourced in Zsh.
+  - **Preferred:** `source "$_LP_SCRIPTS_DIR/lib/output.sh"`
+  - **Avoid:** `source "$(dirname "${BASH_SOURCE[0]}")/../../lib/output.sh"`
 - **Error Handling:** Use `lp_error` for error messages and exit with a non-zero status code on failure.
 - **Verbosity:** Support a `-v` or `--verbose` flag using the `VERBOSE` variable and the `lp_run` helper from `lib/output.sh`.
 - **Help:** Every script should handle `--help` and `-h` flags internally, and also be registered in `lib/help.sh`.

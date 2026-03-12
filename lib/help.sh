@@ -15,13 +15,14 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle mysql config git"
+_LP_NAMESPACES="worktree bundle portal mysql config git"
 
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
     case "$1" in
         worktree) echo "Manage git worktrees for portal branches" ;;
         bundle)   echo "Manage Liferay bundle directories" ;;
+        portal)   echo "Liferay Portal development utilities" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
         config)   echo "Manage per-user lp configuration" ;;
         git)      echo "Git utilities" ;;
@@ -34,6 +35,7 @@ _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list rebuild remove start get set unset root" ;;
         bundle)   echo "cd remove" ;;
+        portal)   echo "cdm gw" ;;
         mysql)    echo "reset start" ;;
         config)   echo "show init" ;;
         git)      echo "patch" ;;
@@ -54,6 +56,8 @@ _lp_cmd_desc() {
         worktree/set)     echo "Set the reference branch for the session" ;;
         worktree/unset)   echo "Reset the reference branch to master" ;;
         worktree/root)    echo "Change the current directory to the root of the active worktree" ;;
+        portal/cdm)       echo "Fuzzy module search and cd in the current git repository" ;;
+        portal/gw)        echo "Run gradle tasks in the current directory" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
         mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
@@ -78,6 +82,8 @@ _lp_cmd_usage() {
         worktree/set)     echo "lp worktree set [branch-name]" ;;
         worktree/unset)   echo "lp worktree unset" ;;
         worktree/root)    echo "lp worktree root" ;;
+        portal/cdm)       echo "lp portal cdm" ;;
+        portal/gw)        echo "lp portal gw [tasks...]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-v]" ;;
@@ -125,6 +131,13 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         worktree/root)
+            echo "  -h, --help      Show this help"
+            ;;
+        portal/cdm)
+            echo "  -h, --help      Show this help"
+            echo "  Note: Requires 'fzf' to be installed"
+            ;;
+        portal/gw)
             echo "  -h, --help      Show this help"
             ;;
         bundle/cd)
@@ -197,6 +210,12 @@ _lp_cmd_examples() {
         worktree/root)
             echo "  lp worktree root"
             ;;
+        portal/cdm)
+            echo "  lp portal cdm"
+            ;;
+        portal/gw)
+            echo "  lp portal gw clean deploy"
+            ;;
         bundle/cd)
             echo "  lp bundle cd main"
             ;;
@@ -232,6 +251,7 @@ _lp_cmd_examples() {
 # lp_top_level_help — print all namespaces and their commands with descriptions
 lp_top_level_help() {
     echo "Usage: lp <namespace> <command> [args...]"
+    echo "   or: lp gw [branch] [tasks...]"
     echo ""
     for ns in $_LP_NAMESPACES; do
         local ns_desc
@@ -246,6 +266,7 @@ lp_top_level_help() {
         done
         echo ""
     done
+
     echo "Run 'lp <namespace> help' for details on a namespace."
     echo "Run 'lp <namespace> <command> --help' for details on a command."
     echo ""

@@ -35,6 +35,7 @@ lp() {
     fi
 
     local namespace="$1"
+    local command="$2"
 
     # lp help — top-level help
     if [[ "$namespace" == "help" ]]; then
@@ -78,7 +79,7 @@ lp() {
     # Commands that must be sourced to affect the current shell's working directory
     # or environment (e.g. session-scoped variables)
     case "$namespace/$command" in
-        worktree/cd|bundle/cd|worktree/set|worktree/unset|worktree/get|worktree/root)
+        worktree/cd|bundle/cd|worktree/set|worktree/unset|worktree/get|worktree/root|portal/cdm|portal/gw)
             local _cd_args=("${@:3}")
             set -- "${_cd_args[@]}"
             source "$script"
