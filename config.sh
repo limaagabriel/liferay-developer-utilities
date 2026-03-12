@@ -52,3 +52,25 @@ lp_branch_vars() {
     WORKTREE_DIR="$BASE_PROJECT_DIR/${MAIN_REPO_NAME}-$branch"
     BUNDLE_DIR="$BUNDLES_DIR/$branch"
 }
+
+# Detects if the current directory is within a managed worktree.
+# Sets LP_DETECTED_WORKTREE_DIR and LP_DETECTED_BRANCH.
+# Returns 0 if found, 1 otherwise.
+lp_detect_worktree() {
+    local current_dir
+    current_dir=$(pwd)
+
+    if [[ "$current_dir" == "$BASE_PROJECT_DIR/${MAIN_REPO_NAME}-"* ]]; then
+        local branch="${current_dir#$BASE_PROJECT_DIR/${MAIN_REPO_NAME}-}"
+        branch="${branch%%/*}"
+        LP_DETECTED_BRANCH="$branch"
+        LP_DETECTED_WORKTREE_DIR="$BASE_PROJECT_DIR/${MAIN_REPO_NAME}-$branch"
+        return 0
+    elif [[ "$current_dir" == "$MAIN_REPO_DIR"* ]]; then
+        LP_DETECTED_BRANCH="master"
+        LP_DETECTED_WORKTREE_DIR="$MAIN_REPO_DIR"
+        return 0
+    fi
+
+    return 1
+}
