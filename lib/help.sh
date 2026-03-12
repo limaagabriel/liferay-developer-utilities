@@ -32,7 +32,7 @@ _lp_ns_desc() {
 # _lp_ns_cmds <ns> — space-separated command list for a namespace (defines display order)
 _lp_ns_cmds() {
     case "$1" in
-        worktree) echo "add cd list rebuild remove start" ;;
+        worktree) echo "add cd list rebuild remove start get set unset root" ;;
         bundle)   echo "cd remove" ;;
         mysql)    echo "reset start" ;;
         config)   echo "show init" ;;
@@ -50,6 +50,10 @@ _lp_cmd_desc() {
         worktree/rebuild) echo "Delete the bundle and rebuild it from the worktree" ;;
         worktree/remove)  echo "Remove a worktree and its bundle directory" ;;
         worktree/start)   echo "Start the Liferay server for a worktree" ;;
+        worktree/get)     echo "Get the current session's reference branch" ;;
+        worktree/set)     echo "Set the reference branch for the session" ;;
+        worktree/unset)   echo "Reset the reference branch to master" ;;
+        worktree/root)    echo "Change the current directory to the root of the active worktree" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
         mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
@@ -70,6 +74,10 @@ _lp_cmd_usage() {
         worktree/rebuild) echo "lp worktree rebuild [-v] <branch>" ;;
         worktree/remove)  echo "lp worktree remove [-v] <branch>" ;;
         worktree/start)   echo "lp worktree start [-v] [branch]" ;;
+        worktree/get)     echo "lp worktree get" ;;
+        worktree/set)     echo "lp worktree set [branch-name]" ;;
+        worktree/unset)   echo "lp worktree unset" ;;
+        worktree/root)    echo "lp worktree root" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-v]" ;;
@@ -105,6 +113,18 @@ _lp_cmd_opts() {
             ;;
         worktree/start)
             echo "  -v, --verbose   Show full ant output (catalina log always shown)"
+            echo "  -h, --help      Show this help"
+            ;;
+        worktree/get)
+            echo "  -h, --help      Show this help"
+            ;;
+        worktree/set)
+            echo "  -h, --help      Show this help"
+            ;;
+        worktree/unset)
+            echo "  -h, --help      Show this help"
+            ;;
+        worktree/root)
             echo "  -h, --help      Show this help"
             ;;
         bundle/cd)
@@ -163,6 +183,19 @@ _lp_cmd_examples() {
         worktree/start)
             echo "  lp worktree start main"
             echo "  lp worktree start           # uses current directory"
+            ;;
+        worktree/get)
+            echo "  lp worktree get"
+            ;;
+        worktree/set)
+            echo "  lp worktree set main"
+            echo "  lp worktree set             # uses current directory if in worktree"
+            ;;
+        worktree/unset)
+            echo "  lp worktree unset"
+            ;;
+        worktree/root)
+            echo "  lp worktree root"
             ;;
         bundle/cd)
             echo "  lp bundle cd main"
