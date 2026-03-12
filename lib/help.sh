@@ -34,7 +34,7 @@ _lp_ns_desc() {
 # _lp_ns_cmds <ns> — space-separated command list for a namespace (defines display order)
 _lp_ns_cmds() {
     case "$1" in
-        worktree) echo "add cd list rebuild remove start get set unset root" ;;
+        worktree) echo "add build cd list remove start get set unset root" ;;
         bundle)   echo "cd remove" ;;
         portal)   echo "cdm gw" ;;
         playwright) echo "test" ;;
@@ -51,7 +51,7 @@ _lp_cmd_desc() {
         worktree/add)     echo "Add a new git worktree for a branch" ;;
         worktree/cd)      echo "Change the current directory to a worktree" ;;
         worktree/list)    echo "List all active worktrees and their bundles" ;;
-        worktree/rebuild) echo "Delete the bundle and rebuild it from the worktree" ;;
+        worktree/build)   echo "Build the portal bundle from the worktree" ;;
         worktree/remove)  echo "Remove a worktree and its bundle directory" ;;
         worktree/start)   echo "Start the Liferay server for a worktree" ;;
         worktree/get)     echo "Get the current session's reference branch" ;;
@@ -78,7 +78,7 @@ _lp_cmd_usage() {
         worktree/add)     echo "lp worktree add [-r <remote>] [-v] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
-        worktree/rebuild) echo "lp worktree rebuild [-v] <branch>" ;;
+        worktree/build) echo "lp worktree build [-v] <branch>" ;;
         worktree/remove)  echo "lp worktree remove [-v] <branch>" ;;
         worktree/start)   echo "lp worktree start [-v] [branch]" ;;
         worktree/get)     echo "lp worktree get" ;;
@@ -113,7 +113,7 @@ _lp_cmd_opts() {
         worktree/list)
             echo "  -h, --help   Show this help"
             ;;
-        worktree/rebuild)
+        worktree/build)
             echo "  -v, --verbose   Show full ant/git output"
             echo "  -h, --help      Show this help"
             ;;
@@ -195,9 +195,9 @@ _lp_cmd_examples() {
         worktree/list)
             echo "  lp worktree list"
             ;;
-        worktree/rebuild)
-            echo "  lp worktree rebuild main"
-            echo "  lp worktree rebuild --verbose main"
+        worktree/build)
+            echo "  lp worktree build main"
+            echo "  lp worktree build --verbose main"
             ;;
         worktree/remove)
             echo "  lp worktree remove main"

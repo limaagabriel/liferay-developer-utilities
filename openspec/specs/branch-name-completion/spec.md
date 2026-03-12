@@ -34,7 +34,7 @@ The completion script SHALL provide branch name completions for the following su
 - `lp worktree code <branch>`
 - `lp worktree start <branch>`
 - `lp worktree remove <branch>`
-- `lp worktree rebuild <branch>`
+- `lp worktree build <branch>`
 - `lp worktree clean <branch>`
 - `lp bundle cd <branch>`
 - `lp bundle remove <branch>`

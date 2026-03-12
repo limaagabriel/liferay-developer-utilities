@@ -12,7 +12,7 @@ Every multi-step script SHALL print progress using the format `[N/TOTAL] <descri
 Scripts that invoke noisy subprocesses (git, ant, docker) SHALL redirect their stdout to `/dev/null` by default, while always preserving stderr output.
 
 #### Scenario: Default quiet mode
-- **WHEN** user runs `lp worktree rebuild <branch>` without `--verbose`
+- **WHEN** user runs `lp worktree build <branch>` without `--verbose`
 - **THEN** ant and git stdout is not shown in the terminal
 - **THEN** any errors from those subprocesses are still printed to the terminal
 
@@ -24,7 +24,7 @@ Scripts that invoke noisy subprocesses (git, ant, docker) SHALL redirect their s
 Scripts that suppress subprocess output SHALL accept a `--verbose` / `-v` flag that disables suppression and shows all output.
 
 #### Scenario: Verbose mode
-- **WHEN** user runs `lp worktree rebuild <branch> --verbose`
+- **WHEN** user runs `lp worktree build <branch> --verbose`
 - **THEN** full stdout from ant, git, and other subprocesses is shown in the terminal
 - **THEN** step-progress lines are still printed alongside the raw output
 

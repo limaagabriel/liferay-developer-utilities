@@ -33,5 +33,5 @@ Commands that must be sourced (`worktree/cd`, `bundle/cd`) SHALL detect `--help`
 When `--help` or `-h` is passed to any script, the script SHALL perform no filesystem changes, network calls, or subprocess invocations beyond printing the help text.
 
 #### Scenario: No side effects
-- **WHEN** user runs `lp worktree rebuild --help`
+- **WHEN** user runs `lp worktree build --help`
 - **THEN** no worktree is rebuilt, no confirmation prompt appears, and no files are modified

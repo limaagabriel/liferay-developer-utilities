@@ -47,4 +47,4 @@ This project, `lp`, is a collection of Bash-based CLI tools designed to streamli
 - **Help Synchronization:** When modifying or adding commands, ensure both the script's internal help and the centralized `lib/help.sh` are updated in sync.
 - **Config Synchronization:** When adding or modifying configuration variables in `config.sh` or `commands/config/init.sh`, always update `commands/config/show.sh` to ensure the new variables are visible to the user via `lp config`.
 - **Relative Paths:** Use relative path resolution (e.g., `$(dirname "${BASH_SOURCE[0]}")`) when sourcing files within scripts to ensure portability.
-- **Master Branch Safety:** Never perform destructive operations (like `remove` or `rebuild`) on the `master` branch or its bundle without explicit user confirmation.
+- **Master Branch Safety:** Never perform destructive operations (like `remove` or `build`) on the `master` branch or its bundle without explicit user confirmation.
