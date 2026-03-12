@@ -1,22 +1,22 @@
 #!/bin/bash
-# Usage: lp worktree rebuild [-v] [branch]
+# Usage: lp worktree build [-v] [branch]
 # If no branch is given, uses the current directory.
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Delete the bundle and rebuild it from the worktree."
+    echo "Build the portal bundle from the worktree."
     echo ""
-    echo "Usage: lp worktree rebuild [-v] [branch]"
+    echo "Usage: lp worktree build [-v] [branch]"
     echo ""
     echo "Options:"
     echo "  -v, --verbose   Show full ant/git output"
     echo "  -h, --help      Show this help"
     echo ""
     echo "Examples:"
-    echo "  lp worktree rebuild main"
-    echo "  lp worktree rebuild --verbose main"
-    echo "  lp worktree rebuild           # uses current directory"
+    echo "  lp worktree build main"
+    echo "  lp worktree build --verbose main"
+    echo "  lp worktree build           # uses current directory"
     exit 0
 fi
 
@@ -65,22 +65,27 @@ if [[ -z "$BUNDLE_DIR" ]]; then
     exit 1
 fi
 
-read -p "This will delete '$BUNDLE_DIR' and rebuild. Continue? [y/N] " confirm
-if [[ "$confirm" != "y" ]]; then
-    lp_info "Aborted."
-    exit 0
-fi
+TOTAL_STEPS=2
+STEP=1
 
-lp_step 1 3 "Removing bundle directory '$BUNDLE_DIR'"
-lp_run rm -rf "$BUNDLE_DIR"
-mkdir -p "$BUNDLE_DIR"
+if [[ -d "$BUNDLE_DIR" ]]; then
+    read -p "Bundle directory '$BUNDLE_DIR' already exists. Delete and rebuild? [y/N] " confirm
+    if [[ "$confirm" != "y" ]]; then
+        lp_info "Aborted."
+        exit 0
+    fi
+    TOTAL_STEPS=3
+    lp_step $((STEP++)) $TOTAL_STEPS "Removing bundle directory '$BUNDLE_DIR'"
+    lp_run rm -rf "$BUNDLE_DIR"
+    mkdir -p "$BUNDLE_DIR"
+fi
 
 cd "$WORKTREE_DIR"
 
-lp_step 2 3 "Running ant setup-profile-dxp"
+lp_step $((STEP++)) $TOTAL_STEPS "Running ant setup-profile-dxp"
 lp_run ant setup-profile-dxp
 
-lp_step 3 3 "Running ant all"
+lp_step $((STEP++)) $TOTAL_STEPS "Running ant all"
 lp_run ant all
 
-lp_success "Bundle rebuilt at '$BUNDLE_DIR'."
+lp_success "Bundle built at '$BUNDLE_DIR'."
