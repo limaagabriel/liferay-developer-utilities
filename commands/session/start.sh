@@ -54,6 +54,7 @@ fi
 
 if [[ ! -d "$WORKTREE_DIR" ]]; then
     lp_error "Worktree directory '$WORKTREE_DIR' does not exist."
+    lp_info "Tip: Create the worktree first with 'lp worktree add $BRANCH'"
     exit 1
 fi
 
