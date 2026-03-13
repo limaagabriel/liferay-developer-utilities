@@ -146,6 +146,8 @@ _lp_cmd_opts() {
             ;;
         playwright/test)
             echo "  -n <number>     Number of times to run the test (default: 1)"
+            echo "  -g <string>     Filter to only run tests with a title matching the given string"
+            echo "  --ui            Open Playwright UI"
             echo "  -v, --verbose   Show full playwright output"
             echo "  -h, --help      Show this help"
             ;;
@@ -228,6 +230,8 @@ _lp_cmd_examples() {
         playwright/test)
             echo "  lp playwright test tests/my-test.spec.ts"
             echo "  lp playwright test -n 5 tests/flaky-test.spec.ts"
+            echo "  lp playwright test -g 'my test title' tests/my-test.spec.ts"
+            echo "  lp playwright test --ui tests/my-test.spec.ts"
             ;;
         bundle/cd)
             echo "  lp bundle cd main"
