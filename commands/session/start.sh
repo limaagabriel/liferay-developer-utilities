@@ -108,6 +108,11 @@ tmux new-window -t "$SESSION_NAME" -n "git" -c "$WORKTREE_DIR" "$USER_SHELL -ic 
 # Create bundle window
 tmux new-window -t "$SESSION_NAME" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" && lp worktree build -s && lp worktree start; exec $USER_SHELL'"
 
+# Customize status bar for this session (add padding)
+tmux set-option -t "$SESSION_NAME" status-left "  #S   "
+tmux set-option -t "$SESSION_NAME" status-left-length 50
+tmux set-window-option -t "$SESSION_NAME" window-status-format "  #I:#W  "
+tmux set-window-option -t "$SESSION_NAME" window-status-current-format "  #I:#W  "
 
 # Select the workstation window as default
 tmux select-window -t "$SESSION_NAME:workstation"
