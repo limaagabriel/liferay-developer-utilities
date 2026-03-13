@@ -45,7 +45,7 @@ _lp_has_branch_arg() {
     case "$1/$2" in
         worktree/cd|worktree/start|worktree/remove|\
         worktree/build|worktree/clean|worktree/set|bundle/cd|bundle/remove|\
-        mysql/reset|mysql/start)
+        mysql/reset|mysql/start|session/start|session/stop|session/enter)
             return 0 ;;
         *)
             return 1 ;;

@@ -4,24 +4,26 @@
 # Source this file at the top of lp scripts:
 #   source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
+LP_OUTPUT_PREFIX="  "
+
 # lp_step N TOTAL "message" — print " [N/TOTAL] message..."
 lp_step() {
-    echo " [$1/$2] $3..."
+    echo "${LP_OUTPUT_PREFIX}[$1/$2] $3..."
 }
 
 # lp_info "message" — print an informational line
 lp_info() {
-    echo " $1"
+    echo "${LP_OUTPUT_PREFIX}$1"
 }
 
 # lp_success "message" — print a success confirmation
 lp_success() {
-    echo " $1"
+    echo "${LP_OUTPUT_PREFIX}$1"
 }
 
 # lp_error "message" — print an error message to stderr
 lp_error() {
-    echo " $1" >&2
+    echo "${LP_OUTPUT_PREFIX}$1" >&2
 }
 
 # lp_run <cmd> [args...] — run a command, suppressing stdout+stderr unless VERBOSE=1.
@@ -37,8 +39,8 @@ lp_run() {
         local exit_code=$?
         
         if [[ $exit_code -ne 0 ]]; then
-            echo "Command failed with exit code $exit_code: $*" >&2
-            echo "Last 100 lines of output:" >&2
+            echo "${LP_OUTPUT_PREFIX}Command failed with exit code $exit_code: $*" >&2
+            echo "${LP_OUTPUT_PREFIX}Last 100 lines of output:" >&2
             tail -n 100 "$tmp_out" >&2
             rm -f "$tmp_out"
             exit $exit_code
