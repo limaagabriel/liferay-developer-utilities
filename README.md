@@ -14,12 +14,11 @@
 
 ## Quick Start (Automated Installation)
 
-The easiest way to get started is to use the provided `install.sh` script:
+The easiest way to get started is to use the provided automated installation command:
 
 ```bash
-# Clone and install
-git clone https://github.com/your-username/lp.git ~/.local/share/lp
-bash ~/.local/share/lp/install.sh
+# Download and install
+curl -sSL https://raw.githubusercontent.com/limaagabriel/liferay-developer-utilities/main/install.sh | bash
 
 # Refresh your shell
 source ~/.zshrc  # or ~/.bashrc
@@ -30,7 +29,10 @@ lp config init
 
 ## Manual Installation
 
-1.  Clone this repository to a directory of your choice (e.g., `~/.local/share/lp`).
+1.  Clone this repository to a directory of your choice (e.g., `~/.local/share/lp`):
+    ```bash
+    git clone https://github.com/limaagabriel/liferay-developer-utilities.git ~/.local/share/lp
+    ```
 2.  Source `lp.sh` in your shell profile (`~/.zshrc` or `~/.bashrc`):
     ```bash
     source ~/.local/share/lp/lp.sh

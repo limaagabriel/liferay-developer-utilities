@@ -5,7 +5,7 @@ set -e
 
 # --- Configuration ---
 INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/lp"
-REPO_URL="https://github.com/your-username/lp.git" # User should update this or we can use the current dir if it's a clone
+REPO_URL="https://github.com/limaagabriel/liferay-developer-utilities.git"
 
 # --- Helpers ---
 lp_info() { echo -e "\033[1;34m[lp]\033[0m $1"; }
@@ -19,8 +19,9 @@ else
     lp_info "Creating installation directory at '$INSTALL_DIR'..."
     mkdir -p "$(dirname "$INSTALL_DIR")"
     
-    # If we are running from within a git repo, we can just copy or clone locally
-    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    # If we are running from within the correct git repo, we can clone locally
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1 && \
+       git remote get-url origin 2>/dev/null | grep -q "liferay-developer-utilities"; then
         _REPO_ROOT=$(git rev-parse --show-toplevel)
         lp_info "Cloning from local repository at '$_REPO_ROOT'..."
         git clone "$_REPO_ROOT" "$INSTALL_DIR"
