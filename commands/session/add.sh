@@ -36,4 +36,4 @@ lp_info "Adding window '$WINDOW_NAME' to session '$SESSION_NAME'..."
 
 # Create the new window
 # We explicitly source lp.sh to ensure the 'lp' function is available
-tmux new-window -n "$WINDOW_NAME" "$USER_SHELL -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\"; exec $USER_SHELL'"
+tmux new-window -n "$WINDOW_NAME" "$USER_SHELL -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1; exec $USER_SHELL'"
