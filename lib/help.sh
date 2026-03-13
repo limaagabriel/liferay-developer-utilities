@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle portal playwright mysql config git"
+_LP_NAMESPACES="worktree bundle portal playwright mysql session config git"
 
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
@@ -25,6 +25,7 @@ _lp_ns_desc() {
         portal)   echo "Liferay Portal development utilities" ;;
         playwright) echo "Playwright test utilities" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
+        session)  echo "Manage tmux-based development sessions" ;;
         config)   echo "Manage per-user lp configuration" ;;
         git)      echo "Git utilities" ;;
         *)        echo "" ;;
@@ -39,6 +40,7 @@ _lp_ns_cmds() {
         portal)   echo "cdm gw" ;;
         playwright) echo "test" ;;
         mysql)    echo "reset start" ;;
+        session)  echo "start stop enter exit add" ;;
         config)   echo "show init" ;;
         git)      echo "patch" ;;
         *)        echo "" ;;
@@ -65,6 +67,11 @@ _lp_cmd_desc() {
         bundle/remove)    echo "Remove a bundle directory" ;;
         mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
         mysql/start)      echo "Start MySQL via Docker Compose and reset the database" ;;
+        session/start)    echo "Start a new development session using tmux" ;;
+        session/stop)     echo "Stop a development session and kill tmux" ;;
+        session/enter)    echo "Enter an existing development session" ;;
+        session/exit)     echo "Exit the current session (detach from tmux)" ;;
+        session/add)      echo "Add a new window to the current session" ;;
         config/show)      echo "Show the currently resolved lp configuration" ;;
         config/init)      echo "Interactively create the per-user config file" ;;
         git/patch)        echo "Download a git patch from a URL and apply it" ;;
@@ -78,7 +85,7 @@ _lp_cmd_usage() {
         worktree/add)     echo "lp worktree add [-r <remote>] [-v] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
-        worktree/build) echo "lp worktree build [-v] <branch>" ;;
+        worktree/build) echo "lp worktree build [-v] [-y] [-s] <branch>" ;;
         worktree/remove)  echo "lp worktree remove [-v] <branch>" ;;
         worktree/start)   echo "lp worktree start [-v] [branch]" ;;
         worktree/get)     echo "lp worktree get" ;;
@@ -92,6 +99,11 @@ _lp_cmd_usage() {
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-v]" ;;
         mysql/start)      echo "lp mysql start [-v]" ;;
+        session/start)    echo "lp session start [branch]" ;;
+        session/stop)     echo "lp session stop [branch]" ;;
+        session/enter)    echo "lp session enter [branch]" ;;
+        session/exit)     echo "lp session exit" ;;
+        session/add)      echo "lp session add <window-name>" ;;
         config/show)      echo "lp config" ;;
         config/init)      echo "lp config init" ;;
         git/patch)        echo "lp git patch [-c] [-v] <url>" ;;
@@ -114,8 +126,10 @@ _lp_cmd_opts() {
             echo "  -h, --help   Show this help"
             ;;
         worktree/build)
-            echo "  -v, --verbose   Show full ant/git output"
-            echo "  -h, --help      Show this help"
+            echo "  -v, --verbose           Show full ant/git output"
+            echo "  -y, --yes               Skip confirmation for deleting existing bundle"
+            echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
+            echo "  -h, --help              Show this help"
             ;;
         worktree/remove)
             echo "  -v, --verbose   Show full git output"
@@ -166,6 +180,22 @@ _lp_cmd_opts() {
             echo "  -v, --verbose   Show full docker output"
             echo "  -h, --help      Show this help"
             ;;
+        session/start)
+            echo "  -h, --help      Show this help"
+            echo "  Note: Requires 'tmux' and 'lazygit' to be installed"
+            ;;
+        session/stop)
+            echo "  -h, --help      Show this help"
+            ;;
+        session/enter)
+            echo "  -h, --help      Show this help"
+            ;;
+        session/exit)
+            echo "  -h, --help      Show this help"
+            ;;
+        session/add)
+            echo "  -h, --help      Show this help"
+            ;;
         config/show)
             echo "  -h, --help   Show this help"
             ;;
@@ -199,6 +229,8 @@ _lp_cmd_examples() {
             ;;
         worktree/build)
             echo "  lp worktree build main"
+            echo "  lp worktree build -y main"
+            echo "  lp worktree build -s main"
             echo "  lp worktree build --verbose main"
             ;;
         worktree/remove)
@@ -244,6 +276,21 @@ _lp_cmd_examples() {
             ;;
         mysql/start)
             echo "  lp mysql start"
+            ;;
+        session/start)
+            echo "  lp session start main"
+            ;;
+        session/stop)
+            echo "  lp session stop main"
+            ;;
+        session/enter)
+            echo "  lp session enter main"
+            ;;
+        session/exit)
+            echo "  lp session exit"
+            ;;
+        session/add)
+            echo "  lp session add logs"
             ;;
         config/show)
             echo "  lp config"
