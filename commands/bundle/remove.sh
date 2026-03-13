@@ -44,7 +44,7 @@ fi
 
 lp_branch_vars "$BRANCH"
 
-read -p "Remove bundle '$BUNDLE_DIR'? [y/N] " confirm
+read -p " Remove bundle '$BUNDLE_DIR'? [y/N] " confirm
 if [[ "$confirm" != "y" ]]; then
     lp_info "Aborted."
     exit 0

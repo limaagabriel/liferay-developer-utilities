@@ -79,8 +79,10 @@ lp() {
     fi
 
     # Print preamble banner
+    echo ""
+    echo "Liferay Portal Developer CLI"
     echo "Running lp $namespace $command..."
-    echo "------------------------------------------------"
+    echo ""
 
     local script="$_LP_SCRIPTS_DIR/commands/$namespace/$command.sh"
 
@@ -109,6 +111,7 @@ lp() {
     echo ""
     echo -n "Time spent: "
     lp_format_duration $_lp_duration
+    echo ""
     echo ""
 
     return $_lp_exit_code
