@@ -2,6 +2,8 @@
 # Usage: lp playwright test [options] <test-name>
 # Options:
 #   -n <number>  Number of iterations (default: 1)
+#   -g <string>  Filter to only run tests with a title matching the given string
+#   --ui         Open Playwright UI
 #   -h, --help   Show this help
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
@@ -13,12 +15,16 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo ""
     echo "Options:"
     echo "  -n <number>  Number of times to run the test (default: 1)"
+    echo "  -g <string>  Filter to only run tests with a title matching the given string"
+    echo "  --ui         Open Playwright UI"
     echo "  -v, --verbose Show full playwright output"
     echo "  -h, --help    Show this help"
     echo ""
     echo "Examples:"
     echo "  lp playwright test tests/my-test.spec.ts"
     echo "  lp playwright test -n 5 tests/flaky-test.spec.ts"
+    echo "  lp playwright test -g 'my test title' tests/my-test.spec.ts"
+    echo "  lp playwright test --ui tests/my-test.spec.ts"
     exit 0
 fi
 
@@ -27,12 +33,22 @@ source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
 ITERATIONS=1
 TEST_NAME=""
 VERBOSE=0
+GREP_OPTION=""
+UI_FLAG=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -n)
             ITERATIONS="$2"
             shift 2
+            ;;
+        -g)
+            GREP_OPTION="$2"
+            shift 2
+            ;;
+        --ui)
+            UI_FLAG=1
+            shift
             ;;
         --verbose|-v)
             VERBOSE=1
@@ -87,7 +103,15 @@ for ((i=1; i<=ITERATIONS; i++)); do
 
     # Run the test. Using npx playwright test <test_name>
     # We use lp_run to capture output on failure unless VERBOSE is set.
-    lp_run npx playwright test "$TEST_NAME"
+    PW_ARGS=()
+    if [[ -n "$GREP_OPTION" ]]; then
+        PW_ARGS+=("-g" "$GREP_OPTION")
+    fi
+    if [[ "$UI_FLAG" -eq 1 ]]; then
+        PW_ARGS+=("--ui")
+    fi
+
+    lp_run npx playwright test "${PW_ARGS[@]}" "$TEST_NAME"
     EXIT_CODE=$?
 
     if [[ $EXIT_CODE -eq 0 ]]; then
