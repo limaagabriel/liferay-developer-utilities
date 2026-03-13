@@ -4,6 +4,7 @@
 
 ## Key Features
 
+-   **Development Sessions**: The "bread and butter" of `lp`. It uses `tmux` to orchestrate a unified development environment (bundle logs, `lazygit`, and shell workstation) in a single terminal.
 -   **Git Worktree Management**: Quickly add, switch, and remove branch-specific worktrees.
 -   **Server Bundles**: Automated bundle management tied to your active worktree.
 -   **MySQL Support**: Easily start and reset the `lportal` database via Docker Compose.
@@ -39,6 +40,15 @@ lp config init
 
 ## Core Commands
 
+### Development Sessions
+Orchestrate your workflow with `tmux`. These commands are the primary way to develop on Liferay Portal.
+```bash
+lp session start my-feature  # Start tmux with bundle, lazygit, and shell
+lp session enter my-feature  # Re-attach to an existing session
+lp session exit              # Detach from the session
+lp session stop my-feature   # Kill the session and stop the portal
+```
+
 ### Git Worktrees
 Manage your portal development branches without constant `git checkout` switching.
 ```bash
@@ -56,10 +66,16 @@ lp bundle remove my-feature   # Delete a specific bundle
 ```
 
 ### Local Environment
-Quickly manage your local development database.
+Quickly manage your local development database and cleaning tasks.
 ```bash
-lp mysql start  # Start MySQL container and initialize database
-lp mysql reset  # Reset (drop/recreate) the lportal database
+lp mysql start             # Start MySQL container and initialize database
+lp mysql reset             # Reset (drop/recreate) the lportal database
+lp hypersonic clean master  # Clean the Hypersonic database in a bundle
+```
+
+### Git Utilities
+```bash
+lp git patch https://.../fix.patch  # Apply a remote patch to the current repo
 ```
 
 ### Navigation & Shortcuts
