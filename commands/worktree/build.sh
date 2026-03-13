@@ -69,7 +69,7 @@ TOTAL_STEPS=2
 STEP=1
 
 if [[ -d "$BUNDLE_DIR" ]]; then
-    read -p "Bundle directory '$BUNDLE_DIR' already exists. Delete and rebuild? [y/N] " confirm
+    read -p " Bundle directory '$BUNDLE_DIR' already exists. Delete and rebuild? [y/N] " confirm
     if [[ "$confirm" != "y" ]]; then
         lp_info "Aborted."
         exit 0
