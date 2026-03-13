@@ -72,36 +72,40 @@ cd "$PLAYWRIGHT_DIR" || exit 1
 lp_info "Environment info:"
 lp_info "  Node: $(node -v 2>&1 || echo "not found")"
 lp_info "  npm:  $(npm -v 2>&1 || echo "not found")"
+lp_info ""
 
-lp_info "Installing dependencies in $PLAYWRIGHT_DIR..."
-lp_run npm install || { lp_error "npm install failed."; exit 1; }
+if [[ ! -d "$PLAYWRIGHT_DIR/node_modules" ]]; then
+    lp_info "Installing dependencies in $PLAYWRIGHT_DIR..."
+    lp_run npm install || { lp_error "npm install failed."; exit 1; }
+    lp_info ""
+fi
 
 SUCCESS_COUNT=0
 
 for ((i=1; i<=ITERATIONS; i++)); do
     lp_step "$i" "$ITERATIONS" "Executing test: $TEST_NAME"
-    
+
     # Run the test. Using npx playwright test <test_name>
     # We use lp_run to capture output on failure unless VERBOSE is set.
     lp_run npx playwright test "$TEST_NAME"
     EXIT_CODE=$?
-    
+
     if [[ $EXIT_CODE -eq 0 ]]; then
         SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
         lp_success "Iteration $i: SUCCESS"
     else
         lp_error "Iteration $i: FAILURE (Exit code: $EXIT_CODE)"
     fi
-    
+
     # Calculate current success rate
     # Using awk for floating point math since bash is integer-only
-    RATE=$(awk "BEGIN {printf \"%.2f\", ($SUCCESS_COUNT / $i) * 100}")
+    RATE=$(awk -v s="$SUCCESS_COUNT" -v i="$i" 'BEGIN {printf "%.2f", s / i * 100}')
     lp_info "Current success rate: $SUCCESS_COUNT/$i ($RATE%)"
-    echo "--------------------------------------------------"
+    lp_info "--------------------------------------------------"
 done
 
 # Final report
-TOTAL_RATE=$(awk "BEGIN {printf \"%.2f\", ($SUCCESS_COUNT / $ITERATIONS) * 100}")
+TOTAL_RATE=$(awk -v s="$SUCCESS_COUNT" -v iter="$ITERATIONS" 'BEGIN {printf "%.2f", s / iter * 100}')
 lp_info "=================================================="
 lp_info "Final Report for $TEST_NAME"
 lp_info "Success Rate: $SUCCESS_COUNT/$ITERATIONS ($TOTAL_RATE%)"
