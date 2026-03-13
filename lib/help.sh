@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle portal playwright mysql session config git"
+_LP_NAMESPACES="worktree bundle portal playwright mysql hypersonic session config git"
 
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
@@ -25,6 +25,7 @@ _lp_ns_desc() {
         portal)   echo "Liferay Portal development utilities" ;;
         playwright) echo "Playwright test utilities" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
+        hypersonic) echo "Manage Hypersonic databases" ;;
         session)  echo "Manage tmux-based development sessions" ;;
         config)   echo "Manage per-user lp configuration" ;;
         git)      echo "Git utilities" ;;
@@ -40,6 +41,7 @@ _lp_ns_cmds() {
         portal)   echo "cdm gw" ;;
         playwright) echo "test" ;;
         mysql)    echo "reset start" ;;
+        hypersonic) echo "clean" ;;
         session)  echo "start stop enter exit add" ;;
         config)   echo "show init" ;;
         git)      echo "patch" ;;
@@ -67,6 +69,7 @@ _lp_cmd_desc() {
         bundle/remove)    echo "Remove a bundle directory" ;;
         mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
         mysql/start)      echo "Start MySQL via Docker Compose and reset the database" ;;
+        hypersonic/clean) echo "Clean the Hypersonic database in a bundle" ;;
         session/start)    echo "Start a new development session using tmux" ;;
         session/stop)     echo "Stop a development session and kill tmux" ;;
         session/enter)    echo "Enter an existing development session" ;;
@@ -99,6 +102,7 @@ _lp_cmd_usage() {
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-v]" ;;
         mysql/start)      echo "lp mysql start [-v]" ;;
+        hypersonic/clean) echo "lp hypersonic clean [-v] [branch]" ;;
         session/start)    echo "lp session start [branch]" ;;
         session/stop)     echo "lp session stop [branch]" ;;
         session/enter)    echo "lp session enter [branch]" ;;
@@ -178,6 +182,10 @@ _lp_cmd_opts() {
             ;;
         mysql/start)
             echo "  -v, --verbose   Show full docker output"
+            echo "  -h, --help      Show this help"
+            ;;
+        hypersonic/clean)
+            echo "  -v, --verbose   Show full output"
             echo "  -h, --help      Show this help"
             ;;
         session/start)
@@ -276,6 +284,10 @@ _lp_cmd_examples() {
             ;;
         mysql/start)
             echo "  lp mysql start"
+            ;;
+        hypersonic/clean)
+            echo "  lp hypersonic clean main"
+            echo "  lp hypersonic clean"
             ;;
         session/start)
             echo "  lp session start main"
