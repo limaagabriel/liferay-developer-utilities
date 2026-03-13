@@ -4,24 +4,24 @@
 # Source this file at the top of lp scripts:
 #   source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
-# lp_step N TOTAL "message" — print "[N/TOTAL] message..."
+# lp_step N TOTAL "message" — print " [N/TOTAL] message..."
 lp_step() {
-    echo "[$1/$2] $3..."
+    echo " [$1/$2] $3..."
 }
 
 # lp_info "message" — print an informational line
 lp_info() {
-    echo "$1"
+    echo " $1"
 }
 
 # lp_success "message" — print a success confirmation
 lp_success() {
-    echo "$1"
+    echo " $1"
 }
 
 # lp_error "message" — print an error message to stderr
 lp_error() {
-    echo "$1" >&2
+    echo " $1" >&2
 }
 
 # lp_run <cmd> [args...] — run a command, suppressing stdout+stderr unless VERBOSE=1.

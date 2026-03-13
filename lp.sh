@@ -78,6 +78,10 @@ lp() {
         return 0
     fi
 
+    # Print preamble banner
+    echo "Running lp $namespace $command..."
+    echo "------------------------------------------------"
+
     local script="$_LP_SCRIPTS_DIR/commands/$namespace/$command.sh"
 
     if [[ ! -f "$script" ]]; then
