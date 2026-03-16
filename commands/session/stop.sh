@@ -13,7 +13,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "  -h, --help      Show this help"
     echo ""
     echo "This will kill the tmux session and all running processes within it,"
-    echo "effectively stopping the bundle, lazygit, and any open shells."
+    echo "effectively stopping the bundle, any git tools, and open shells."
     exit 0
 fi
 

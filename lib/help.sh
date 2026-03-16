@@ -190,7 +190,7 @@ _lp_cmd_opts() {
             ;;
         session/start)
             echo "  -h, --help      Show this help"
-            echo "  Note: Requires 'tmux' and 'lazygit' to be installed"
+            echo "  Note: Requires 'tmux' to be installed. 'lazygit' is recommended for the git window."
             ;;
         session/stop)
             echo "  -h, --help      Show this help"
