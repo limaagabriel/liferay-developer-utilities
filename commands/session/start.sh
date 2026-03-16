@@ -12,11 +12,11 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Options:"
     echo "  -h, --help      Show this help"
     echo ""
-    echo "This command requires 'tmux' and 'lazygit' to be installed."
+    echo "This command requires 'tmux' to be installed."
     echo ""
     echo "The session will have three windows:"
     echo "  1. bundle: Runs 'lp worktree build -s && lp worktree start'"
-    echo "  2. git: Opens 'lazygit'"
+    echo "  2. git: Opens 'lazygit' (if installed)"
     echo "  3. workstation: A shell for manual commands"
     echo ""
     echo "All windows will be initialized in the worktree directory."
@@ -26,11 +26,6 @@ fi
 # Check dependencies
 if ! command -v tmux >/dev/null 2>&1; then
     lp_error "'tmux' is not installed. Please install it to use sessions."
-    exit 1
-fi
-
-if ! command -v lazygit >/dev/null 2>&1; then
-    lp_error "'lazygit' is not installed. Please install it to use sessions."
     exit 1
 fi
 
@@ -81,7 +76,7 @@ echo \"  Welcome to your Liferay development session!\";
 echo \"\";
 echo \"  Window Roles:\";
 echo \"    1: bundle       -> The running portal bundle and its console output.\";
-echo \"    2: git          -> Runs lazygit for all your version control needs.\";
+echo \"    2: git          -> Runs lazygit (if installed) for version control.\";
 echo \"    3: workstation  -> Your main shell for navigating and editing the repo.\";
 echo \"\";
 echo \"  Navigation (tmux shortcuts):\";
@@ -119,7 +114,19 @@ tmux set-window-option -t "$SESSION_NAME" window-status-format "  #I:#W#F "
 tmux set-window-option -t "$SESSION_NAME" window-status-current-format "  #I:#W#F "
 
 # Create git window (index 2)
-tmux new-window -t "$SESSION_NAME" -n "git" -c "$WORKTREE_DIR" "$USER_SHELL -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lazygit; exec $USER_SHELL'"
+GIT_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1;
+if command -v lazygit >/dev/null 2>&1; then
+    lazygit;
+else
+    echo \"\";
+    echo \"  This window is intended for git usage.\";
+    echo \"  If you install 'lazygit', it will automatically start here.\";
+    echo \"\";
+    echo \"  Check it out at: https://github.com/jesseduffield/lazygit\";
+    echo \"\";
+fi; exec $USER_SHELL"
+
+tmux new-window -t "$SESSION_NAME" -n "git" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$GIT_COMMAND'"
 
 # Create workstation window (index 3)
 tmux new-window -t "$SESSION_NAME" -n "workstation" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$PREAMBLE'"
