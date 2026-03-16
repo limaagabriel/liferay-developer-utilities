@@ -33,6 +33,7 @@ MAIN_REPO_DIR="${MAIN_REPO_DIR:=$BASE_PROJECT_DIR/$MAIN_REPO_NAME}"
 BUNDLES_DIR="${BUNDLES_DIR:=$HOME/dev/bundles}"
 ENABLE_AUTOCOMPLETE="${ENABLE_AUTOCOMPLETE:=yes}"
 ENABLE_ALIASES="${ENABLE_ALIASES:=yes}"
+SESSION_CUSTOM_WINDOWS="${SESSION_CUSTOM_WINDOWS:=}"
 
 # ---------------------------------------------------------------------------
 # Warn for any expected variable that is still unset (task 2.6)

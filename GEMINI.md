@@ -6,7 +6,7 @@ This project, `lp`, is a collection of Bash-based CLI tools designed to streamli
 ### Core Architecture
 - **Entrypoint:** `lp.sh` is the main entry point. It should be sourced in the user's shell (e.g., `.zshrc` or `.bashrc`).
 - **Command Structure:** Commands are organized by namespace in the `commands/` directory (e.g., `commands/worktree/start.sh`).
-- **Development Sessions:** The `session` namespace provides the "bread and butter" workflow, orchestrating tmux to manage a portal bundle, git (e.g., via `lazygit`), and a workstation shell in a unified environment.
+- **Development Sessions:** The `session` namespace provides the "bread and butter" workflow, orchestrating tmux to manage a portal bundle, git (e.g., via `lazygit`), and a workspace shell in a unified environment.
 - **Configuration:** Shared configuration is handled in `config.sh`, which loads a per-user configuration file from `~/.config/lp/config`.
 - **Libraries:** Common functions are located in the `lib/` directory:
   - `lib/output.sh`: Standardized logging and execution helpers.

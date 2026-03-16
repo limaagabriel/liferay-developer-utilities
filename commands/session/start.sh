@@ -14,10 +14,11 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo ""
     echo "This command requires 'tmux' to be installed."
     echo ""
-    echo "The session will have three windows:"
+    echo "The session will have at least three windows:"
     echo "  1. bundle: Runs 'lp worktree build -s && lp worktree start'"
     echo "  2. git: Opens 'lazygit' (if installed)"
-    echo "  3. workstation: A shell for manual commands"
+    echo "  3. workspace: A shell for manual commands"
+    echo "  (Plus any custom windows defined in your config)"
     echo ""
     echo "All windows will be initialized in the worktree directory."
     exit 0
@@ -77,14 +78,22 @@ echo \"\";
 echo \"  Window Roles:\";
 echo \"    1: bundle       -> The running portal bundle and its console output.\";
 echo \"    2: git          -> Runs lazygit (if installed) for version control.\";
-echo \"    3: workstation  -> Your main shell for navigating and editing the repo.\";
+echo \"    3: workspace    -> Your main shell for navigating and editing the repo.\";
+"
+
+if [[ -n "$SESSION_CUSTOM_WINDOWS" ]]; then
+    PREAMBLE="$PREAMBLE
+echo \"    4+: custom      -> Extra windows from your configuration.\";"
+fi
+
+PREAMBLE="$PREAMBLE
 echo \"\";
 echo \"  Navigation (tmux shortcuts):\";
 echo \"    Ctrl+b c       Create a new window (parallel terminal session)\";
 echo \"    Ctrl+b &       Kill the current window\";
 echo \"    Ctrl+b n       Next window\";
 echo \"    Ctrl+b p       Previous window\";
-echo \"    Ctrl+b 1-3     Go to specific window (e.g., Ctrl+b 3 for workstation)\";
+echo \"    Ctrl+b 1-3     Go to specific window (e.g., Ctrl+b 3 for workspace)\";
 echo \"    Ctrl+b d       Detach from session (keep it running in background)\";
 echo \"\";
 echo \"  Scrolling:\";
@@ -128,11 +137,28 @@ fi; exec $USER_SHELL"
 
 tmux new-window -t "$SESSION_NAME" -n "git" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$GIT_COMMAND'"
 
-# Create workstation window (index 3)
-tmux new-window -t "$SESSION_NAME" -n "workstation" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$PREAMBLE'"
+# Create workspace window (index 3)
+tmux new-window -t "$SESSION_NAME" -n "workspace" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$PREAMBLE'"
 
-# Select the workstation window as default
-tmux select-window -t "$SESSION_NAME:workstation"
+# Create custom windows (Option B)
+if [[ -n "$SESSION_CUSTOM_WINDOWS" ]]; then
+    # Use comma as window delimiter
+    IFS=',' read -ra ADDR <<< "$SESSION_CUSTOM_WINDOWS"
+    for i in "${ADDR[@]}"; do
+        # Use colon as name:command delimiter
+        IFSOLD=$IFS
+        IFS=':' read -r CUSTOM_NAME CUSTOM_CMD <<< "$i"
+        IFS=$IFSOLD
+        
+        if [[ -n "$CUSTOM_NAME" && -n "$CUSTOM_CMD" ]]; then
+            lp_info "Adding custom window '$CUSTOM_NAME'..."
+            tmux new-window -t "$SESSION_NAME" -n "$CUSTOM_NAME" -c "$WORKTREE_DIR" "$USER_SHELL -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1; $CUSTOM_CMD; exec $USER_SHELL'"
+        fi
+    done
+fi
+
+# Select the workspace window as default
+tmux select-window -t "$SESSION_NAME:workspace"
 
 # Attach to the session
 tmux attach-session -t "$SESSION_NAME"

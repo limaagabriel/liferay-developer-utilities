@@ -57,6 +57,7 @@ _lp_prompt _MAIN_REPO_DIR    "Main repository path"   "$_BASE_PROJECT_DIR/$_MAIN
 _lp_prompt _BUNDLES_DIR      "Bundles directory"       "$HOME/dev/bundles"
 _lp_prompt _ENABLE_AUTOCOMPLETE "Enable tab completion (yes/no)" "yes"
 _lp_prompt _ENABLE_ALIASES "Enable simplified aliases (yes/no)" "yes"
+_lp_prompt _SESSION_CUSTOM_WINDOWS "Custom tmux windows (name1:cmd1,name2:cmd2)" ""
 
 # Create config directory if needed (task 4.4)
 _LP_CONFIG_DIR="$(dirname "$_LP_USER_CONFIG")"
@@ -77,6 +78,7 @@ MAIN_REPO_DIR=$_MAIN_REPO_DIR
 BUNDLES_DIR=$_BUNDLES_DIR
 ENABLE_AUTOCOMPLETE=$_ENABLE_AUTOCOMPLETE
 ENABLE_ALIASES=$_ENABLE_ALIASES
+SESSION_CUSTOM_WINDOWS=$_SESSION_CUSTOM_WINDOWS
 EOF
 
 # Success message (task 4.6)
