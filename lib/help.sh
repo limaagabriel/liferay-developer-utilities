@@ -42,7 +42,7 @@ _lp_ns_cmds() {
         playwright) echo "test" ;;
         mysql)    echo "reset start" ;;
         hypersonic) echo "clean" ;;
-        session)  echo "start stop enter exit add build" ;;
+        session)  echo "start stop enter exit add rebuild restart" ;;
         config)   echo "show init" ;;
         git)      echo "patch" ;;
         *)        echo "" ;;
@@ -75,7 +75,8 @@ _lp_cmd_desc() {
         session/enter)    echo "Enter an existing development session" ;;
         session/exit)     echo "Exit the current session (detach from tmux)" ;;
         session/add)      echo "Add a new window to the current session" ;;
-        session/build)    echo "Rebuild the bundle and restart the server in a session" ;;
+        session/rebuild)  echo "Rebuild the bundle and restart the server in a session" ;;
+        session/restart)  echo "Restart the server in a session" ;;
         config/show)      echo "Show the currently resolved lp configuration" ;;
         config/init)      echo "Interactively create the per-user config file" ;;
         git/patch)        echo "Download a git patch from a URL and apply it" ;;
@@ -109,7 +110,8 @@ _lp_cmd_usage() {
         session/enter)    echo "lp session enter [branch]" ;;
         session/exit)     echo "lp session exit" ;;
         session/add)      echo "lp session add <window-name>" ;;
-        session/build)    echo "lp session build" ;;
+        session/rebuild)  echo "lp session rebuild" ;;
+        session/restart)  echo "lp session restart" ;;
         config/show)      echo "lp config" ;;
         config/init)      echo "lp config init" ;;
         git/patch)        echo "lp git patch [-c] [-v] <url>" ;;
@@ -206,7 +208,10 @@ _lp_cmd_opts() {
         session/add)
             echo "  -h, --help      Show this help"
             ;;
-        session/build)
+        session/rebuild)
+            echo "  -h, --help      Show this help"
+            ;;
+        session/restart)
             echo "  -h, --help      Show this help"
             ;;
         config/show)
@@ -309,8 +314,11 @@ _lp_cmd_examples() {
         session/add)
             echo "  lp session add logs"
             ;;
-        session/build)
-            echo "  lp session build"
+        session/rebuild)
+            echo "  lp session rebuild"
+            ;;
+        session/restart)
+            echo "  lp session restart"
             ;;
         config/show)
             echo "  lp config"

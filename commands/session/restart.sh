@@ -1,13 +1,13 @@
 #!/bin/bash
-# Usage: lp session build
-# Rebuilds the current worktree bundle and restarts the server in the 'bundle' window.
+# Usage: lp session restart
+# Restarts the server in the 'bundle' window.
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Rebuild the current worktree bundle and restart the server."
+    echo "Restart the server in the current session."
     echo ""
-    echo "Usage: lp session build"
+    echo "Usage: lp session restart"
     echo ""
     echo "Options:"
     echo "  -h, --help      Show this help"
@@ -16,7 +16,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "It will:"
     echo "  1. Stop the current server in the 'bundle' window (SIGINT)"
     echo "  2. Wait for the process to terminate"
-    echo "  3. Run 'lp worktree build -y && lp worktree start' in that window"
+    echo "  3. Run 'lp worktree start' in that window"
     exit 0
 fi
 
@@ -34,7 +34,7 @@ if ! tmux list-windows -t "$SESSION_NAME" -F "#W" | grep -q "^bundle$"; then
     exit 1
 fi
 
-lp_info "This will stop the portal, rebuild the bundle, and restart it."
+lp_info "This will stop the portal and restart it."
 printf " Are you sure? [y/N] "
 read -r confirm
 case "$confirm" in
@@ -49,29 +49,21 @@ lp_info "Stopping portal in 'bundle' window..."
 tmux send-keys -t "$SESSION_NAME:bundle" C-c
 
 # Wait for the process in the bundle window to finish
-# We check if the pane is "busy" (running a foreground process)
 lp_info "Waiting for server to stop..."
 while true; do
-    # Get the PID of the foreground process in the pane
-    # If it's just the shell, it should be the shell's PID or empty depending on implementation
-    # A more reliable way is to check if the pane is at a prompt
-    # We'll check if the pane's foreground process is the shell
     PANE_PID=$(tmux display-message -t "$SESSION_NAME:bundle" -p "#{pane_pid}")
     FG_PID=$(tmux display-message -t "$SESSION_NAME:bundle" -p "#{pane_active_process_pid}")
     
     if [[ "$PANE_PID" == "$FG_PID" ]]; then
-        # Foreground process is the shell itself, meaning the previous command finished
         break
     fi
     sleep 1
 done
 
-lp_info "Server stopped. Starting rebuild and restart..."
+lp_info "Server stopped. Restarting..."
 
-# Send the build and start command to the bundle window
-# We use -ic to ensure aliases and functions (like 'lp') are available if sourced in profile
-# But better to use the full path or ensure lp.sh is sourced
-BUILD_CMD="lp worktree build -y && lp worktree start"
-tmux send-keys -t "$SESSION_NAME:bundle" "$BUILD_CMD" Enter
+# Send the start command to the bundle window
+RESTART_CMD="lp worktree start"
+tmux send-keys -t "$SESSION_NAME:bundle" "$RESTART_CMD" Enter
 
-lp_success "Build and start commands sent to 'bundle' window."
+lp_success "Restart command sent to 'bundle' window."
