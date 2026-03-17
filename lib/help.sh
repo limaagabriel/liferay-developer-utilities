@@ -107,7 +107,7 @@ _lp_ns_cmds() {
         mysql/start)      echo "lp mysql start [-v]" ;;
         hypersonic/clean) echo "lp hypersonic clean [-v] [branch]" ;;
         session/list)     echo "lp session list" ;;
-        session/start)    echo "lp session start [branch]" ;;
+        session/start)    echo "lp session start [-n] [branch]" ;;
         session/stop)     echo "lp session stop [branch]" ;;
         session/enter)    echo "lp session enter [branch]" ;;
         session/exit)     echo "lp session exit" ;;
@@ -199,6 +199,7 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         session/start)
+            echo "  -n, --no-build  Create the bundle window but don't start the build automatically"
             echo "  -h, --help      Show this help"
             echo "  Note: Requires 'tmux' to be installed. 'lazygit' is recommended for the git window."
             ;;
@@ -311,6 +312,7 @@ _lp_ns_cmds() {
             ;;
         session/start)
             echo "  lp session start main"
+            echo "  lp session start -n main"
             ;;
         session/stop)
             echo "  lp session stop main"
