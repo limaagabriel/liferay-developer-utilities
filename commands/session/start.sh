@@ -7,9 +7,10 @@ source "$_LP_SCRIPTS_DIR/lib/output.sh"
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Start a new development session using tmux."
     echo ""
-    echo "Usage: lp session start [branch]"
+    echo "Usage: lp session start [options] [branch]"
     echo ""
     echo "Options:"
+    echo "  -n, --no-build  Create the bundle window but don't start the build automatically"
     echo "  -h, --help      Show this help"
     echo ""
     echo "This command requires 'tmux' to be installed."
@@ -30,7 +31,29 @@ if ! command -v tmux >/dev/null 2>&1; then
     exit 1
 fi
 
-BRANCH="$1"
+SKIP_BUNDLE=false
+BRANCH=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --no-build|-n) SKIP_BUNDLE=true; shift ;;
+        --help|-h)    shift ;;  # already handled above
+        -*)
+            lp_error "Unknown option: $1"
+            lp_error "Usage: lp session start [options] [branch]"
+            exit 1
+            ;;
+        *)
+            if [[ -z "$BRANCH" ]]; then
+                BRANCH="$1"
+            else
+                lp_error "Too many arguments: $1"
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
 
 source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
 
@@ -76,7 +99,7 @@ echo \"\";
 echo \"  Welcome to your Liferay development session!\";
 echo \"\";
 echo \"  Window Roles:\";
-echo \"    1: bundle       -> The running portal bundle and its console output.\";
+echo \"    1: bundle       -> The portal bundle and its console output.\";
 echo \"    2: git          -> Runs lazygit (if installed) for version control.\";
 echo \"    3: workspace    -> Your main shell for navigating and editing the repo.\";
 "
@@ -109,8 +132,22 @@ echo \"    lp session stop        Stop the bundle and kill the tmux session\";
 echo \"\";
 exec $USER_SHELL"
 
+if [[ "$SKIP_BUNDLE" == "true" ]]; then
+    BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1;
+    echo \"\";
+    echo \"  Note: Automatic bundle build and start was skipped because the --no-build flag was provided.\";
+    echo \"\";
+    echo \"  To build and start the bundle, run:\";
+    echo \"\";
+    echo \"    lp worktree build -s && lp worktree start\";
+    echo \"\";
+    exec $USER_SHELL"
+else
+    BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp worktree build -s && lp worktree start; exec $USER_SHELL"
+fi
+
 # Create session with the first window (bundle)
-tmux new-session -d -s "$SESSION_NAME" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp worktree build -s && lp worktree start; exec $USER_SHELL'"
+tmux new-session -d -s "$SESSION_NAME" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$BUNDLE_COMMAND'"
 
 # Set base index to 1 and move the bundle window to index 1
 tmux set-option -t "$SESSION_NAME" base-index 1

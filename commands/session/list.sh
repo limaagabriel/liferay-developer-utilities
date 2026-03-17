@@ -42,9 +42,31 @@ while IFS='|' read -r session windows attached; do
     [[ -z "$session" ]] && continue
     # Check if session matches a worktree branch
     if echo "$worktree_branches" | grep -qxw "$session"; then
-        status=""
+        status_parts=()
         if [[ "$attached" -gt 0 ]]; then
-            status=" (attached)"
+            status_parts+=("attached")
+        fi
+
+        # Check if bundle is running
+        # We look for a window named 'bundle' and check if its pane has a relevant process
+        bundle_pane_tty=$(tmux list-panes -t "$session:bundle" -F "#{pane_tty}" 2>/dev/null | head -n 1)
+        if [[ -z "$bundle_pane_tty" ]]; then
+            # Fallback to index 1 if name doesn't match
+            bundle_pane_tty=$(tmux list-panes -t "$session:1" -F "#{pane_tty}" 2>/dev/null | head -n 1)
+        fi
+
+        if [[ -n "$bundle_pane_tty" ]]; then
+            # Check for java, ant, or our start/build scripts running on that TTY
+            # We look for common portal-related process names and arguments
+            if ps -t "$bundle_pane_tty" -o args= | grep -E "java|ant|catalina\.sh|/start\.sh|/build\.sh|worktree (build|start)" >/dev/null 2>&1; then
+                status_parts+=("bundle running")
+            fi
+        fi
+
+        status=""
+        if [[ ${#status_parts[@]} -gt 0 ]]; then
+            # Join parts with comma
+            status=" ($(IFS=','; echo "${status_parts[*]}"))"
         fi
 
         lp_info "  $session ($windows windows)$status"
