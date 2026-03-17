@@ -42,16 +42,16 @@ _lp_ns_cmds() {
         playwright) echo "test" ;;
         mysql)    echo "reset start" ;;
         hypersonic) echo "clean" ;;
-        session)  echo "start stop enter exit add rebuild restart" ;;
+        session)  echo "list start stop enter exit add rebuild restart" ;;
         config)   echo "show init" ;;
         git)      echo "patch" ;;
         *)        echo "" ;;
-    esac
-}
+        esac
+        }
 
-# _lp_cmd_desc <ns> <cmd> — one-line description
-_lp_cmd_desc() {
-    case "$1/$2" in
+        # _lp_cmd_desc <ns> <cmd> — one-line description
+        _lp_cmd_desc() {
+        case "$1/$2" in
         worktree/add)     echo "Add a new git worktree for a branch" ;;
         worktree/cd)      echo "Change the current directory to a worktree" ;;
         worktree/list)    echo "List all active worktrees and their bundles" ;;
@@ -70,6 +70,7 @@ _lp_cmd_desc() {
         mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
         mysql/start)      echo "Start MySQL via Docker Compose and reset the database" ;;
         hypersonic/clean) echo "Clean the Hypersonic database in a bundle" ;;
+        session/list)     echo "List all active development sessions (tmux)" ;;
         session/start)    echo "Start a new development session using tmux" ;;
         session/stop)     echo "Stop a development session and kill tmux" ;;
         session/enter)    echo "Enter an existing development session" ;;
@@ -81,17 +82,17 @@ _lp_cmd_desc() {
         config/init)      echo "Interactively create the per-user config file" ;;
         git/patch)        echo "Download a git patch from a URL and apply it" ;;
         *)                echo "" ;;
-    esac
-}
+        esac
+        }
 
-# _lp_cmd_usage <ns> <cmd> — usage synopsis
-_lp_cmd_usage() {
-    case "$1/$2" in
+        # _lp_cmd_usage <ns> <cmd> — usage synopsis
+        _lp_cmd_usage() {
+        case "$1/$2" in
         worktree/add)     echo "lp worktree add [-r <remote>] [-v] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
         worktree/build) echo "lp worktree build [-v] [-y] [-s] <branch>" ;;
-        worktree/remove)  echo "lp worktree remove [-v] <branch>" ;;
+        worktree/remove)  echo "lp worktree remove [-b] [-v] <branch>" ;;
         worktree/start)   echo "lp worktree start [-v] [branch]" ;;
         worktree/get)     echo "lp worktree get" ;;
         worktree/set)     echo "lp worktree set [branch-name]" ;;
@@ -105,6 +106,7 @@ _lp_cmd_usage() {
         mysql/reset)      echo "lp mysql reset [-v]" ;;
         mysql/start)      echo "lp mysql start [-v]" ;;
         hypersonic/clean) echo "lp hypersonic clean [-v] [branch]" ;;
+        session/list)     echo "lp session list" ;;
         session/start)    echo "lp session start [branch]" ;;
         session/stop)     echo "lp session stop [branch]" ;;
         session/enter)    echo "lp session enter [branch]" ;;
@@ -116,12 +118,12 @@ _lp_cmd_usage() {
         config/init)      echo "lp config init" ;;
         git/patch)        echo "lp git patch [-c] [-v] <url>" ;;
         *)                echo "" ;;
-    esac
-}
+        esac
+        }
 
-# _lp_cmd_opts <ns> <cmd> — options block (multi-line)
-_lp_cmd_opts() {
-    case "$1/$2" in
+        # _lp_cmd_opts <ns> <cmd> — options block (multi-line)
+        _lp_cmd_opts() {
+        case "$1/$2" in
         worktree/add)
             echo "  -r, --remote <remote>   Track from a remote branch"
             echo "  -v, --verbose           Show full git output"
@@ -140,6 +142,7 @@ _lp_cmd_opts() {
             echo "  -h, --help              Show this help"
             ;;
         worktree/remove)
+            echo "  -b, --branch    Also delete the local branch"
             echo "  -v, --verbose   Show full git output"
             echo "  -h, --help      Show this help"
             ;;
@@ -192,6 +195,9 @@ _lp_cmd_opts() {
             echo "  -v, --verbose   Show full output"
             echo "  -h, --help      Show this help"
             ;;
+        session/list)
+            echo "  -h, --help      Show this help"
+            ;;
         session/start)
             echo "  -h, --help      Show this help"
             echo "  Note: Requires 'tmux' to be installed. 'lazygit' is recommended for the git window."
@@ -228,12 +234,12 @@ _lp_cmd_opts() {
         *)
             echo "  (none)"
             ;;
-    esac
-}
+        esac
+        }
 
-# _lp_cmd_examples <ns> <cmd> — examples block (multi-line)
-_lp_cmd_examples() {
-    case "$1/$2" in
+        # _lp_cmd_examples <ns> <cmd> — examples block (multi-line)
+        _lp_cmd_examples() {
+        case "$1/$2" in
         worktree/add)
             echo "  lp worktree add main"
             echo "  lp worktree add -r origin feature-xyz"
@@ -253,6 +259,7 @@ _lp_cmd_examples() {
             ;;
         worktree/remove)
             echo "  lp worktree remove main"
+            echo "  lp worktree remove -b feature-xyz"
             ;;
         worktree/start)
             echo "  lp worktree start main"
@@ -298,6 +305,9 @@ _lp_cmd_examples() {
         hypersonic/clean)
             echo "  lp hypersonic clean main"
             echo "  lp hypersonic clean"
+            ;;
+        session/list)
+            echo "  lp session list"
             ;;
         session/start)
             echo "  lp session start main"

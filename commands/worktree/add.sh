@@ -49,10 +49,16 @@ lp_branch_vars "$BRANCH"
 if [[ -n "$REMOTE" ]]; then
     REMOTE_BRANCH="$REMOTE/$BRANCH"
     lp_step 1 2 "Creating worktree for branch '$BRANCH' from remote '$REMOTE_BRANCH'"
-    git -C "$MAIN_REPO_DIR" worktree add --track -b "$BRANCH" "$WORKTREE_DIR" "$REMOTE_BRANCH"
+    # Use -B to allow resetting the branch if it already exists
+    lp_run git -C "$MAIN_REPO_DIR" worktree add --track -B "$BRANCH" "$WORKTREE_DIR" "$REMOTE_BRANCH"
 else
-    lp_step 1 2 "Creating worktree for branch '$BRANCH'"
-    lp_run git -C "$MAIN_REPO_DIR" worktree add -b "$BRANCH" "$WORKTREE_DIR"
+    if git -C "$MAIN_REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
+        lp_step 1 2 "Creating worktree for existing branch '$BRANCH'"
+        lp_run git -C "$MAIN_REPO_DIR" worktree add "$WORKTREE_DIR" "$BRANCH"
+    else
+        lp_step 1 2 "Creating worktree for branch '$BRANCH'"
+        lp_run git -C "$MAIN_REPO_DIR" worktree add -b "$BRANCH" "$WORKTREE_DIR"
+    fi
 fi
 
 lp_step 2 2 "Creating app.server.me.properties"

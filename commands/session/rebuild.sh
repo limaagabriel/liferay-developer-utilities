@@ -49,21 +49,34 @@ lp_info "Stopping portal in 'bundle' window..."
 tmux send-keys -t "$SESSION_NAME:bundle" C-c
 
 # Wait for the process in the bundle window to finish
-# We check if the pane is "busy" (running a foreground process)
+# We check if the pane's current command is the shell (meaning the server stopped)
 lp_info "Waiting for server to stop..."
+
+# Get the shell name (e.g., bash or zsh)
+SHELL_NAME="${SHELL##*/}"
+[[ -z "$SHELL_NAME" ]] && SHELL_NAME="bash"
+
+# Add a timeout to prevent infinite loop (e.g., 60 seconds)
+MAX_WAIT=60
+WAIT_COUNT=0
+
 while true; do
-    # Get the PID of the foreground process in the pane
-    # If it's just the shell, it should be the shell's PID or empty depending on implementation
-    # A more reliable way is to check if the pane is at a prompt
-    # We'll check if the pane's foreground process is the shell
-    PANE_PID=$(tmux display-message -t "$SESSION_NAME:bundle" -p "#{pane_pid}")
-    FG_PID=$(tmux display-message -t "$SESSION_NAME:bundle" -p "#{pane_active_process_pid}")
+    CURRENT_CMD=$(tmux display-message -t "$SESSION_NAME:bundle" -p "#{pane_current_command}")
     
-    if [[ "$PANE_PID" == "$FG_PID" ]]; then
+    if [[ "$CURRENT_CMD" == "$SHELL_NAME" || "$CURRENT_CMD" == "zsh" || "$CURRENT_CMD" == "bash" ]]; then
         # Foreground process is the shell itself, meaning the previous command finished
         break
     fi
+    
+    if [[ $WAIT_COUNT -ge $MAX_WAIT ]]; then
+        lp_error "Timed out waiting for server to stop in 'bundle' window."
+        lp_info "The 'bundle' window seems to be running: $CURRENT_CMD"
+        lp_info "You may need to manually stop it or check its state."
+        exit 1
+    fi
+
     sleep 1
+    ((WAIT_COUNT++))
 done
 
 lp_info "Server stopped. Starting rebuild and restart..."
