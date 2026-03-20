@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: lp worktree build [-v] [branch]
+# Usage: lp worktree build [-q] [branch]
 # If no branch is given, uses the current directory.
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
@@ -7,31 +7,31 @@ source "$_LP_SCRIPTS_DIR/lib/output.sh"
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Build the portal bundle from the worktree."
     echo ""
-    echo "Usage: lp worktree build [-v] [-y] [-s] [branch]"
+    echo "Usage: lp worktree build [-q] [-y] [-s] [branch]"
     echo ""
     echo "Options:"
-    echo "  -v, --verbose           Show full ant/git output"
+    echo "  -q, --quiet             Hide full ant/git output (unless error)"
     echo "  -y, --yes               Skip confirmation for deleting existing bundle"
     echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
     echo "  -h, --help              Show this help"
     echo ""
     echo "Examples:"
     echo "  lp worktree build main"
+    echo "  lp worktree build -q main"
     echo "  lp worktree build -y main"
     echo "  lp worktree build -s main"
-    echo "  lp worktree build --verbose main"
     echo "  lp worktree build           # uses current directory"
     exit 0
 fi
 
-VERBOSE=0
+VERBOSE=1
 ASSUME_YES=0
 SKIP_IF_EXISTS=0
 BRANCH=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --verbose|-v)         VERBOSE=1; shift ;;
+        --quiet|-q)           VERBOSE=0; shift ;;
         --yes|-y)             ASSUME_YES=1; shift ;;
         --skip-if-exists|-s)  SKIP_IF_EXISTS=1; shift ;;
         --help|-h)            shift ;;
