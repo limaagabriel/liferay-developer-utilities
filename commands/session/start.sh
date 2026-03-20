@@ -3,6 +3,7 @@
 # Starts a new development session using tmux.
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/session.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Start a new development session using tmux."
@@ -10,8 +11,11 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Usage: lp session start [options] [branch]"
     echo ""
     echo "Options:"
-    echo "  -n, --no-build  Create the bundle window but don't start the build automatically"
-    echo "  -h, --help      Show this help"
+    echo "  -n, --no-build      Create the bundle window but don't start the build automatically"
+    echo "  -b, --build-only    Build the bundle but don't start the server automatically"
+    echo "  -d, --description   Add a brief description to the session"
+    echo "  -s, --status        Set a status (pending, in-progress, important, ready)"
+    echo "  -h, --help          Show this help"
     echo ""
     echo "This command requires 'tmux' to be installed."
     echo ""
@@ -32,11 +36,17 @@ if ! command -v tmux >/dev/null 2>&1; then
 fi
 
 SKIP_BUNDLE=false
+BUILD_ONLY=false
 BRANCH=""
+DESCRIPTION=""
+STATUS_NAME=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --no-build|-n) SKIP_BUNDLE=true; shift ;;
+        --build-only|-b) BUILD_ONLY=true; shift ;;
+        --description|-d) DESCRIPTION="$2"; shift 2 ;;
+        --status|-s)  STATUS_NAME="$2"; shift 2 ;;
         --help|-h)    shift ;;  # already handled above
         -*)
             lp_error "Unknown option: $1"
@@ -125,10 +135,12 @@ echo \"    Use Arrows/PgUp/PgDn to scroll, or mouse wheel if supported.\";
 echo \"    Press 'q' to exit scroll mode and return to prompt.\";
 echo \"\";
 echo \"  Session Commands:\";
-echo \"    lp session add <name>  Add a new window to this session\";
-echo \"    lp session exit        Detach from this session (same as Ctrl+b d)\";
-echo \"    lp session enter       Re-enter an existing session\";
-echo \"    lp session stop        Stop the bundle and kill the tmux session\";
+echo \"    lp session add <name>     Add a new window to this session\";
+echo \"    lp session describe <msg> Update the session description\";
+echo \"    lp session status <status> Update the session status (e.g. ready)\";
+echo \"    lp session exit           Detach from this session (same as Ctrl+b d)\";
+echo \"    lp session enter          Re-enter an existing session\";
+echo \"    lp session stop           Stop the bundle and kill the tmux session\";
 echo \"\";
 exec $USER_SHELL"
 
@@ -142,6 +154,16 @@ if [[ "$SKIP_BUNDLE" == "true" ]]; then
     echo \"    lp worktree build -s && lp worktree start\";
     echo \"\";
     exec $USER_SHELL"
+elif [[ "$BUILD_ONLY" == "true" ]]; then
+    BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp worktree build -s;
+    echo \"\";
+    echo \"  Note: Automatic server start was skipped because the --build-only flag was provided.\";
+    echo \"\";
+    echo \"  To start the server, run:\";
+    echo \"\";
+    echo \"    lp worktree start\";
+    echo \"\";
+    exec $USER_SHELL"
 else
     BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp worktree build -s && lp worktree start; exec $USER_SHELL"
 fi
@@ -149,13 +171,22 @@ fi
 # Create session with the first window (bundle)
 tmux new-session -d -s "$SESSION_NAME" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$BUNDLE_COMMAND'"
 
+# Set description if provided
+if [[ -n "$DESCRIPTION" ]]; then
+    tmux set-option -t "$SESSION_NAME" @lp-description "$DESCRIPTION"
+fi
+
+# Set status if provided
+if [[ -n "$STATUS_NAME" ]]; then
+    tmux set-option -t "$SESSION_NAME" @lp-status "$STATUS_NAME"
+fi
+
 # Set base index to 1 and move the bundle window to index 1
 tmux set-option -t "$SESSION_NAME" base-index 1
 tmux move-window -t "$SESSION_NAME:1"
 
-# Customize status bar for this session (add padding)
-tmux set-option -t "$SESSION_NAME" status-left "  #S   "
-tmux set-option -t "$SESSION_NAME" status-left-length 50
+# Customize status bar for this session
+_lp_update_tmux_status_line "$SESSION_NAME"
 tmux set-window-option -t "$SESSION_NAME" window-status-format "  #I:#W#F "
 tmux set-window-option -t "$SESSION_NAME" window-status-current-format "  #I:#W#F "
 

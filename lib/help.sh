@@ -42,7 +42,7 @@ _lp_ns_cmds() {
         playwright) echo "test" ;;
         mysql)    echo "reset start" ;;
         hypersonic) echo "clean" ;;
-        session)  echo "list start stop enter exit add rebuild restart" ;;
+        session)  echo "list start stop enter exit add rebuild restart describe status" ;;
         config)   echo "show init" ;;
         git)      echo "patch" ;;
         *)        echo "" ;;
@@ -78,6 +78,8 @@ _lp_ns_cmds() {
         session/add)      echo "Add a new window to the current session" ;;
         session/rebuild)  echo "Rebuild the bundle and restart the server in a session" ;;
         session/restart)  echo "Restart the server in a session" ;;
+        session/describe) echo "Set or update the description of a development session" ;;
+        session/status)   echo "Set or update the status of a development session (pending, in-progress, etc.)" ;;
         config/show)      echo "Show the currently resolved lp configuration" ;;
         config/init)      echo "Interactively create the per-user config file" ;;
         git/patch)        echo "Download a git patch from a URL and apply it" ;;
@@ -88,7 +90,7 @@ _lp_ns_cmds() {
         # _lp_cmd_usage <ns> <cmd> — usage synopsis
         _lp_cmd_usage() {
         case "$1/$2" in
-        worktree/add)     echo "lp worktree add [-r <remote>] [-v] <branch>" ;;
+        worktree/add)     echo "lp worktree add [options] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
         worktree/build) echo "lp worktree build [-v] [-y] [-s] <branch>" ;;
@@ -107,13 +109,15 @@ _lp_ns_cmds() {
         mysql/start)      echo "lp mysql start [-v]" ;;
         hypersonic/clean) echo "lp hypersonic clean [-v] [branch]" ;;
         session/list)     echo "lp session list" ;;
-        session/start)    echo "lp session start [-n] [branch]" ;;
+        session/start)    echo "lp session start [options] [branch]" ;;
         session/stop)     echo "lp session stop [branch]" ;;
         session/enter)    echo "lp session enter [branch]" ;;
         session/exit)     echo "lp session exit" ;;
         session/add)      echo "lp session add <window-name>" ;;
         session/rebuild)  echo "lp session rebuild" ;;
         session/restart)  echo "lp session restart" ;;
+        session/describe) echo "lp session describe [branch] <description>" ;;
+        session/status)   echo "lp session status [branch] <status>" ;;
         config/show)      echo "lp config" ;;
         config/init)      echo "lp config init" ;;
         git/patch)        echo "lp git patch [-c] [-v] <url>" ;;
@@ -126,6 +130,8 @@ _lp_ns_cmds() {
         case "$1/$2" in
         worktree/add)
             echo "  -r, --remote <remote>   Track from a remote branch"
+            echo "  -c, --cd                Automatically 'lp worktree cd' after adding"
+            echo "  -s, --session           Automatically 'lp session start' after adding"
             echo "  -v, --verbose           Show full git output"
             echo "  -h, --help              Show this help"
             ;;
@@ -199,8 +205,11 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         session/start)
-            echo "  -n, --no-build  Create the bundle window but don't start the build automatically"
-            echo "  -h, --help      Show this help"
+            echo "  -n, --no-build      Create the bundle window but don't start the build automatically"
+            echo "  -b, --build-only    Build the bundle but don't start the server automatically"
+            echo "  -d, --description   Add a brief description to the session"
+            echo "  -s, --status        Set a status (pending, in-progress, important, ready)"
+            echo "  -h, --help          Show this help"
             echo "  Note: Requires 'tmux' to be installed. 'lazygit' is recommended for the git window."
             ;;
         session/stop)
@@ -220,6 +229,13 @@ _lp_ns_cmds() {
             ;;
         session/restart)
             echo "  -h, --help      Show this help"
+            ;;
+        session/describe)
+            echo "  -h, --help      Show this help"
+            ;;
+        session/status)
+            echo "  -h, --help      Show this help"
+            echo "  Valid statuses: pending, in-progress, important, ready"
             ;;
         config/show)
             echo "  -h, --help   Show this help"
@@ -244,6 +260,8 @@ _lp_ns_cmds() {
         worktree/add)
             echo "  lp worktree add main"
             echo "  lp worktree add -r origin feature-xyz"
+            echo "  lp worktree add -c feature-abc"
+            echo "  lp worktree add -s feature-xyz"
             echo "  lp worktree add --verbose main"
             ;;
         worktree/cd)
@@ -312,6 +330,8 @@ _lp_ns_cmds() {
             ;;
         session/start)
             echo "  lp session start main"
+            echo "  lp session start -b main"
+            echo "  lp session start -d 'Bug fix for LPS-123' main"
             echo "  lp session start -n main"
             ;;
         session/stop)
@@ -331,6 +351,14 @@ _lp_ns_cmds() {
             ;;
         session/restart)
             echo "  lp session restart"
+            ;;
+        session/describe)
+            echo "  lp session describe 'Fixing LPS-12345'"
+            echo "  lp session describe main 'Preparing for release'"
+            ;;
+        session/status)
+            echo "  lp session status ready"
+            echo "  lp session status main in-progress"
             ;;
         config/show)
             echo "  lp config"
