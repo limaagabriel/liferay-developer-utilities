@@ -56,7 +56,7 @@ _lp_ns_cmds() {
         worktree/cd)      echo "Change the current directory to a worktree" ;;
         worktree/list)    echo "List all active worktrees and their bundles" ;;
         worktree/build)   echo "Build the portal bundle from the worktree" ;;
-        worktree/remove)  echo "Remove a worktree and its bundle directory" ;;
+        worktree/remove)  echo "Remove a worktree, its bundle directory, and any active session" ;;
         worktree/start)   echo "Start the Liferay server for a worktree" ;;
         worktree/get)     echo "Get the current session's reference branch" ;;
         worktree/set)     echo "Set the reference branch for the session" ;;
@@ -131,7 +131,7 @@ _lp_ns_cmds() {
         worktree/add)
             echo "  -r, --remote <remote>   Track from a remote branch"
             echo "  -c, --cd                Automatically 'lp worktree cd' after adding"
-            echo "  -s, --session           Automatically 'lp session start' after adding"
+            echo "  -s, --session           Automatically 'lp session start' after adding (skips build)"
             echo "  -v, --verbose           Show full git output"
             echo "  -h, --help              Show this help"
             ;;
