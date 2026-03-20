@@ -93,7 +93,7 @@ _lp_ns_cmds() {
         worktree/add)     echo "lp worktree add [options] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
-        worktree/build) echo "lp worktree build [-v] [-y] [-s] <branch>" ;;
+        worktree/build) echo "lp worktree build [-q] [-y] [-s] <branch>" ;;
         worktree/remove)  echo "lp worktree remove [-b] [-v] <branch>" ;;
         worktree/start)   echo "lp worktree start [-v] [branch]" ;;
         worktree/get)     echo "lp worktree get" ;;
@@ -142,7 +142,7 @@ _lp_ns_cmds() {
             echo "  -h, --help   Show this help"
             ;;
         worktree/build)
-            echo "  -v, --verbose           Show full ant/git output"
+            echo "  -q, --quiet             Hide full ant/git output (unless error)"
             echo "  -y, --yes               Skip confirmation for deleting existing bundle"
             echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
             echo "  -h, --help              Show this help"
@@ -272,9 +272,9 @@ _lp_ns_cmds() {
             ;;
         worktree/build)
             echo "  lp worktree build main"
+            echo "  lp worktree build -q main"
             echo "  lp worktree build -y main"
             echo "  lp worktree build -s main"
-            echo "  lp worktree build --verbose main"
             ;;
         worktree/remove)
             echo "  lp worktree remove main"
