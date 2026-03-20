@@ -11,7 +11,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Options:"
     echo "  -r, --remote <remote>   Track from a remote branch"
     echo "  -c, --cd                Automatically 'lp worktree cd' after adding"
-    echo "  -s, --session           Automatically 'lp session start' after adding"
+    echo "  -s, --session           Automatically 'lp session start' after adding (skips build)"
     echo "  -v, --verbose           Show full git output"
     echo "  -h, --help              Show this help"
     echo ""
@@ -23,19 +23,19 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     return 0 2>/dev/null || exit 0
 fi
 
-local VERBOSE=0
-local REMOTE=""
-local BRANCH=""
-local AUTO_CD=0
-local AUTO_SESSION=0
+VERBOSE=0
+REMOTE=""
+BRANCH=""
+AUTO_CD=0
+AUTO_SESSION=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --verbose|-v) VERBOSE=1; shift ;;
-        --remote|-r)  REMOTE="$2"; shift 2 ;;
-        --cd|-c)      AUTO_CD=1; shift ;;
-        --session|-s) AUTO_SESSION=1; shift ;;
-        --help|-h)    shift ;;  # already handled above
+        --verbose|-v)  VERBOSE=1; shift ;;
+        --remote|-r)   REMOTE="$2"; shift 2 ;;
+        --cd|-c)       AUTO_CD=1; shift ;;
+        --session|-s)  AUTO_SESSION=1; shift ;;
+        --help|-h)     shift ;;  # already handled above
         -*)
             lp_error "Unknown option: $1"
             lp_error "Usage: lp worktree add [options] <branch>"
@@ -55,7 +55,7 @@ fi
 lp_branch_vars "$BRANCH"
 
 if [[ -n "$REMOTE" ]]; then
-    local REMOTE_BRANCH="$REMOTE/$BRANCH"
+    REMOTE_BRANCH="$REMOTE/$BRANCH"
     lp_step 1 2 "Creating worktree for branch '$BRANCH' from remote '$REMOTE_BRANCH'"
     # Use -B to allow resetting the branch if it already exists
     lp_run git -C "$MAIN_REPO_DIR" worktree add --track -B "$BRANCH" "$WORKTREE_DIR" "$REMOTE_BRANCH"
@@ -77,8 +77,8 @@ EOF
 lp_success "Worktree ready at $WORKTREE_DIR"
 
 if [[ $AUTO_SESSION -eq 1 ]]; then
-    lp_info "Automatically starting session for $BRANCH..."
-    "$_LP_SCRIPTS_DIR/commands/session/start.sh" "$BRANCH"
+    lp_info "Automatically starting session for $BRANCH (skipping build)..."
+    "$_LP_SCRIPTS_DIR/commands/session/start.sh" --no-build "$BRANCH"
 fi
 
 if [[ $AUTO_CD -eq 1 ]]; then

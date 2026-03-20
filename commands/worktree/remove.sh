@@ -4,7 +4,7 @@
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Remove a worktree and its bundle directory."
+    echo "Remove a worktree, its bundle directory, and any active session."
     echo ""
     echo "Usage: lp worktree remove [options] <branch>"
     echo ""
@@ -12,6 +12,8 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "  -b, --branch    Also delete the local branch"
     echo "  -v, --verbose   Show full git output"
     echo "  -h, --help      Show this help"
+    echo ""
+    echo "If an active tmux session exists for the branch, it will be stopped."
     echo ""
     echo "Examples:"
     echo "  lp worktree remove main"
@@ -48,10 +50,12 @@ fi
 
 lp_branch_vars "$BRANCH"
 
+SESSION_NAME="$BRANCH"
+
 if [[ "$DELETE_BRANCH" -eq 1 ]]; then
-    read -p " Remove worktree '$WORKTREE_DIR', bundle '$BUNDLE_DIR' AND branch '$BRANCH'? [y/N] " confirm
+    read -p " Remove worktree '$WORKTREE_DIR', bundle '$BUNDLE_DIR', session '$SESSION_NAME' AND branch '$BRANCH'? [y/N] " confirm
 else
-    read -p " Remove worktree '$WORKTREE_DIR' and bundle '$BUNDLE_DIR'? [y/N] " confirm
+    read -p " Remove worktree '$WORKTREE_DIR', bundle '$BUNDLE_DIR' and session '$SESSION_NAME'? [y/N] " confirm
 fi
 
 if [[ "$confirm" != "y" ]]; then
@@ -61,15 +65,26 @@ fi
 
 TOTAL_STEPS=2
 [[ "$DELETE_BRANCH" -eq 1 ]] && TOTAL_STEPS=3
+tmux has-session -t "$SESSION_NAME" 2>/dev/null && ((TOTAL_STEPS++))
 
-lp_step 1 $TOTAL_STEPS "Removing worktree"
+CURRENT_STEP=1
+
+if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+    lp_step $CURRENT_STEP $TOTAL_STEPS "Stopping active session '$SESSION_NAME'"
+    lp_run tmux kill-session -t "$SESSION_NAME"
+    ((CURRENT_STEP++))
+fi
+
+lp_step $CURRENT_STEP $TOTAL_STEPS "Removing worktree"
 lp_run git -C "$MAIN_REPO_DIR" worktree remove "$WORKTREE_DIR" --force
+((CURRENT_STEP++))
 
-lp_step 2 $TOTAL_STEPS "Removing bundle directory"
+lp_step $CURRENT_STEP $TOTAL_STEPS "Removing bundle directory"
 lp_run rm -rf "$BUNDLE_DIR"
+((CURRENT_STEP++))
 
 if [[ "$DELETE_BRANCH" -eq 1 ]]; then
-    lp_step 3 $TOTAL_STEPS "Deleting local branch '$BRANCH'"
+    lp_step $CURRENT_STEP $TOTAL_STEPS "Deleting local branch '$BRANCH'"
     lp_run git -C "$MAIN_REPO_DIR" branch -D "$BRANCH"
 fi
 
