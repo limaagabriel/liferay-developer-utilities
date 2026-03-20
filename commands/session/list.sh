@@ -3,6 +3,7 @@
 # Lists all active development sessions (tmux) that correspond to git worktrees.
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/session.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "List all active development sessions (tmux) that correspond to git worktrees."
@@ -47,6 +48,20 @@ while IFS='|' read -r session windows attached; do
             status_parts+=("attached")
         fi
 
+        # Check for description
+        description=$(tmux show-option -t "$session" -qv @lp-description)
+        if [[ -n "$description" ]]; then
+            description=" — $description"
+        fi
+
+        # Check for status
+        status_name=$(tmux show-option -t "$session" -qv @lp-status)
+        emoji=$(_lp_status_emoji "$status_name")
+        status_emoji_part=""
+        if [[ -n "$emoji" ]]; then
+            status_emoji_part=" $emoji"
+        fi
+
         # Check if bundle is running
         # We look for a window named 'bundle' and check if its pane has a relevant process
         bundle_pane_tty=$(tmux list-panes -t "$session:bundle" -F "#{pane_tty}" 2>/dev/null | head -n 1)
@@ -69,7 +84,7 @@ while IFS='|' read -r session windows attached; do
             status=" ($(IFS=','; echo "${status_parts[*]}"))"
         fi
 
-        lp_info "  $session ($windows windows)$status"
+        lp_info "  $session ($windows windows)$status$status_emoji_part$description"
         found_any=true
     fi
 done <<< "$tmux_info"
