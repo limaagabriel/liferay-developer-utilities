@@ -44,7 +44,7 @@ _lp_ns_cmds() {
         hypersonic) echo "clean" ;;
         session)  echo "list start stop enter exit add rebuild restart describe status" ;;
         config)   echo "show init" ;;
-        git)      echo "patch" ;;
+        git)      echo "add-remote remove-remote update-master patch" ;;
         *)        echo "" ;;
         esac
         }
@@ -82,6 +82,9 @@ _lp_ns_cmds() {
         session/status)   echo "Set or update the status of a development session (pending, in-progress, etc.)" ;;
         config/show)      echo "Show the currently resolved lp configuration" ;;
         config/init)      echo "Interactively create the per-user config file" ;;
+        git/add-remote)   echo "Add a new git remote to the master worktree and fetch all remotes" ;;
+        git/remove-remote) echo "Remove a git remote from the master worktree" ;;
+        git/update-master) echo "Sync master branch with upstream and origin" ;;
         git/patch)        echo "Download a git patch from a URL and apply it" ;;
         *)                echo "" ;;
         esac
@@ -120,6 +123,9 @@ _lp_ns_cmds() {
         session/status)   echo "lp session status [branch] <status>" ;;
         config/show)      echo "lp config" ;;
         config/init)      echo "lp config init" ;;
+        git/add-remote)   echo "lp git add-remote [-v] <name> <url>" ;;
+        git/remove-remote) echo "lp git remove-remote [-v] <name>" ;;
+        git/update-master) echo "lp git update-master [-v]" ;;
         git/patch)        echo "lp git patch [-c] [-v] <url>" ;;
         *)                echo "" ;;
         esac
@@ -243,6 +249,18 @@ _lp_ns_cmds() {
         config/init)
             echo "  -h, --help   Show this help"
             ;;
+        git/add-remote)
+            echo "  -v, --verbose   Show full git output"
+            echo "  -h, --help      Show this help"
+            ;;
+        git/remove-remote)
+            echo "  -v, --verbose   Show full git output"
+            echo "  -h, --help      Show this help"
+            ;;
+        git/update-master)
+            echo "  -v, --verbose   Show full git output"
+            echo "  -h, --help      Show this help"
+            ;;
         git/patch)
             echo "  -c, --commit    Apply the patch as a commit (default: leave changes uncommitted)"
             echo "  -v, --verbose   Show full git output"
@@ -365,6 +383,15 @@ _lp_ns_cmds() {
             ;;
         config/init)
             echo "  lp config init"
+            ;;
+        git/add-remote)
+            echo "  lp git add-remote upstream https://github.com/liferay/liferay-portal.git"
+            ;;
+        git/remove-remote)
+            echo "  lp git remove-remote upstream"
+            ;;
+        git/update-master)
+            echo "  lp git update-master"
             ;;
         git/patch)
             echo "  lp git patch https://example.com/fix.patch"
