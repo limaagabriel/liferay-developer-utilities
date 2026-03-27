@@ -9,6 +9,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Usage: lp worktree add [options] <branch>"
     echo ""
     echo "Options:"
+    echo "  -b, --base <branch>     Base branch to create from (defaults to master)"
     echo "  -r, --remote <remote>   Track from a remote branch"
     echo "  -c, --cd                Automatically 'lp worktree cd' after adding"
     echo "  -s, --session           Automatically 'lp session start' after adding (skips build)"
@@ -17,6 +18,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo ""
     echo "Examples:"
     echo "  lp worktree add main"
+    echo "  lp worktree add -b LPS-12345 feature-xyz"
     echo "  lp worktree add -r origin feature-xyz"
     echo "  lp worktree add -c feature-abc"
     echo "  lp worktree add -s feature-xyz"
@@ -24,6 +26,7 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
 fi
 
 VERBOSE=0
+BASE=""
 REMOTE=""
 BRANCH=""
 AUTO_CD=0
@@ -32,6 +35,7 @@ AUTO_SESSION=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --verbose|-v)  VERBOSE=1; shift ;;
+        --base|-b)     BASE="$2"; shift 2 ;;
         --remote|-r)   REMOTE="$2"; shift 2 ;;
         --cd|-c)       AUTO_CD=1; shift ;;
         --session|-s)  AUTO_SESSION=1; shift ;;
@@ -64,8 +68,9 @@ else
         lp_step 1 2 "Creating worktree for existing branch '$BRANCH'"
         lp_run git -C "$MAIN_REPO_DIR" worktree add "$WORKTREE_DIR" "$BRANCH"
     else
-        lp_step 1 2 "Creating worktree for branch '$BRANCH'"
-        lp_run git -C "$MAIN_REPO_DIR" worktree add -b "$BRANCH" "$WORKTREE_DIR"
+        START_POINT="${BASE:-master}"
+        lp_step 1 2 "Creating worktree for branch '$BRANCH' from '$START_POINT'"
+        lp_run git -C "$MAIN_REPO_DIR" worktree add -b "$BRANCH" "$WORKTREE_DIR" "$START_POINT"
     fi
 fi
 

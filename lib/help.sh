@@ -42,7 +42,7 @@ _lp_ns_cmds() {
         playwright) echo "test" ;;
         mysql)    echo "reset start" ;;
         hypersonic) echo "clean" ;;
-        session)  echo "list start stop enter exit add rebuild restart describe status" ;;
+        session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
         git)      echo "add-remote remove-remote update-master patch" ;;
         *)        echo "" ;;
@@ -80,6 +80,7 @@ _lp_ns_cmds() {
         session/restart)  echo "Restart the server in a session" ;;
         session/describe) echo "Set or update the description of a development session" ;;
         session/status)   echo "Set or update the status of a development session (pending, in-progress, etc.)" ;;
+        session/update)   echo "Update the description and/or status of a development session" ;;
         config/show)      echo "Show the currently resolved lp configuration" ;;
         config/init)      echo "Interactively create the per-user config file" ;;
         git/add-remote)   echo "Add a new git remote to the master worktree and fetch all remotes" ;;
@@ -121,6 +122,7 @@ _lp_ns_cmds() {
         session/restart)  echo "lp session restart" ;;
         session/describe) echo "lp session describe [branch] <description>" ;;
         session/status)   echo "lp session status [branch] <status>" ;;
+        session/update)   echo "lp session update [branch] [-d description] [-s status]" ;;
         config/show)      echo "lp config" ;;
         config/init)      echo "lp config init" ;;
         git/add-remote)   echo "lp git add-remote [-v] <name> <url>" ;;
@@ -135,6 +137,7 @@ _lp_ns_cmds() {
         _lp_cmd_opts() {
         case "$1/$2" in
         worktree/add)
+            echo "  -b, --base <branch>     Base branch to create from (defaults to master)"
             echo "  -r, --remote <remote>   Track from a remote branch"
             echo "  -c, --cd                Automatically 'lp worktree cd' after adding"
             echo "  -s, --session           Automatically 'lp session start' after adding (skips build)"
@@ -243,6 +246,11 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             echo "  Valid statuses: pending, in-progress, important, ready"
             ;;
+        session/update)
+            echo "  -d, --describe <description>  Set or update the session description"
+            echo "  -s, --status <status>        Set or update the session status"
+            echo "  -h, --help                   Show this help"
+            ;;
         config/show)
             echo "  -h, --help   Show this help"
             ;;
@@ -277,6 +285,7 @@ _lp_ns_cmds() {
         case "$1/$2" in
         worktree/add)
             echo "  lp worktree add main"
+            echo "  lp worktree add -b LPS-12345 feature-xyz"
             echo "  lp worktree add -r origin feature-xyz"
             echo "  lp worktree add -c feature-abc"
             echo "  lp worktree add -s feature-xyz"
@@ -377,6 +386,10 @@ _lp_ns_cmds() {
         session/status)
             echo "  lp session status ready"
             echo "  lp session status main in-progress"
+            ;;
+        session/update)
+            echo "  lp session update -d 'Fixing LPS-123' -s 'in-progress'"
+            echo "  lp session update main -s 'ready'"
             ;;
         config/show)
             echo "  lp config"
