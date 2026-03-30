@@ -39,12 +39,12 @@ _lp_ns_cmds() {
         worktree) echo "add build cd list remove start get set unset root" ;;
         bundle)   echo "cd remove" ;;
         portal)   echo "cdm gw" ;;
-        playwright) echo "test" ;;
+        playwright) echo "test trace" ;;
         mysql)    echo "reset start" ;;
         hypersonic) echo "clean" ;;
         session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
-        git)      echo "add-remote remove-remote update-master patch" ;;
+        git)      echo "add-remote remove-remote update-master update-ee patch" ;;
         *)        echo "" ;;
         esac
         }
@@ -65,11 +65,12 @@ _lp_ns_cmds() {
         portal/cdm)       echo "Fuzzy module search and cd in the current git repository" ;;
         portal/gw)        echo "Run gradle tasks in the current directory" ;;
         playwright/test)  echo "Run Playwright tests in the current worktree" ;;
+        playwright/trace) echo "Open a Playwright trace file in the trace viewer" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
         mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
         mysql/start)      echo "Start MySQL via Docker Compose and reset the database" ;;
-        hypersonic/clean) echo "Clean the Hypersonic database in a bundle" ;;
+        hypersonic/clean) echo "Clean the Hypersonic database and bundle caches (work, temp, osgi/state)" ;;
         session/list)     echo "List all active development sessions (tmux)" ;;
         session/start)    echo "Start a new development session using tmux" ;;
         session/stop)     echo "Stop a development session and kill tmux" ;;
@@ -86,6 +87,7 @@ _lp_ns_cmds() {
         git/add-remote)   echo "Add a new git remote to the master worktree and fetch all remotes" ;;
         git/remove-remote) echo "Remove a git remote from the master worktree" ;;
         git/update-master) echo "Sync master branch with upstream and origin" ;;
+        git/update-ee)    echo "Sync ee branch with upstream and origin" ;;
         git/patch)        echo "Download a git patch from a URL and apply it" ;;
         *)                echo "" ;;
         esac
@@ -107,6 +109,7 @@ _lp_ns_cmds() {
         portal/cdm)       echo "lp portal cdm" ;;
         portal/gw)        echo "lp portal gw [tasks...]" ;;
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
+        playwright/trace) echo "lp playwright trace <trace-file>" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-v]" ;;
@@ -128,6 +131,7 @@ _lp_ns_cmds() {
         git/add-remote)   echo "lp git add-remote [-v] <name> <url>" ;;
         git/remove-remote) echo "lp git remove-remote [-v] <name>" ;;
         git/update-master) echo "lp git update-master [-v]" ;;
+        git/update-ee)    echo "lp git update-ee [-v]" ;;
         git/patch)        echo "lp git patch [-c] [-v] <url>" ;;
         *)                echo "" ;;
         esac
@@ -189,6 +193,9 @@ _lp_ns_cmds() {
             echo "  -g <string>     Filter to only run tests with a title matching the given string"
             echo "  --ui            Open Playwright UI"
             echo "  -v, --verbose   Show full playwright output"
+            echo "  -h, --help      Show this help"
+            ;;
+        playwright/trace)
             echo "  -h, --help      Show this help"
             ;;
         bundle/cd)
@@ -269,6 +276,10 @@ _lp_ns_cmds() {
             echo "  -v, --verbose   Show full git output"
             echo "  -h, --help      Show this help"
             ;;
+        git/update-ee)
+            echo "  -v, --verbose   Show full git output"
+            echo "  -h, --help      Show this help"
+            ;;
         git/patch)
             echo "  -c, --commit    Apply the patch as a commit (default: leave changes uncommitted)"
             echo "  -v, --verbose   Show full git output"
@@ -335,6 +346,10 @@ _lp_ns_cmds() {
             echo "  lp playwright test -n 5 tests/flaky-test.spec.ts"
             echo "  lp playwright test -g 'my test title' tests/my-test.spec.ts"
             echo "  lp playwright test --ui tests/my-test.spec.ts"
+            ;;
+        playwright/trace)
+            echo "  lp playwright trace playwright-report/trace.zip"
+            echo "  lp playwright trace /path/to/trace.zip"
             ;;
         bundle/cd)
             echo "  lp bundle cd main"
@@ -405,6 +420,9 @@ _lp_ns_cmds() {
             ;;
         git/update-master)
             echo "  lp git update-master"
+            ;;
+        git/update-ee)
+            echo "  lp git update-ee"
             ;;
         git/patch)
             echo "  lp git patch https://example.com/fix.patch"

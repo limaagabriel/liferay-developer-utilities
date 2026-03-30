@@ -29,6 +29,9 @@ _lp_get_branches() {
     # Require MAIN_REPO_DIR to be set and to exist
     [[ -n "${MAIN_REPO_DIR:-}" && -d "$MAIN_REPO_DIR" ]] || return 0
 
+    echo "master"
+    echo "ee"
+
     local prefix="${BASE_PROJECT_DIR}/${MAIN_REPO_NAME}-"
 
     git -C "$MAIN_REPO_DIR" worktree list --porcelain 2>/dev/null \

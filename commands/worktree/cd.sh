@@ -35,17 +35,6 @@ fi
 
 BRANCH="$1"
 
-if [[ "$BRANCH" == "master" ]]; then
-    if [[ ! -d "$MAIN_REPO_DIR" ]]; then
-        lp_error "Main repository '$MAIN_REPO_DIR' does not exist."
-        return 1
-    fi
-    lp_info "Changing directory to $MAIN_REPO_DIR..."
-    cd "$MAIN_REPO_DIR"
-    source "$_LP_SCRIPTS_DIR/commands/worktree/set.sh" "master"
-    return 0
-fi
-
 lp_branch_vars "$BRANCH"
 
 if [[ ! -d "$WORKTREE_DIR" ]]; then
