@@ -5,9 +5,14 @@
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Clean the Hypersonic database in a bundle."
+    echo "Clean the Hypersonic database and bundle caches (work, temp, osgi/state)."
     echo ""
     echo "Usage: lp hypersonic clean [-v] [branch]"
+    echo ""
+    echo "This command removes the following from the bundle directory:"
+    echo "  - Tomcat 'work' and 'temp' directories"
+    echo "  - OSGi 'state' and 'work' directories"
+    echo "  - Hypersonic 'data' directory"
     echo ""
     echo "Options:"
     echo "  -v, --verbose   Show full output"
@@ -47,25 +52,27 @@ if [[ ! -d "$BUNDLE_DIR" ]]; then
     exit 1
 fi
 
-lp_info "Cleaning Hypersonic database for branch '$BRANCH'..."
+lp_info "Cleaning Hypersonic database and caches for branch '$BRANCH'..."
 
-# Hypersonic data can be in 'data/hypersonic' or 'data/hsql'
-cleaned=0
+# Finding the Tomcat directory
+TOMCAT_DIR=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" | head -n 1)
 
-if [[ -d "$BUNDLE_DIR/data/hypersonic" ]]; then
-    lp_step 1 1 "Removing $BUNDLE_DIR/data/hypersonic"
-    lp_run rm -rf "$BUNDLE_DIR/data/hypersonic"
-    cleaned=1
+# Following the user's manual command: rm -rf work temp osgi/state osgi/work data
+# We'll apply this to both the Tomcat directory and the Bundle root to be thorough.
+
+if [[ -n "$TOMCAT_DIR" ]]; then
+    lp_step 1 2 "Cleaning Tomcat caches ($TOMCAT_DIR)"
+    lp_run rm -rf "$TOMCAT_DIR/work" "$TOMCAT_DIR/temp" "$TOMCAT_DIR/osgi/state" "$TOMCAT_DIR/osgi/work" "$TOMCAT_DIR/data"
 fi
 
-if [[ -d "$BUNDLE_DIR/data/hsql" ]]; then
-    lp_step 1 1 "Removing $BUNDLE_DIR/data/hsql"
-    lp_run rm -rf "$BUNDLE_DIR/data/hsql"
-    cleaned=1
+lp_step 2 2 "Cleaning bundle root caches and data"
+# Standard Liferay locations for these if they are siblings to Tomcat
+lp_run rm -rf "$BUNDLE_DIR/osgi/state" "$BUNDLE_DIR/osgi/work"
+
+# Handling Hypersonic data. The user's command had 'data', which removes everything.
+# We'll remove the whole data directory to match their manual cleanup.
+if [[ -d "$BUNDLE_DIR/data" ]]; then
+    lp_run rm -rf "$BUNDLE_DIR/data"
 fi
 
-if [[ $cleaned -eq 0 ]]; then
-    lp_info "No Hypersonic database found in '$BUNDLE_DIR/data/'."
-else
-    lp_success "Hypersonic database cleaned successfully."
-fi
+lp_success "Hypersonic database and caches cleaned successfully for branch '$BRANCH'."

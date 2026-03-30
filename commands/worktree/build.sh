@@ -48,11 +48,7 @@ source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
 BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
 BRANCH="${BRANCH:-master}"
 
-if [[ "$BRANCH" == "master" ]]; then
-    WORKTREE_DIR="$MAIN_REPO_DIR"
-else
-    lp_branch_vars "$BRANCH"
-fi
+lp_branch_vars "$BRANCH"
 
 if [[ ! -d "$WORKTREE_DIR" ]]; then
     lp_error "Worktree '$WORKTREE_DIR' does not exist."

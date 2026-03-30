@@ -30,6 +30,7 @@ source "$_LP_USER_CONFIG"
 BASE_PROJECT_DIR="${BASE_PROJECT_DIR:=$HOME/dev/projects}"
 MAIN_REPO_NAME="${MAIN_REPO_NAME:=liferay-portal}"
 MAIN_REPO_DIR="${MAIN_REPO_DIR:=$BASE_PROJECT_DIR/$MAIN_REPO_NAME}"
+EE_REPO_DIR="${EE_REPO_DIR:=$BASE_PROJECT_DIR/liferay-portal-ee}"
 BUNDLES_DIR="${BUNDLES_DIR:=$HOME/dev/bundles}"
 ENABLE_AUTOCOMPLETE="${ENABLE_AUTOCOMPLETE:=yes}"
 ENABLE_ALIASES="${ENABLE_ALIASES:=yes}"
@@ -39,7 +40,7 @@ SESSION_CUSTOM_WINDOWS="${SESSION_CUSTOM_WINDOWS:=}"
 # Warn for any expected variable that is still unset (task 2.6)
 # ---------------------------------------------------------------------------
 
-for _lp_var in BASE_PROJECT_DIR MAIN_REPO_NAME MAIN_REPO_DIR BUNDLES_DIR ENABLE_AUTOCOMPLETE ENABLE_ALIASES; do
+for _lp_var in BASE_PROJECT_DIR MAIN_REPO_NAME MAIN_REPO_DIR EE_REPO_DIR BUNDLES_DIR ENABLE_AUTOCOMPLETE ENABLE_ALIASES; do
     eval "_lp_val=\"\${$_lp_var}\""
     if [[ -z "$_lp_val" ]]; then
         echo "lp: warning: '$_lp_var' is unset after loading config." >&2
@@ -51,7 +52,13 @@ unset _lp_var _lp_val
 # Usage: lp_branch_vars <branch-name>
 lp_branch_vars() {
     local branch="$1"
-    WORKTREE_DIR="$BASE_PROJECT_DIR/${MAIN_REPO_NAME}-$branch"
+    if [[ "$branch" == "master" ]]; then
+        WORKTREE_DIR="$MAIN_REPO_DIR"
+    elif [[ "$branch" == "ee" ]]; then
+        WORKTREE_DIR="$EE_REPO_DIR"
+    else
+        WORKTREE_DIR="$BASE_PROJECT_DIR/${MAIN_REPO_NAME}-$branch"
+    fi
     BUNDLE_DIR="$BUNDLES_DIR/$branch"
 }
 
@@ -62,7 +69,11 @@ lp_detect_worktree() {
     local current_dir
     current_dir=$(pwd)
 
-    if [[ "$current_dir" == "$BASE_PROJECT_DIR/${MAIN_REPO_NAME}-"* ]]; then
+    if [[ "$current_dir" == "$EE_REPO_DIR"* ]]; then
+        LP_DETECTED_BRANCH="ee"
+        LP_DETECTED_WORKTREE_DIR="$EE_REPO_DIR"
+        return 0
+    elif [[ "$current_dir" == "$BASE_PROJECT_DIR/${MAIN_REPO_NAME}-"* ]]; then
         local branch="${current_dir#$BASE_PROJECT_DIR/${MAIN_REPO_NAME}-}"
         branch="${branch%%/*}"
         LP_DETECTED_BRANCH="$branch"

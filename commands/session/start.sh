@@ -75,11 +75,7 @@ if [[ -z "$BRANCH" ]]; then
     fi
 fi
 
-if [[ "$BRANCH" == "master" ]]; then
-    WORKTREE_DIR="$MAIN_REPO_DIR"
-else
-    lp_branch_vars "$BRANCH"
-fi
+lp_branch_vars "$BRANCH"
 
 if [[ ! -d "$WORKTREE_DIR" ]]; then
     lp_error "Worktree directory '$WORKTREE_DIR' does not exist."

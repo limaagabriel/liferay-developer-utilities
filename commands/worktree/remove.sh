@@ -43,8 +43,8 @@ source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
 BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
 BRANCH="${BRANCH:-master}"
 
-if [[ "$BRANCH" == "master" ]]; then
-    lp_error "Cannot remove the master branch."
+if [[ "$BRANCH" == "master" || "$BRANCH" == "ee" ]]; then
+    lp_error "Cannot remove the $BRANCH branch."
     exit 1
 fi
 
