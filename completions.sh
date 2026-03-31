@@ -49,7 +49,7 @@ _lp_has_branch_arg() {
         worktree/cd|worktree/start|worktree/remove|\
         worktree/build|worktree/clean|worktree/set|bundle/cd|bundle/remove|\
         mysql/reset|mysql/start|hypersonic/clean|session/start|session/stop|\
-        session/enter|session/describe|session/status|session/update)
+        session/enter|session/describe|session/status|session/update|git/bisect)
             return 0 ;;
         *)
             return 1 ;;

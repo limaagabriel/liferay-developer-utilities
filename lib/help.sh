@@ -44,7 +44,7 @@ _lp_ns_cmds() {
         hypersonic) echo "clean" ;;
         session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
-        git)      echo "add-remote remove-remote update-master update-ee patch" ;;
+        git)      echo "add-remote remove-remote update-master update-ee patch bisect" ;;
         *)        echo "" ;;
         esac
         }
@@ -89,6 +89,7 @@ _lp_ns_cmds() {
         git/update-master) echo "Sync master branch with upstream and origin" ;;
         git/update-ee)    echo "Sync ee branch with upstream and origin" ;;
         git/patch)        echo "Download a git patch from a URL and apply it" ;;
+        git/bisect)       echo "Automate the Liferay Portal bisection process" ;;
         *)                echo "" ;;
         esac
         }
@@ -132,7 +133,8 @@ _lp_ns_cmds() {
         git/remove-remote) echo "lp git remove-remote [-v] <name>" ;;
         git/update-master) echo "lp git update-master [-v]" ;;
         git/update-ee)    echo "lp git update-ee [-v]" ;;
-        git/patch)        echo "lp git patch [-c] [-v] <url>" ;;
+        git/patch)        echo "lp git patch <url>" ;;
+        git/bisect)       echo "lp git bisect -g <good> -b <bad> [branch]" ;;
         *)                echo "" ;;
         esac
         }
@@ -285,6 +287,11 @@ _lp_ns_cmds() {
             echo "  -v, --verbose   Show full git output"
             echo "  -h, --help      Show this help"
             ;;
+        git/bisect)
+            echo "  -g, --good <commit>   The last known good commit (required)"
+            echo "  -b, --bad <commit>    The first known bad commit (required)"
+            echo "  -h, --help            Show this help"
+            ;;
         *)
             echo "  (none)"
             ;;
@@ -427,6 +434,10 @@ _lp_ns_cmds() {
         git/patch)
             echo "  lp git patch https://example.com/fix.patch"
             echo "  lp git patch --commit https://example.com/fix.patch"
+            ;;
+        git/bisect)
+            echo "  lp git bisect -g v7.4.3.100-ga100 -b master"
+            echo "  lp git bisect -g 4a5b6c7 -b 1a2b3c4 my-fix-branch"
             ;;
         *)
             echo "  (none)"
