@@ -88,6 +88,7 @@ SESSION_NAME="$BRANCH"
 # Check if session already exists
 if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
     lp_info "Session '$SESSION_NAME' already exists. Attaching..."
+    _lp_set_tmux_titles "$SESSION_NAME"
     tmux attach-session -t "$SESSION_NAME"
     exit 0
 fi
@@ -176,6 +177,9 @@ fi
 if [[ -n "$STATUS_NAME" ]]; then
     tmux set-option -t "$SESSION_NAME" @lp-status "$STATUS_NAME"
 fi
+
+# Set terminal titles
+_lp_set_tmux_titles "$SESSION_NAME"
 
 # Set base index to 1 and move the bundle window to index 1
 tmux set-option -t "$SESSION_NAME" base-index 1

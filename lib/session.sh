@@ -33,3 +33,11 @@ _lp_update_tmux_status_line() {
     tmux set-option -t "$session" status-left "  #S  $status_part"
     tmux set-option -t "$session" status-left-length 100
 }
+
+# _lp_set_tmux_titles <session_name> — set the host terminal title via tmux
+_lp_set_tmux_titles() {
+    local session="$1"
+    
+    tmux set-option -t "$session" set-titles on
+    tmux set-option -t "$session" set-titles-string "Session #S"
+}

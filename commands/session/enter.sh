@@ -3,6 +3,7 @@
 # Attaches to an existing tmux session.
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/session.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Enter an existing development session."
@@ -36,6 +37,7 @@ SESSION_NAME="$BRANCH"
 
 if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
     lp_info "Entering session '$SESSION_NAME'..."
+    _lp_set_tmux_titles "$SESSION_NAME"
     tmux attach-session -t "$SESSION_NAME"
 else
     lp_error "Session '$SESSION_NAME' does not exist."
