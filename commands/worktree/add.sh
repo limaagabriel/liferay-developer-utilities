@@ -56,6 +56,12 @@ if [[ -z "$BRANCH" ]]; then
     return 1 2>/dev/null || exit 1
 fi
 
+# Check worktree limit
+CURRENT_WORKTREE_COUNT=$(git -C "$MAIN_REPO_DIR" worktree list --porcelain | grep "^worktree" | wc -l)
+if [[ $CURRENT_WORKTREE_COUNT -ge $WORKTREE_LIMIT ]]; then
+    lp_info "Warning: You already have $CURRENT_WORKTREE_COUNT worktrees (limit is $WORKTREE_LIMIT)."
+fi
+
 lp_branch_vars "$BRANCH"
 
 if [[ -n "$REMOTE" ]]; then
