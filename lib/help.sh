@@ -38,7 +38,7 @@ _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add build cd list remove start get set unset root" ;;
         bundle)   echo "cd remove" ;;
-        portal)   echo "cdm gw" ;;
+        portal)   echo "cdm db gw" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start" ;;
         hypersonic) echo "clean" ;;
@@ -63,6 +63,7 @@ _lp_ns_cmds() {
         worktree/unset)   echo "Reset the reference branch to master" ;;
         worktree/root)    echo "Change the current directory to the root of the active worktree" ;;
         portal/cdm)       echo "Fuzzy module search and cd in the current git repository" ;;
+        portal/db)        echo "Switch between mysql (with optional db name) and hypersonic" ;;
         portal/gw)        echo "Run gradle tasks in the current directory" ;;
         playwright/test)  echo "Run Playwright tests in the current worktree" ;;
         playwright/trace) echo "Open a Playwright trace file in the trace viewer" ;;
@@ -108,6 +109,7 @@ _lp_ns_cmds() {
         worktree/unset)   echo "lp worktree unset" ;;
         worktree/root)    echo "lp worktree root" ;;
         portal/cdm)       echo "lp portal cdm" ;;
+        portal/db)        echo "lp portal db [mysql|hypersonic|database_name]" ;;
         portal/gw)        echo "lp portal gw [tasks...]" ;;
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
@@ -186,6 +188,9 @@ _lp_ns_cmds() {
         portal/cdm)
             echo "  -h, --help      Show this help"
             echo "  Note: Requires 'fzf' to be installed"
+            ;;
+        portal/db)
+            echo "  -h, --help      Show this help"
             ;;
         portal/gw)
             echo "  -h, --help      Show this help"
@@ -344,6 +349,11 @@ _lp_ns_cmds() {
             ;;
         portal/cdm)
             echo "  lp portal cdm"
+            ;;
+        portal/db)
+            echo "  lp portal db mysql"
+            echo "  lp portal db hypersonic"
+            echo "  lp portal db lportal_test"
             ;;
         portal/gw)
             echo "  lp portal gw clean deploy"
