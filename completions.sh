@@ -56,6 +56,11 @@ _lp_has_branch_arg() {
     esac
 }
 
+# _lp_get_db_completions
+_lp_get_db_completions() {
+    echo "mysql hypersonic"
+}
+
 # Main completion function for the lp command.
 _lp_complete() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
@@ -66,11 +71,18 @@ _lp_complete() {
 
     # Offer branch completions when past `lp <ns> <cmd>` and the current word is
     # not a flag, for subcommands that accept a branch name argument.
-    if [[ $COMP_CWORD -ge 3 && "$cur" != -* ]] && _lp_has_branch_arg "$ns" "$cmd"; then
-        local branches
-        branches=$(_lp_get_branches)
-        # shellcheck disable=SC2207
-        COMPREPLY=( $(compgen -W "$branches" -- "$cur") )
+    if [[ $COMP_CWORD -ge 3 && "$cur" != -* ]]; then
+        if _lp_has_branch_arg "$ns" "$cmd"; then
+            local branches
+            branches=$(_lp_get_branches)
+            # shellcheck disable=SC2207
+            COMPREPLY=( $(compgen -W "$branches" -- "$cur") )
+        elif [[ "$ns/$cmd" == "portal/db" && $COMP_CWORD -eq 3 ]]; then
+            local dbs
+            dbs=$(_lp_get_db_completions)
+            # shellcheck disable=SC2207
+            COMPREPLY=( $(compgen -W "$dbs" -- "$cur") )
+        fi
     fi
 }
 
@@ -86,11 +98,17 @@ if [[ -n "${ZSH_VERSION:-}" ]]; then
         local ns="${words[2]:-}"
         local cmd="${words[3]:-}"
 
-        # Offer branch completions at position 4 (lp <ns> <cmd> <branch>)
-        if (( CURRENT == 4 )) && _lp_has_branch_arg "$ns" "$cmd"; then
-            local -a branches
-            branches=( $(_lp_get_branches) )
-            compadd -- "${branches[@]}"
+        # Offer completions at position 4 (lp <ns> <cmd> <branch/db>)
+        if (( CURRENT == 4 )); then
+            if _lp_has_branch_arg "$ns" "$cmd"; then
+                local -a branches
+                branches=( $(_lp_get_branches) )
+                compadd -- "${branches[@]}"
+            elif [[ "$ns/$cmd" == "portal/db" ]]; then
+                local -a dbs
+                dbs=( $(_lp_get_db_completions) )
+                compadd -- "${dbs[@]}"
+            fi
         fi
     }
 
