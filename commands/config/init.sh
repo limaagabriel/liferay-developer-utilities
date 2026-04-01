@@ -58,6 +58,7 @@ _lp_prompt _EE_REPO_DIR      "EE repository path"     "$_BASE_PROJECT_DIR/lifera
 _lp_prompt _BUNDLES_DIR      "Bundles directory"       "$HOME/dev/bundles"
 _lp_prompt _ENABLE_AUTOCOMPLETE "Enable tab completion (yes/no)" "yes"
 _lp_prompt _ENABLE_ALIASES "Enable simplified aliases (yes/no)" "yes"
+_lp_prompt _WORKTREE_LIMIT "Worktree limit" "8"
 _lp_prompt _SESSION_CUSTOM_WINDOWS "Custom tmux windows (name1:cmd1,name2:cmd2)" ""
 
 # Create config directory if needed (task 4.4)
@@ -80,6 +81,7 @@ EE_REPO_DIR=$_EE_REPO_DIR
 BUNDLES_DIR=$_BUNDLES_DIR
 ENABLE_AUTOCOMPLETE=$_ENABLE_AUTOCOMPLETE
 ENABLE_ALIASES=$_ENABLE_ALIASES
+WORKTREE_LIMIT=$_WORKTREE_LIMIT
 SESSION_CUSTOM_WINDOWS=$_SESSION_CUSTOM_WINDOWS
 EOF
 
