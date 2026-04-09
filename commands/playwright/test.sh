@@ -85,17 +85,6 @@ fi
 
 cd "$PLAYWRIGHT_DIR" || exit 1
 
-lp_info "Environment info:"
-lp_info "  Node: $(node -v 2>&1 || echo "not found")"
-lp_info "  npm:  $(npm -v 2>&1 || echo "not found")"
-lp_info ""
-
-if [[ ! -d "$PLAYWRIGHT_DIR/node_modules" ]]; then
-    lp_info "Installing dependencies in $PLAYWRIGHT_DIR..."
-    lp_run npm install || { lp_error "npm install failed."; exit 1; }
-    lp_info ""
-fi
-
 SUCCESS_COUNT=0
 
 for ((i=1; i<=ITERATIONS; i++)); do

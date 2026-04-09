@@ -51,11 +51,5 @@ fi
 
 cd "$PLAYWRIGHT_DIR" || exit 1
 
-if [[ ! -d "node_modules" ]]; then
-    lp_info "Installing dependencies in $PLAYWRIGHT_DIR..."
-    lp_run npm install || { lp_error "npm install failed."; exit 1; }
-    lp_info ""
-fi
-
 lp_info "Opening trace viewer for $TRACE_FILE..."
 npx playwright show-trace "$ABS_TRACE_FILE"
