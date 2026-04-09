@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: lp worktree build [-q] [branch]
+# Usage: lp bundle build [-q] [branch]
 # If no branch is given, uses the current directory.
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
@@ -7,7 +7,7 @@ source "$_LP_SCRIPTS_DIR/lib/output.sh"
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Build the portal bundle from the worktree."
     echo ""
-    echo "Usage: lp worktree build [-q] [-y] [-s] [branch]"
+    echo "Usage: lp bundle build [-q] [-y] [-s] [branch]"
     echo ""
     echo "Options:"
     echo "  -q, --quiet             Hide full ant/git output (unless error)"
@@ -16,11 +16,11 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "  -h, --help              Show this help"
     echo ""
     echo "Examples:"
-    echo "  lp worktree build main"
-    echo "  lp worktree build -q main"
-    echo "  lp worktree build -y main"
-    echo "  lp worktree build -s main"
-    echo "  lp worktree build           # uses current directory"
+    echo "  lp bundle build main"
+    echo "  lp bundle build -q main"
+    echo "  lp bundle build -y main"
+    echo "  lp bundle build -s main"
+    echo "  lp bundle build           # uses current directory"
     exit 0
 fi
 

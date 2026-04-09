@@ -137,10 +137,10 @@ echo \"    lp session describe <msg> Update the session description\";
 echo \"    lp session status <status> Update the session status (e.g. ready)\";
 echo \"    lp session exit           Detach from this session (same as Ctrl+b d)\";
 echo \"    lp session enter          Re-enter an existing session\";
-echo \"    lp session stop           Stop the bundle and kill the tmux session\";
-echo \"\";
-exec $USER_SHELL"
-
+echo "The session will have at least three windows:"
+    echo "  1. bundle: Runs 'lp bundle build -s && lp bundle start'"
+    echo "  2. git: Opens 'lazygit' (if installed)"
+...
 if [[ "$SKIP_BUNDLE" == "true" ]]; then
     BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1;
     echo \"\";
@@ -148,21 +148,21 @@ if [[ "$SKIP_BUNDLE" == "true" ]]; then
     echo \"\";
     echo \"  To build and start the bundle, run:\";
     echo \"\";
-    echo \"    lp worktree build -s && lp worktree start\";
+    echo \"    lp bundle build -s && lp bundle start\";
     echo \"\";
     exec $USER_SHELL"
 elif [[ "$BUILD_ONLY" == "true" ]]; then
-    BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp worktree build -s;
+    BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp bundle build -s;
     echo \"\";
     echo \"  Note: Automatic server start was skipped because the --build-only flag was provided.\";
     echo \"\";
     echo \"  To start the server, run:\";
     echo \"\";
-    echo \"    lp worktree start\";
+    echo \"    lp bundle start\";
     echo \"\";
     exec $USER_SHELL"
 else
-    BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp worktree build -s && lp worktree start; exec $USER_SHELL"
+    BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp bundle build -s && lp bundle start; exec $USER_SHELL"
 fi
 
 # Create session with the first window (bundle)

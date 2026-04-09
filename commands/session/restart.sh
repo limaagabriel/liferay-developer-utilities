@@ -82,7 +82,7 @@ done
 lp_info "Server stopped. Restarting..."
 
 # Send the start command to the bundle window
-RESTART_CMD="lp worktree start"
+RESTART_CMD="lp bundle start"
 tmux send-keys -t "$SESSION_NAME:bundle" "$RESTART_CMD" Enter
 
 lp_success "Restart command sent to 'bundle' window."

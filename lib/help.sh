@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle portal playwright mysql hypersonic session config git"
+_LP_NAMESPACES="worktree bundle portal playwright mysql session config git"
 
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
@@ -25,7 +25,6 @@ _lp_ns_desc() {
         portal)   echo "Liferay Portal development utilities" ;;
         playwright) echo "Playwright test utilities" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
-        hypersonic) echo "Manage Hypersonic databases" ;;
         session)  echo "Manage tmux-based development sessions" ;;
         config)   echo "Manage per-user lp configuration" ;;
         git)      echo "Git utilities" ;;
@@ -36,12 +35,11 @@ _lp_ns_desc() {
 # _lp_ns_cmds <ns> — space-separated command list for a namespace (defines display order)
 _lp_ns_cmds() {
     case "$1" in
-        worktree) echo "add build cd list remove start get set unset root" ;;
-        bundle)   echo "cd remove" ;;
+        worktree) echo "add cd list remove get set unset root" ;;
+        bundle)   echo "build start reset cd remove" ;;
         portal)   echo "cdm db gw" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start" ;;
-        hypersonic) echo "clean" ;;
         session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
         git)      echo "add-remote remove-remote update-master update-ee patch bisect" ;;
@@ -55,23 +53,23 @@ _lp_ns_cmds() {
         worktree/add)     echo "Add a new git worktree for a branch" ;;
         worktree/cd)      echo "Change the current directory to a worktree" ;;
         worktree/list)    echo "List all active worktrees and their bundles" ;;
-        worktree/build)   echo "Build the portal bundle from the worktree" ;;
         worktree/remove)  echo "Remove a worktree, its bundle directory, and any active session" ;;
-        worktree/start)   echo "Start the Liferay server for a worktree" ;;
         worktree/get)     echo "Get the current session's reference branch" ;;
         worktree/set)     echo "Set the reference branch for the session" ;;
         worktree/unset)   echo "Reset the reference branch to master" ;;
-        worktree/root)    echo "Change the current directory to the root of the active worktree" ;;
+        worktree/root)    echo "Change the current directory to the root of a worktree" ;;
         portal/cdm)       echo "Fuzzy module search and cd in the current git repository" ;;
         portal/db)        echo "Switch between mysql (with optional db name) and hypersonic" ;;
         portal/gw)        echo "Run gradle tasks in the current directory" ;;
         playwright/test)  echo "Run Playwright tests in the current worktree" ;;
         playwright/trace) echo "Open a Playwright trace file in the trace viewer" ;;
+        bundle/build)     echo "Build the portal bundle from the worktree" ;;
+        bundle/start)     echo "Start the Liferay server for a bundle" ;;
+        bundle/reset)     echo "Reset the bundle database and caches (work, temp, osgi/state)" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
         mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
         mysql/start)      echo "Start MySQL via Docker Compose and reset the database" ;;
-        hypersonic/clean) echo "Clean the Hypersonic database and bundle caches (work, temp, osgi/state)" ;;
         session/list)     echo "List all active development sessions (tmux)" ;;
         session/start)    echo "Start a new development session using tmux" ;;
         session/stop)     echo "Stop a development session and kill tmux" ;;
@@ -101,9 +99,7 @@ _lp_ns_cmds() {
         worktree/add)     echo "lp worktree add [options] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
-        worktree/build) echo "lp worktree build [-q] [-y] [-s] <branch>" ;;
         worktree/remove)  echo "lp worktree remove [-b] [-v] <branch>" ;;
-        worktree/start)   echo "lp worktree start [-v] [branch]" ;;
         worktree/get)     echo "lp worktree get" ;;
         worktree/set)     echo "lp worktree set [branch-name]" ;;
         worktree/unset)   echo "lp worktree unset" ;;
@@ -113,11 +109,13 @@ _lp_ns_cmds() {
         portal/gw)        echo "lp portal gw [tasks...]" ;;
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
+        bundle/build)     echo "lp bundle build [-q] [-y] [-s] <branch>" ;;
+        bundle/start)     echo "lp bundle start [-v] [branch]" ;;
+        bundle/reset)     echo "lp bundle reset [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-v]" ;;
         mysql/start)      echo "lp mysql start [-v]" ;;
-        hypersonic/clean) echo "lp hypersonic clean [-v] [branch]" ;;
         session/list)     echo "lp session list" ;;
         session/start)    echo "lp session start [options] [branch]" ;;
         session/stop)     echo "lp session stop [branch]" ;;
@@ -158,19 +156,9 @@ _lp_ns_cmds() {
         worktree/list)
             echo "  -h, --help   Show this help"
             ;;
-        worktree/build)
-            echo "  -q, --quiet             Hide full ant/git output (unless error)"
-            echo "  -y, --yes               Skip confirmation for deleting existing bundle"
-            echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
-            echo "  -h, --help              Show this help"
-            ;;
         worktree/remove)
             echo "  -b, --branch    Also delete the local branch"
             echo "  -v, --verbose   Show full git output"
-            echo "  -h, --help      Show this help"
-            ;;
-        worktree/start)
-            echo "  -v, --verbose   Show full ant output (catalina log always shown)"
             echo "  -h, --help      Show this help"
             ;;
         worktree/get)
@@ -205,6 +193,20 @@ _lp_ns_cmds() {
         playwright/trace)
             echo "  -h, --help      Show this help"
             ;;
+        bundle/build)
+            echo "  -q, --quiet             Hide full ant/git output (unless error)"
+            echo "  -y, --yes               Skip confirmation for deleting existing bundle"
+            echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
+            echo "  -h, --help              Show this help"
+            ;;
+        bundle/start)
+            echo "  -v, --verbose   Show full ant output (catalina log always shown)"
+            echo "  -h, --help      Show this help"
+            ;;
+        bundle/reset)
+            echo "  -v, --verbose   Show full output"
+            echo "  -h, --help      Show this help"
+            ;;
         bundle/cd)
             echo "  -h, --help   Show this help"
             ;;
@@ -218,10 +220,6 @@ _lp_ns_cmds() {
             ;;
         mysql/start)
             echo "  -v, --verbose   Show full docker output"
-            echo "  -h, --help      Show this help"
-            ;;
-        hypersonic/clean)
-            echo "  -v, --verbose   Show full output"
             echo "  -h, --help      Show this help"
             ;;
         session/list)
@@ -297,9 +295,7 @@ _lp_ns_cmds() {
             echo "  -b, --bad <commit>    The first known bad commit (required)"
             echo "  -h, --help            Show this help"
             ;;
-        *)
-            echo "  (none)"
-            ;;
+        *)                echo "" ;;
         esac
         }
 
@@ -320,19 +316,9 @@ _lp_ns_cmds() {
         worktree/list)
             echo "  lp worktree list"
             ;;
-        worktree/build)
-            echo "  lp worktree build main"
-            echo "  lp worktree build -q main"
-            echo "  lp worktree build -y main"
-            echo "  lp worktree build -s main"
-            ;;
         worktree/remove)
             echo "  lp worktree remove main"
             echo "  lp worktree remove -b feature-xyz"
-            ;;
-        worktree/start)
-            echo "  lp worktree start main"
-            echo "  lp worktree start           # uses current directory"
             ;;
         worktree/get)
             echo "  lp worktree get"
@@ -368,6 +354,20 @@ _lp_ns_cmds() {
             echo "  lp playwright trace playwright-report/trace.zip"
             echo "  lp playwright trace /path/to/trace.zip"
             ;;
+        bundle/build)
+            echo "  lp bundle build main"
+            echo "  lp bundle build -q main"
+            echo "  lp bundle build -y main"
+            echo "  lp bundle build -s main"
+            ;;
+        bundle/start)
+            echo "  lp bundle start main"
+            echo "  lp bundle start           # uses current directory"
+            ;;
+        bundle/reset)
+            echo "  lp bundle reset main"
+            echo "  lp bundle reset"
+            ;;
         bundle/cd)
             echo "  lp bundle cd main"
             ;;
@@ -379,10 +379,6 @@ _lp_ns_cmds() {
             ;;
         mysql/start)
             echo "  lp mysql start"
-            ;;
-        hypersonic/clean)
-            echo "  lp hypersonic clean main"
-            echo "  lp hypersonic clean"
             ;;
         session/list)
             echo "  lp session list"
