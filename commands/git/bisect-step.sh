@@ -39,12 +39,12 @@ if [[ -d "$BUNDLE_DIR" ]]; then
 fi
 
 lp_step 3 3 "Starting build and bundle in tmux session '$SESSION_NAME'"
-lp_info "Command: lp worktree build -y && lp worktree start"
+lp_info "Command: lp bundle build -y && lp bundle start"
 
 # Use the user's shell to ensure lp commands are available if sourced in .zshrc/.bashrc
 # Or we can use the absolute path to lp.sh to be safer.
 USER_SHELL="${SHELL:-bash}"
-tmux new-session -d -s "$SESSION_NAME" -c "$WORKTREE_DIR" "$USER_SHELL -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree build -y && lp worktree start; exec $USER_SHELL'"
+tmux new-session -d -s "$SESSION_NAME" -c "$WORKTREE_DIR" "$USER_SHELL -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp bundle build -y && lp bundle start; exec $USER_SHELL'"
 
 lp_info "Monitoring the build:"
 lp_info "  tmux attach -t $SESSION_NAME"

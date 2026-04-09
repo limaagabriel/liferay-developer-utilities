@@ -1,21 +1,21 @@
 #!/bin/bash
-# Usage: lp worktree start [-v] [branch]
+# Usage: lp bundle start [-v] [branch]
 # If no branch is given, uses the current directory.
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Start the Liferay server for a worktree."
+    echo "Start the Liferay server for a bundle."
     echo ""
-    echo "Usage: lp worktree start [-v] [branch]"
+    echo "Usage: lp bundle start [-v] [branch]"
     echo ""
     echo "Options:"
     echo "  -v, --verbose   Show full ant output (catalina log always shown)"
     echo "  -h, --help      Show this help"
     echo ""
     echo "Examples:"
-    echo "  lp worktree start main"
-    echo "  lp worktree start           # uses current directory"
+    echo "  lp bundle start main"
+    echo "  lp bundle start           # uses current directory"
     exit 0
 fi
 

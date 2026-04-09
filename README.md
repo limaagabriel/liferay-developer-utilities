@@ -56,8 +56,8 @@ Manage your portal development branches without constant `git checkout` switchin
 ```bash
 lp worktree add my-feature    # Adds a new worktree and bundle
 lp worktree cd my-feature     # Jump to the worktree directory
-lp worktree build my-feature  # Build the portal bundle
-lp worktree start my-feature  # Start the Liferay server
+lp bundle build my-feature    # Build the portal bundle
+lp bundle start my-feature    # Start the Liferay server
 ```
 
 ### Server Bundles
@@ -65,6 +65,7 @@ Manage Liferay server bundles independently.
 ```bash
 lp bundle cd my-feature       # Jump to the tomcat/bin directory
 lp bundle remove my-feature   # Delete a specific bundle
+lp bundle reset my-feature    # Reset the bundle database and caches
 ```
 
 ### Local Environment
@@ -72,7 +73,6 @@ Quickly manage your local development database and cleaning tasks.
 ```bash
 lp mysql start             # Start MySQL container and initialize database
 lp mysql reset             # Reset (drop/recreate) the lportal database
-lp hypersonic clean master  # Clean the Hypersonic database in a bundle
 ```
 
 ### Git Utilities

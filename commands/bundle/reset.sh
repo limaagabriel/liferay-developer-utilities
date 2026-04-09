@@ -1,13 +1,13 @@
 #!/bin/bash
-# Usage: lp hypersonic clean [-v] [branch]
+# Usage: lp bundle reset [-v] [branch]
 # If no branch is given, uses the reference branch.
 
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Clean the Hypersonic database and bundle caches (work, temp, osgi/state)."
+    echo "Reset the bundle database and caches (work, temp, osgi/state)."
     echo ""
-    echo "Usage: lp hypersonic clean [-v] [branch]"
+    echo "Usage: lp bundle reset [-v] [branch]"
     echo ""
     echo "This command removes the following from the bundle directory:"
     echo "  - Tomcat 'work' and 'temp' directories"
@@ -19,8 +19,8 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "  -h, --help      Show this help"
     echo ""
     echo "Examples:"
-    echo "  lp hypersonic clean main"
-    echo "  lp hypersonic clean           # uses reference branch"
+    echo "  lp bundle reset main"
+    echo "  lp bundle reset           # uses reference branch"
     exit 0
 fi
 
@@ -52,13 +52,10 @@ if [[ ! -d "$BUNDLE_DIR" ]]; then
     exit 1
 fi
 
-lp_info "Cleaning Hypersonic database and caches for branch '$BRANCH'..."
+lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
 
 # Finding the Tomcat directory
 TOMCAT_DIR=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" | head -n 1)
-
-# Following the user's manual command: rm -rf work temp osgi/state osgi/work data
-# We'll apply this to both the Tomcat directory and the Bundle root to be thorough.
 
 if [[ -n "$TOMCAT_DIR" ]]; then
     lp_step 1 2 "Cleaning Tomcat caches ($TOMCAT_DIR)"
@@ -69,10 +66,9 @@ lp_step 2 2 "Cleaning bundle root caches and data"
 # Standard Liferay locations for these if they are siblings to Tomcat
 lp_run rm -rf "$BUNDLE_DIR/osgi/state" "$BUNDLE_DIR/osgi/work"
 
-# Handling Hypersonic data. The user's command had 'data', which removes everything.
-# We'll remove the whole data directory to match their manual cleanup.
+# Handling Hypersonic data.
 if [[ -d "$BUNDLE_DIR/data" ]]; then
     lp_run rm -rf "$BUNDLE_DIR/data"
 fi
 
-lp_success "Hypersonic database and caches cleaned successfully for branch '$BRANCH'."
+lp_success "Bundle database and caches reset successfully for branch '$BRANCH'."

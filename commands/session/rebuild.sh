@@ -84,7 +84,7 @@ lp_info "Server stopped. Starting rebuild and restart..."
 # Send the build and start command to the bundle window
 # We use -ic to ensure aliases and functions (like 'lp') are available if sourced in profile
 # But better to use the full path or ensure lp.sh is sourced
-BUILD_CMD="lp worktree build -y && lp worktree start"
+BUILD_CMD="lp bundle build -y && lp bundle start"
 tmux send-keys -t "$SESSION_NAME:bundle" "$BUILD_CMD" Enter
 
 lp_success "Rebuild and restart commands sent to 'bundle' window."
