@@ -7,10 +7,11 @@ source "$_LP_SCRIPTS_DIR/lib/output.sh"
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Add a new window to the current development session."
     echo ""
-    echo "Usage: lp session add <window-name>"
+    echo "Usage: lp session add [options] <window-name>"
     echo ""
     echo "Options:"
-    echo "  -h, --help      Show this help"
+    echo "  -c, --command <cmd>  Run a command in the new window"
+    echo "  -h, --help           Show this help"
     exit 0
 fi
 
@@ -19,11 +20,49 @@ if [[ -z "$TMUX" ]]; then
     exit 1
 fi
 
-WINDOW_NAME="$1"
+COMMAND=""
+WINDOW_NAME=""
+HAS_COMMAND_FLAG=false
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --command|-c)
+            HAS_COMMAND_FLAG=true
+            if [[ -n "$2" && "$2" != -* ]]; then
+                COMMAND="$2"
+                shift 2
+            else
+                shift
+            fi
+            ;;
+        --help|-h)    shift ;; # Handled above
+        -*)
+            lp_error "Unknown option: $1"
+            exit 1
+            ;;
+        *)
+            if [[ -z "$WINDOW_NAME" ]]; then
+                WINDOW_NAME="$1"
+            else
+                lp_error "Too many arguments: $1"
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [[ "$HAS_COMMAND_FLAG" == "true" ]]; then
+    if [[ -z "$COMMAND" && -n "$WINDOW_NAME" ]]; then
+        COMMAND="$WINDOW_NAME"
+    elif [[ -n "$COMMAND" && -z "$WINDOW_NAME" ]]; then
+        WINDOW_NAME="$COMMAND"
+    fi
+fi
 
 if [[ -z "$WINDOW_NAME" ]]; then
     lp_error "Window name is required."
-    echo "Usage: lp session add <window-name>"
+    echo "Usage: lp session add [options] <window-name>"
     exit 1
 fi
 
@@ -34,6 +73,15 @@ USER_SHELL="${SHELL:-bash}"
 
 lp_info "Adding window '$WINDOW_NAME' to session '$SESSION_NAME'..."
 
-# Create the new window
+# Prepare the final command
 # We explicitly source lp.sh to ensure the 'lp' function is available
-tmux new-window -n "$WINDOW_NAME" "$USER_SHELL -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1; exec $USER_SHELL'"
+FINAL_CMD="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1;"
+
+if [[ -n "$COMMAND" ]]; then
+    FINAL_CMD="$FINAL_CMD $COMMAND;"
+fi
+
+FINAL_CMD="$FINAL_CMD exec $USER_SHELL"
+
+# Create the new window
+tmux new-window -n "$WINDOW_NAME" "$USER_SHELL -ic '$FINAL_CMD'"

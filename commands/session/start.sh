@@ -129,7 +129,7 @@ echo \"\";
 echo \"  Scrolling:\";
 echo \"    Ctrl+b [       Enter scroll mode (copy mode)\";
 echo \"    Use Arrows/PgUp/PgDn to scroll, or mouse wheel if supported.\";
-echo \"    Press 'q' to exit scroll mode and return to prompt.\";
+echo \"    Press q to exit scroll mode and return to prompt.\";
 echo \"\";
 echo \"  Session Commands:\";
 echo \"    lp session add <name>     Add a new window to this session\";
@@ -137,10 +137,7 @@ echo \"    lp session describe <msg> Update the session description\";
 echo \"    lp session status <status> Update the session status (e.g. ready)\";
 echo \"    lp session exit           Detach from this session (same as Ctrl+b d)\";
 echo \"    lp session enter          Re-enter an existing session\";
-echo "The session will have at least three windows:"
-    echo "  1. bundle: Runs 'lp bundle build -s && lp bundle start'"
-    echo "  2. git: Opens 'lazygit' (if installed)"
-...
+"
 if [[ "$SKIP_BUNDLE" == "true" ]]; then
     BUNDLE_COMMAND="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1;
     echo \"\";
@@ -197,7 +194,7 @@ if command -v lazygit >/dev/null 2>&1; then
 else
     echo \"\";
     echo \"  This window is intended for git usage.\";
-    echo \"  If you install 'lazygit', it will automatically start here.\";
+    echo \"  If you install lazygit, it will automatically start here.\";
     echo \"\";
     echo \"  Check it out at: https://github.com/jesseduffield/lazygit\";
     echo \"\";
@@ -206,7 +203,7 @@ fi; exec $USER_SHELL"
 tmux new-window -t "$SESSION_NAME" -n "git" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$GIT_COMMAND'"
 
 # Create workspace window (index 3)
-tmux new-window -t "$SESSION_NAME" -n "workspace" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$PREAMBLE'"
+tmux new-window -t "$SESSION_NAME" -n "workspace" -c "$WORKTREE_DIR" "$USER_SHELL -ic '$PREAMBLE; exec $USER_SHELL'"
 
 # Create custom windows (Option B)
 if [[ -n "$SESSION_CUSTOM_WINDOWS" ]]; then

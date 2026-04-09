@@ -121,7 +121,7 @@ _lp_ns_cmds() {
         session/stop)     echo "lp session stop [branch]" ;;
         session/enter)    echo "lp session enter [branch]" ;;
         session/exit)     echo "lp session exit" ;;
-        session/add)      echo "lp session add <window-name>" ;;
+        session/add)      echo "lp session add [options] <window-name>" ;;
         session/rebuild)  echo "lp session rebuild" ;;
         session/restart)  echo "lp session restart" ;;
         session/describe) echo "lp session describe [branch] <description>" ;;
@@ -243,7 +243,8 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         session/add)
-            echo "  -h, --help      Show this help"
+            echo "  -c, --command <cmd>  Run a command in the new window"
+            echo "  -h, --help           Show this help"
             ;;
         session/rebuild)
             echo "  -h, --help      Show this help"
@@ -400,6 +401,8 @@ _lp_ns_cmds() {
             ;;
         session/add)
             echo "  lp session add logs"
+            echo "  lp session add -c gemini"
+            echo "  lp session add -c \"gemini --help\" gemini-help"
             ;;
         session/rebuild)
             echo "  lp session rebuild"
