@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle portal playwright mysql session config git"
+_LP_NAMESPACES="worktree bundle portal playwright mysql session config git self"
 
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
@@ -28,6 +28,7 @@ _lp_ns_desc() {
         session)  echo "Manage tmux-based development sessions" ;;
         config)   echo "Manage per-user lp configuration" ;;
         git)      echo "Git utilities" ;;
+        self)     echo "Maintenance for the lp tool itself" ;;
         *)        echo "" ;;
     esac
 }
@@ -43,6 +44,7 @@ _lp_ns_cmds() {
         session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
         git)      echo "add-remote remove-remote update-master update-ee patch bisect" ;;
+        self)     echo "update" ;;
         *)        echo "" ;;
         esac
         }
@@ -89,6 +91,7 @@ _lp_ns_cmds() {
         git/update-ee)    echo "Sync ee branch with upstream and origin" ;;
         git/patch)        echo "Download a git patch from a URL and apply it" ;;
         git/bisect)       echo "Automate the Liferay Portal bisection process" ;;
+        self/update)      echo "Update the lp tool from its git repository" ;;
         *)                echo "" ;;
         esac
         }
@@ -135,6 +138,7 @@ _lp_ns_cmds() {
         git/update-ee)    echo "lp git update-ee [-v]" ;;
         git/patch)        echo "lp git patch <url>" ;;
         git/bisect)       echo "lp git bisect -g <good> -b <bad> [branch]" ;;
+        self/update)      echo "lp self update [-v]" ;;
         *)                echo "" ;;
         esac
         }
@@ -296,6 +300,10 @@ _lp_ns_cmds() {
             echo "  -b, --bad <commit>    The first known bad commit (required)"
             echo "  -h, --help            Show this help"
             ;;
+        self/update)
+            echo "  -v, --verbose   Show full git output"
+            echo "  -h, --help      Show this help"
+            ;;
         *)                echo "" ;;
         esac
         }
@@ -447,6 +455,10 @@ _lp_ns_cmds() {
         git/bisect)
             echo "  lp git bisect -g v7.4.3.100-ga100 -b master"
             echo "  lp git bisect -g 4a5b6c7 -b 1a2b3c4 my-fix-branch"
+            ;;
+        self/update)
+            echo "  lp self update"
+            echo "  lp self update -v"
             ;;
         *)
             echo "  (none)"
