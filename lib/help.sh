@@ -38,7 +38,7 @@ _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove get set unset root" ;;
         bundle)   echo "build start reset cd remove" ;;
-        portal)   echo "cdm db gw" ;;
+        portal)   echo "cdm db gw sample" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start" ;;
         session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
@@ -186,6 +186,10 @@ _lp_ns_cmds() {
             ;;
         portal/gw)
             echo "  -h, --help      Show this help"
+            ;;
+        portal/sample)
+            echo "  -c, --client-extension [pattern]  Deploy matching client extensions (or list all if no pattern)"
+            echo "  -h, --help                        Show this help"
             ;;
         playwright/test)
             echo "  -n <number>     Number of times to run the test (default: 1)"
@@ -352,6 +356,10 @@ _lp_ns_cmds() {
             ;;
         portal/gw)
             echo "  lp portal gw clean deploy"
+            ;;
+        portal/sample)
+            echo "  lp portal sample -c my-extension"
+            echo "  lp portal sample --client-extension \"*-ext\" ee"
             ;;
         playwright/test)
             echo "  lp playwright test tests/my-test.spec.ts"
