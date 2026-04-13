@@ -53,6 +53,6 @@ lp_step 1 2 "Running ant clean"
 lp_run ant clean || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step 2 2 "Cleaning git artifacts"
-lp_run git clean -fdx -e .idea -e "*.iml" -e app.server.me.properties -e build.me.properties || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
+lp_run git clean -fdx -e .idea -e "*.iml" -e app.server.${LIFERAY_USER}.properties -e build.${LIFERAY_USER}.properties || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_success "Worktree cleaned successfully."

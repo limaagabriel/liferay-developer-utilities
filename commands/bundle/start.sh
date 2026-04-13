@@ -46,7 +46,7 @@ if [[ ! -d "$WORKTREE_DIR" ]]; then
     exit 1
 fi
 
-BUNDLE_DIR=$(grep 'app.server.parent.dir' "$WORKTREE_DIR/app.server.me.properties" | cut -d'=' -f2)
+BUNDLE_DIR=$(grep 'app.server.parent.dir' "$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties" | cut -d'=' -f2)
 
 if [[ -z "$BUNDLE_DIR" ]]; then
     lp_error "Could not find bundle directory for worktree '$WORKTREE_DIR'."

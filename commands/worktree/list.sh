@@ -33,7 +33,7 @@ lp_info ""
 lp_info "Bundle directories:"
 lp_info "-------------------"
 # Master and its worktrees
-for props in "$MAIN_REPO_DIR"/app.server.me.properties "$BASE_PROJECT_DIR"/"$MAIN_REPO_NAME"-*/app.server.me.properties; do
+for props in "$MAIN_REPO_DIR"/app.server.${LIFERAY_USER}.properties "$BASE_PROJECT_DIR"/"$MAIN_REPO_NAME"-*/app.server.${LIFERAY_USER}.properties; do
     [[ -f "$props" ]] || continue
     worktree_dir=$(dirname "$props")
     # Exclude EE repo if it was matched by the glob (since it's handled below)
@@ -44,7 +44,7 @@ done
 
 # EE and its worktrees
 if [[ -d "$EE_REPO_DIR" ]]; then
-    for props in "$EE_REPO_DIR"/app.server.me.properties "$BASE_PROJECT_DIR"/"$(basename "$EE_REPO_DIR")"-*/app.server.me.properties; do
+    for props in "$EE_REPO_DIR"/app.server.${LIFERAY_USER}.properties "$BASE_PROJECT_DIR"/"$(basename "$EE_REPO_DIR")"-*/app.server.${LIFERAY_USER}.properties; do
         [[ -f "$props" ]] || continue
         worktree_dir=$(dirname "$props")
         bundle_dir=$(grep 'app.server.parent.dir' "$props" | cut -d'=' -f2)

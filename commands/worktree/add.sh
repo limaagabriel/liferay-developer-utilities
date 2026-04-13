@@ -98,8 +98,8 @@ if [[ -d "$MAIN_REPO_DIR/.serena" ]]; then
     cp -r "$MAIN_REPO_DIR/.serena" "$WORKTREE_DIR/"
 fi
 
-lp_step $TOTAL_STEPS $TOTAL_STEPS "Creating app.server.me.properties"
-cat > "$WORKTREE_DIR/app.server.me.properties" <<EOF
+lp_step 2 2 "Creating app.server.${LIFERAY_USER}.properties"
+cat > "$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties" <<EOF
 app.server.parent.dir=$BUNDLE_DIR
 EOF
 

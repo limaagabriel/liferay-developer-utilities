@@ -56,6 +56,7 @@ _lp_prompt _MAIN_REPO_NAME   "Main repository name"   "liferay-portal"
 _lp_prompt _MAIN_REPO_DIR    "Main repository path"   "$_BASE_PROJECT_DIR/$_MAIN_REPO_NAME"
 _lp_prompt _EE_REPO_DIR      "EE repository path"     "$_BASE_PROJECT_DIR/liferay-portal-ee"
 _lp_prompt _BUNDLES_DIR      "Bundles directory"       "$HOME/dev/bundles"
+_lp_prompt _LIFERAY_USER     "Liferay user name (for property files)" "$(whoami)"
 _lp_prompt _ENABLE_AUTOCOMPLETE "Enable tab completion (yes/no)" "yes"
 _lp_prompt _ENABLE_ALIASES "Enable simplified aliases (yes/no)" "yes"
 _lp_prompt _WORKTREE_LIMIT "Worktree limit" "8"
@@ -79,6 +80,7 @@ MAIN_REPO_NAME=$_MAIN_REPO_NAME
 MAIN_REPO_DIR=$_MAIN_REPO_DIR
 EE_REPO_DIR=$_EE_REPO_DIR
 BUNDLES_DIR=$_BUNDLES_DIR
+LIFERAY_USER=$_LIFERAY_USER
 ENABLE_AUTOCOMPLETE=$_ENABLE_AUTOCOMPLETE
 ENABLE_ALIASES=$_ENABLE_ALIASES
 WORKTREE_LIMIT=$_WORKTREE_LIMIT

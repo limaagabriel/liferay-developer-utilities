@@ -55,10 +55,10 @@ if [[ ! -d "$WORKTREE_DIR" ]]; then
     exit 1
 fi
 
-PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
+PROPS_FILE=$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties
 
 if [[ ! -f "$PROPS_FILE" ]]; then
-    lp_error "app.server.me.properties not found at '$WORKTREE_DIR'."
+    lp_error "app.server.${LIFERAY_USER}.properties not found at '$WORKTREE_DIR'."
     exit 1
 fi
 

@@ -31,10 +31,10 @@ BRANCH="${1:-$LP_WORKTREE_REFERENCE_BRANCH}"
 
 lp_branch_vars "$BRANCH"
 
-PROPS_FILE=$WORKTREE_DIR/app.server.me.properties
+PROPS_FILE=$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties
 
 if [[ ! -f "$PROPS_FILE" ]]; then
-    lp_error "app.server.me.properties not found at '$WORKTREE_DIR'."
+    lp_error "app.server.${LIFERAY_USER}.properties not found at '$WORKTREE_DIR'."
     return 1
 fi
 
