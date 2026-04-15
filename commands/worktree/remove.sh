@@ -71,21 +71,21 @@ CURRENT_STEP=1
 
 if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
     lp_step $CURRENT_STEP $TOTAL_STEPS "Stopping active session '$SESSION_NAME'"
-    lp_run tmux kill-session -t "$SESSION_NAME"
+    lp_run tmux kill-session -t "$SESSION_NAME" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     ((CURRENT_STEP++))
 fi
 
 lp_step $CURRENT_STEP $TOTAL_STEPS "Removing worktree"
-lp_run git -C "$MAIN_REPO_DIR" worktree remove "$WORKTREE_DIR" --force
+lp_run git -C "$MAIN_REPO_DIR" worktree remove "$WORKTREE_DIR" --force || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 ((CURRENT_STEP++))
 
 lp_step $CURRENT_STEP $TOTAL_STEPS "Removing bundle directory"
-lp_run rm -rf "$BUNDLE_DIR"
+lp_run rm -rf "$BUNDLE_DIR" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 ((CURRENT_STEP++))
 
 if [[ "$DELETE_BRANCH" -eq 1 ]]; then
     lp_step $CURRENT_STEP $TOTAL_STEPS "Deleting local branch '$BRANCH'"
-    lp_run git -C "$MAIN_REPO_DIR" branch -D "$BRANCH"
+    lp_run git -C "$MAIN_REPO_DIR" branch -D "$BRANCH" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 fi
 
 lp_success "Done!"

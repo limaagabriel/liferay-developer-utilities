@@ -86,16 +86,16 @@ if [[ -d "$BUNDLE_DIR" ]]; then
     fi
     TOTAL_STEPS=3
     lp_step $((STEP++)) $TOTAL_STEPS "Removing bundle directory '$BUNDLE_DIR'"
-    lp_run rm -rf "$BUNDLE_DIR"
+    lp_run rm -rf "$BUNDLE_DIR" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     mkdir -p "$BUNDLE_DIR"
 fi
 
 cd "$WORKTREE_DIR"
 
 lp_step $((STEP++)) $TOTAL_STEPS "Running ant setup-profile-dxp"
-lp_run ant setup-profile-dxp
+lp_run ant setup-profile-dxp || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step $((STEP++)) $TOTAL_STEPS "Running ant all"
-lp_run ant all
+lp_run ant all || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_success "Bundle built at '$BUNDLE_DIR'."

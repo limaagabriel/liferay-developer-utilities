@@ -46,6 +46,6 @@ if [[ "$confirm" != "y" ]]; then
 fi
 
 lp_step 1 1 "Removing bundle directory"
-lp_run rm -rf "$BUNDLE_DIR"
+lp_run rm -rf "$BUNDLE_DIR" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_success "Done!"

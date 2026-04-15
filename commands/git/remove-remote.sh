@@ -50,7 +50,7 @@ cd "$MAIN_REPO_DIR" || exit 1
 
 lp_step 2 2 "Checking if remote '$NAME' exists"
 if git remote | grep -q "^$NAME$"; then
-    lp_run git remote remove "$NAME"
+    lp_run git remote remove "$NAME" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     lp_success "Remote '$NAME' removed."
 else
     lp_info "Remote '$NAME' does not exist. Nothing to do."

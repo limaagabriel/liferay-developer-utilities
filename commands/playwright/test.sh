@@ -91,7 +91,7 @@ for ((i=1; i<=ITERATIONS; i++)); do
     lp_step "$i" "$ITERATIONS" "Executing test: $TEST_NAME"
 
     # Run the test. Using npx playwright test <test_name>
-    # We use lp_run to capture output on failure unless VERBOSE is set.
+    # We use lp_run to capture output on failure unless VERBOSE is set. || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     PW_ARGS=()
     if [[ -n "$GREP_OPTION" ]]; then
         PW_ARGS+=("-g" "$GREP_OPTION")
@@ -100,7 +100,7 @@ for ((i=1; i<=ITERATIONS; i++)); do
         PW_ARGS+=("--ui")
     fi
 
-    lp_run npx playwright test "${PW_ARGS[@]}" "$TEST_NAME"
+    lp_run npx playwright test "${PW_ARGS[@]}" "$TEST_NAME" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     EXIT_CODE=$?
 
     if [[ $EXIT_CODE -eq 0 ]]; then

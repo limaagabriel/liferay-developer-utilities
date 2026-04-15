@@ -32,9 +32,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 lp_step 1 2 "Dropping lportal database"
-lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists lportal;"
+lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists lportal;" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step 2 2 "Creating lportal database"
-lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;"
+lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_success "Database reset complete."

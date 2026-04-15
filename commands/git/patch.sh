@@ -53,9 +53,9 @@ fi
 
 lp_step 2 2 "Applying patch"
 if [[ "$COMMIT" -eq 1 ]]; then
-    lp_run git am "$TMP_PATCH"
+    lp_run git am "$TMP_PATCH" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 else
-    lp_run git apply "$TMP_PATCH"
+    lp_run git apply "$TMP_PATCH" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 fi
 
 lp_success "Patch applied successfully."
