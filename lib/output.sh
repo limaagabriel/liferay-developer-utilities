@@ -43,7 +43,7 @@ lp_run() {
             echo "${LP_OUTPUT_PREFIX}Last 100 lines of output:" >&2
             tail -n 100 "$tmp_out" >&2
             rm -f "$tmp_out"
-            exit $exit_code
+            return $exit_code
         fi
         
         rm -f "$tmp_out"

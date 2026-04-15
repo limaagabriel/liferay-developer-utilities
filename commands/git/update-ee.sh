@@ -29,15 +29,15 @@ lp_step 1 5 "Navigating to EE repository: $EE_REPO_DIR"
 cd "$EE_REPO_DIR" || exit 1
 
 lp_step 2 5 "Checking out ee branch"
-lp_run git checkout ee
+lp_run git checkout ee || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step 3 5 "Fetching all remotes"
-lp_run git fetch --all
+lp_run git fetch --all || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step 4 5 "Pulling from upstream ee"
-lp_run git pull upstream ee
+lp_run git pull upstream ee || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step 5 5 "Pushing to origin ee"
-lp_run git push origin ee
+lp_run git push origin ee || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_success "Successfully updated ee branch."

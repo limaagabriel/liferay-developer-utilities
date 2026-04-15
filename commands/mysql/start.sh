@@ -36,11 +36,11 @@ cd "$_LP_SCRIPTS_DIR/commands/mysql" || exit 1
 lp_step 1 3 "Starting MySQL container"
 
 if docker ps -a --format '{{.Names}}' | grep -q '^mysql$'; then
-    lp_run docker compose -f ./template.yaml down
+    lp_run docker compose -f ./template.yaml down || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     lp_run docker rm -f mysql &> /dev/null || true
 fi
 
-lp_run docker compose -f ./template.yaml up -d
+lp_run docker compose -f ./template.yaml up -d || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step 2 3 "Waiting for MySQL to be ready"
 until docker exec mysql mysql -uroot -proot -e "select 1" &> /dev/null; do
@@ -48,7 +48,7 @@ until docker exec mysql mysql -uroot -proot -e "select 1" &> /dev/null; do
 done
 
 lp_step 3 3 "Creating lportal database"
-lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists lportal;"
-lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;"
+lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists lportal;" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
+lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_success "MySQL is ready."

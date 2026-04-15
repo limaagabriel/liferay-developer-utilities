@@ -29,15 +29,15 @@ lp_step 1 5 "Navigating to master worktree: $MAIN_REPO_DIR"
 cd "$MAIN_REPO_DIR" || exit 1
 
 lp_step 2 5 "Checking out master branch"
-lp_run git checkout master
+lp_run git checkout master || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step 3 5 "Fetching all remotes"
-lp_run git fetch --all
+lp_run git fetch --all || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step 4 5 "Pulling from upstream master"
-lp_run git pull upstream master
+lp_run git pull upstream master || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_step 5 5 "Pushing to origin master"
-lp_run git push origin master
+lp_run git push origin master || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_success "Successfully updated master branch."

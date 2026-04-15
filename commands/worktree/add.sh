@@ -57,7 +57,7 @@ if [[ -z "$BRANCH" ]]; then
 fi
 
 # Check worktree limit
-CURRENT_WORKTREE_COUNT=$(git -C "$MAIN_REPO_DIR" worktree list --porcelain | grep "^worktree" | wc -l)
+CURRENT_WORKTREE_COUNT=$(git -C "$MAIN_REPO_DIR" worktree list --porcelain | grep "^worktree" | grep -v "^worktree $MAIN_REPO_DIR$" | wc -l)
 if [[ $CURRENT_WORKTREE_COUNT -ge $WORKTREE_LIMIT ]]; then
     lp_info "Warning: You already have $CURRENT_WORKTREE_COUNT worktrees (limit is $WORKTREE_LIMIT)."
 fi
@@ -66,17 +66,25 @@ lp_branch_vars "$BRANCH"
 
 if [[ -n "$REMOTE" ]]; then
     REMOTE_BRANCH="$REMOTE/$BRANCH"
+    
+    # Check if the remote branch exists
+    if ! git -C "$MAIN_REPO_DIR" rev-parse --verify --quiet "$REMOTE_BRANCH" > /dev/null; then
+        lp_error "Error: Remote branch '$REMOTE_BRANCH' not found."
+        lp_error "Try running 'git -C \"$MAIN_REPO_DIR\" fetch --all' first."
+        return 1 2>/dev/null || exit 1
+    fi
+
     lp_step 1 2 "Creating worktree for branch '$BRANCH' from remote '$REMOTE_BRANCH'"
     # Use -B to allow resetting the branch if it already exists
-    lp_run git -C "$MAIN_REPO_DIR" worktree add --track -B "$BRANCH" "$WORKTREE_DIR" "$REMOTE_BRANCH"
+    lp_run git -C "$MAIN_REPO_DIR" worktree add --track -B "$BRANCH" "$WORKTREE_DIR" "$REMOTE_BRANCH" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 else
     if git -C "$MAIN_REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
         lp_step 1 2 "Creating worktree for existing branch '$BRANCH'"
-        lp_run git -C "$MAIN_REPO_DIR" worktree add "$WORKTREE_DIR" "$BRANCH"
+        lp_run git -C "$MAIN_REPO_DIR" worktree add "$WORKTREE_DIR" "$BRANCH" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     else
         START_POINT="${BASE:-master}"
         lp_step 1 2 "Creating worktree for branch '$BRANCH' from '$START_POINT'"
-        lp_run git -C "$MAIN_REPO_DIR" worktree add -b "$BRANCH" "$WORKTREE_DIR" "$START_POINT"
+        lp_run git -C "$MAIN_REPO_DIR" worktree add -b "$BRANCH" "$WORKTREE_DIR" "$START_POINT" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     fi
 fi
 

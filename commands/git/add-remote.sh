@@ -57,11 +57,11 @@ lp_step 2 3 "Checking if remote '$NAME' exists"
 if git remote | grep -q "^$NAME$"; then
     lp_info "Remote '$NAME' already exists. Skipping 'git remote add'."
 else
-    lp_run git remote add "$NAME" "$URL"
+    lp_run git remote add "$NAME" "$URL" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     lp_success "Remote '$NAME' added."
 fi
 
 lp_step 3 3 "Fetching all remotes"
-lp_run git fetch --all
+lp_run git fetch --all || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 lp_success "Successfully added remote '$NAME' and fetched all."

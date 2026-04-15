@@ -59,16 +59,16 @@ TOMCAT_DIR=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" | head -n 1
 
 if [[ -n "$TOMCAT_DIR" ]]; then
     lp_step 1 2 "Cleaning Tomcat caches ($TOMCAT_DIR)"
-    lp_run rm -rf "$TOMCAT_DIR/work" "$TOMCAT_DIR/temp" "$TOMCAT_DIR/osgi/state" "$TOMCAT_DIR/osgi/work" "$TOMCAT_DIR/data"
+    lp_run rm -rf "$TOMCAT_DIR/work" "$TOMCAT_DIR/temp" "$TOMCAT_DIR/osgi/state" "$TOMCAT_DIR/osgi/work" "$TOMCAT_DIR/data" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 fi
 
 lp_step 2 2 "Cleaning bundle root caches and data"
 # Standard Liferay locations for these if they are siblings to Tomcat
-lp_run rm -rf "$BUNDLE_DIR/osgi/state" "$BUNDLE_DIR/osgi/work"
+lp_run rm -rf "$BUNDLE_DIR/osgi/state" "$BUNDLE_DIR/osgi/work" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 
 # Handling Hypersonic data.
 if [[ -d "$BUNDLE_DIR/data" ]]; then
-    lp_run rm -rf "$BUNDLE_DIR/data"
+    lp_run rm -rf "$BUNDLE_DIR/data" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 fi
 
 lp_success "Bundle database and caches reset successfully for branch '$BRANCH'."
