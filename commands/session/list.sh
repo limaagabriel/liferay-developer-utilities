@@ -62,20 +62,8 @@ while IFS='|' read -r session windows attached; do
             status_emoji_part=" $emoji"
         fi
 
-        # Check if bundle is running
-        # We look for a window named 'bundle' and check if its pane has a relevant process
-        bundle_pane_tty=$(tmux list-panes -t "$session:bundle" -F "#{pane_tty}" 2>/dev/null | head -n 1)
-        if [[ -z "$bundle_pane_tty" ]]; then
-            # Fallback to index 1 if name doesn't match
-            bundle_pane_tty=$(tmux list-panes -t "$session:1" -F "#{pane_tty}" 2>/dev/null | head -n 1)
-        fi
-
-        if [[ -n "$bundle_pane_tty" ]]; then
-            # Check for java, ant, or our start/build scripts running on that TTY
-            # We look for common portal-related process names and arguments
-            if ps -t "$bundle_pane_tty" -o args= | grep -E "java|ant|catalina\.sh|/start\.sh|/build\.sh|worktree (build|start)" >/dev/null 2>&1; then
-                status_parts+=("bundle running")
-            fi
+        if _lp_is_bundle_running "$session"; then
+            status_parts+=("bundle running")
         fi
 
         status=""
