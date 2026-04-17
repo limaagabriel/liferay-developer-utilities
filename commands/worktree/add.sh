@@ -56,6 +56,11 @@ if [[ -z "$BRANCH" ]]; then
     return 1 2>/dev/null || exit 1
 fi
 
+TOTAL_STEPS=2
+if [[ -d "$MAIN_REPO_DIR/.serena" ]]; then
+    TOTAL_STEPS=3
+fi
+
 # Check worktree limit
 CURRENT_WORKTREE_COUNT=$(git -C "$MAIN_REPO_DIR" worktree list --porcelain | grep "^worktree" | grep -v "^worktree $MAIN_REPO_DIR$" | wc -l)
 if [[ $CURRENT_WORKTREE_COUNT -ge $WORKTREE_LIMIT ]]; then
@@ -74,21 +79,26 @@ if [[ -n "$REMOTE" ]]; then
         return 1 2>/dev/null || exit 1
     fi
 
-    lp_step 1 2 "Creating worktree for branch '$BRANCH' from remote '$REMOTE_BRANCH'"
+    lp_step 1 $TOTAL_STEPS "Creating worktree for branch '$BRANCH' from remote '$REMOTE_BRANCH'"
     # Use -B to allow resetting the branch if it already exists
     lp_run git -C "$MAIN_REPO_DIR" worktree add --track -B "$BRANCH" "$WORKTREE_DIR" "$REMOTE_BRANCH" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
 else
     if git -C "$MAIN_REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
-        lp_step 1 2 "Creating worktree for existing branch '$BRANCH'"
+        lp_step 1 $TOTAL_STEPS "Creating worktree for existing branch '$BRANCH'"
         lp_run git -C "$MAIN_REPO_DIR" worktree add "$WORKTREE_DIR" "$BRANCH" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     else
         START_POINT="${BASE:-master}"
-        lp_step 1 2 "Creating worktree for branch '$BRANCH' from '$START_POINT'"
+        lp_step 1 $TOTAL_STEPS "Creating worktree for branch '$BRANCH' from '$START_POINT'"
         lp_run git -C "$MAIN_REPO_DIR" worktree add -b "$BRANCH" "$WORKTREE_DIR" "$START_POINT" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
     fi
 fi
 
-lp_step 2 2 "Creating app.server.me.properties"
+if [[ -d "$MAIN_REPO_DIR/.serena" ]]; then
+    lp_step 2 $TOTAL_STEPS "Copying .serena directory from master"
+    cp -r "$MAIN_REPO_DIR/.serena" "$WORKTREE_DIR/"
+fi
+
+lp_step $TOTAL_STEPS $TOTAL_STEPS "Creating app.server.me.properties"
 cat > "$WORKTREE_DIR/app.server.me.properties" <<EOF
 app.server.parent.dir=$BUNDLE_DIR
 EOF
