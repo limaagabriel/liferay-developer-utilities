@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle portal playwright mysql session config git self"
+_LP_NAMESPACES="worktree bundle portal playwright mysql session config git self modules"
 
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
@@ -29,6 +29,7 @@ _lp_ns_desc() {
         config)   echo "Manage per-user lp configuration" ;;
         git)      echo "Git utilities" ;;
         self)     echo "Maintenance for the lp tool itself" ;;
+        modules)  echo "Portal module utilities" ;;
         *)        echo "" ;;
     esac
 }
@@ -38,13 +39,14 @@ _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove get set unset root" ;;
         bundle)   echo "build start reset cd remove" ;;
-        portal)   echo "cdm db gw sample" ;;
+        portal)   echo "cdm db gw sample modified-modules" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start" ;;
         session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
         git)      echo "add-remote remove-remote update-master update-ee patch bisect" ;;
         self)     echo "update" ;;
+        modules)  echo "changed deploy" ;;
         *)        echo "" ;;
         esac
         }
@@ -92,6 +94,8 @@ _lp_ns_cmds() {
         git/patch)        echo "Download a git patch from a URL and apply it" ;;
         git/bisect)       echo "Automate the Liferay Portal bisection process" ;;
         self/update)      echo "Update the lp tool from its git repository" ;;
+        modules/changed) echo "List all changed modules in the current branch comparing to a base branch" ;;
+        modules/deploy)   echo "Run gw deploy in a module or all changed modules" ;;
         *)                echo "" ;;
         esac
         }
@@ -139,6 +143,8 @@ _lp_ns_cmds() {
         git/patch)        echo "lp git patch <url>" ;;
         git/bisect)       echo "lp git bisect -g <good> -b <bad> [branch]" ;;
         self/update)      echo "lp self update [-v]" ;;
+        modules/changed) echo "lp modules changed [base_branch]" ;;
+        modules/deploy)   echo "lp modules deploy [options] [module_path]" ;;
         *)                echo "" ;;
         esac
         }
@@ -308,6 +314,14 @@ _lp_ns_cmds() {
             echo "  -v, --verbose   Show full git output"
             echo "  -h, --help      Show this help"
             ;;
+        modules/changed)
+            echo "  -h, --help      Show this help"
+            ;;
+        modules/deploy)
+            echo "  -c, --changed      Deploy all modules changed in the current branch"
+            echo "  -b, --base <branch> Base branch to compare against for --changed (default: master)"
+            echo "  -h, --help         Show this help"
+            ;;
         *)                echo "" ;;
         esac
         }
@@ -467,6 +481,16 @@ _lp_ns_cmds() {
         self/update)
             echo "  lp self update"
             echo "  lp self update -v"
+            ;;
+        modules/changed)
+            echo "  lp modules changed"
+            echo "  lp modules changed ee"
+            ;;
+        modules/deploy)
+            echo "  lp modules deploy"
+            echo "  lp modules deploy modules/apps/portal-workflow/portal-workflow-api"
+            echo "  lp modules deploy --changed"
+            echo "  lp modules deploy -c -b ee"
             ;;
         *)
             echo "  (none)"
