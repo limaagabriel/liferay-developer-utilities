@@ -30,7 +30,13 @@ start_build_in_tmux() {
 	lp_step 3 3 "Starting build and bundle in tmux session '$session_name'"
 	lp_info "Command: lp bundle build -y && lp bundle start"
 
-	tmux new-session -d -s "$session_name" -c "$worktree_dir" "$user_shell -ic 'source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp bundle build -y && lp bundle start; exec $user_shell'"
+	local tmp_bisect
+	tmp_bisect=$(mktemp)
+	echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp bundle build -y && lp bundle start" > "$tmp_bisect"
+	echo "rm -f \"$tmp_bisect\"" >> "$tmp_bisect"
+
+	# Create session with the build command
+	tmux new-session -d -s "$session_name" -c "$worktree_dir" "$user_shell -ic \"source $tmp_bisect; exec $user_shell\""
 
 	lp_info "Monitoring the build:"
 	lp_info "  tmux attach -t $session_name"

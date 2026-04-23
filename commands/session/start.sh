@@ -63,8 +63,7 @@ get_bundle_command() {
         echo \"  To build and start the bundle, run:\";
         echo \"\";
         echo \"    lp bundle build -s && lp bundle start\";
-        echo \"\";
-        exec $USER_SHELL"
+        echo \"\""
     elif [[ "$BUILD_ONLY" == "true" ]]; then
         echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp bundle build -s;
         echo \"\";
@@ -73,10 +72,9 @@ get_bundle_command() {
         echo \"  To start the server, run:\";
         echo \"\";
         echo \"    lp bundle start\";
-        echo \"\";
-        exec $USER_SHELL"
+        echo \"\""
     else
-        echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp bundle build -s && lp bundle start; exec $USER_SHELL"
+        echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp bundle build -s && lp bundle start"
     fi
 }
 
@@ -91,7 +89,7 @@ get_git_command() {
         echo \"\";
         echo \"  Check it out at: https://github.com/jesseduffield/lazygit\";
         echo \"\";
-    fi; exec $USER_SHELL"
+    fi"
 }
 
 get_workspace_preamble() {
@@ -135,8 +133,17 @@ setup_tmux_session() {
 
     local bundle_cmd
     bundle_cmd=$(get_bundle_command)
-    # Use -ic and escaped double quotes for the command string
-    tmux new-session -d -s "$SESSION_NAME" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"$bundle_cmd\""
+    local tmp_bundle
+    tmp_bundle=$(mktemp)
+    echo "$bundle_cmd" > "$tmp_bundle"
+    echo "rm -f \"$tmp_bundle\"" >> "$tmp_bundle"
+
+    # Create session with the bundle command
+    tmux new-session -d -s "$SESSION_NAME" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_bundle; exec $USER_SHELL\""
+
+    # Set base-index to 1 and move the first window from 0 to 1
+    tmux set-option -t "$SESSION_NAME" base-index 1
+    tmux move-window -t "$SESSION_NAME:0" -t "$SESSION_NAME:1" 2>/dev/null || true
 
     if [[ -n "$DESCRIPTION" ]]; then
         tmux set-option -t "$SESSION_NAME" @lp-description "$DESCRIPTION"
@@ -147,7 +154,6 @@ setup_tmux_session() {
     fi
 
     _lp_set_tmux_titles "$SESSION_NAME"
-    tmux set-option -t "$SESSION_NAME" base-index 1
     
     _lp_update_tmux_status_line "$SESSION_NAME"
     tmux set-window-option -t "$SESSION_NAME" window-status-format "  #I:#W#F "
@@ -155,25 +161,24 @@ setup_tmux_session() {
 }
 
 add_standard_windows() {
+    # Initialize git window (index 2)
     local git_cmd
     git_cmd=$(get_git_command)
-    tmux new-window -t "$SESSION_NAME" -n "git" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"$git_cmd\""
+    local tmp_git
+    tmp_git=$(mktemp)
+    echo "$git_cmd" > "$tmp_git"
+    echo "rm -f \"$tmp_git\"" >> "$tmp_git"
+    tmux new-window -t "$SESSION_NAME" -n "git" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_git; exec $USER_SHELL\""
 
+    # Create and initialize workspace window (index 3)
     local workspace_preamble
     workspace_preamble=$(get_workspace_preamble)
-    
-    # Use a simpler approach for the workspace window to avoid quoting issues
-    tmux new-window -t "$SESSION_NAME" -n "workspace" -c "$WORKTREE_DIR" "$USER_SHELL"
-    
-    # Send the preamble to the new window's shell
-    tmux send-keys -t "$SESSION_NAME:workspace" "source \"$_LP_SCRIPTS_DIR/lp.sh\"" Enter
-    tmux send-keys -t "$SESSION_NAME:workspace" "lp worktree cd \"$BRANCH\" > /dev/null 2>&1" Enter
-    tmux send-keys -t "$SESSION_NAME:workspace" "clear" Enter
-    
-    # We use a heredoc to print the preamble without quoting issues
-    tmux send-keys -t "$SESSION_NAME:workspace" "cat <<'EOF_LP_PREAMBLE'" Enter
-    tmux send-keys -t "$SESSION_NAME:workspace" "$workspace_preamble" Enter
-    tmux send-keys -t "$SESSION_NAME:workspace" "EOF_LP_PREAMBLE" Enter
+    local tmp_workspace
+    tmp_workspace=$(mktemp)
+    echo "clear" > "$tmp_workspace"
+    echo "$workspace_preamble" >> "$tmp_workspace"
+    echo "rm -f \"$tmp_workspace\"" >> "$tmp_workspace"
+    tmux new-window -t "$SESSION_NAME" -n "workspace" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_workspace; exec $USER_SHELL\""
 }
 
 add_custom_windows() {
@@ -186,7 +191,11 @@ add_custom_windows() {
             
             if [[ -n "$CUSTOM_NAME" && -n "$CUSTOM_CMD" ]]; then
                 lp_info "Adding custom window '$CUSTOM_NAME'..."
-                tmux new-window -t "$SESSION_NAME" -n "$CUSTOM_NAME" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source \\\"$_LP_SCRIPTS_DIR/lp.sh\\\"; lp worktree cd \\\"$BRANCH\\\" > /dev/null 2>&1; $CUSTOM_CMD; exec $USER_SHELL\""
+                local tmp_custom
+                tmp_custom=$(mktemp)
+                echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1; $CUSTOM_CMD" > "$tmp_custom"
+                echo "rm -f \"$tmp_custom\"" >> "$tmp_custom"
+                tmux new-window -t "$SESSION_NAME" -n "$CUSTOM_NAME" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_custom; exec $USER_SHELL\""
             fi
         done
     fi

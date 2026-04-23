@@ -60,31 +60,24 @@ validate_arguments() {
     fi
 }
 
-get_final_command() {
-    local session_name
-    session_name=$(tmux display-message -p '#S')
-    local branch="$session_name"
-    local user_shell="${SHELL:-bash}"
-    
-    local final_cmd="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$branch\" > /dev/null 2>&1;"
-
-    if [[ -n "$COMMAND" ]]; then
-        final_cmd="$final_cmd $COMMAND;"
-    fi
-
-    final_cmd="$final_cmd exec $user_shell"
-    echo "$final_cmd"
-}
-
 add_window() {
     local session_name
     session_name=$(tmux display-message -p '#S')
     local user_shell="${SHELL:-bash}"
-    local final_cmd
-    final_cmd=$(get_final_command)
+    
+    local branch="$session_name"
+    local init_cmd="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$branch\" > /dev/null 2>&1;"
+
+    local tmp_cmd
+    tmp_cmd=$(mktemp)
+    echo "$init_cmd" > "$tmp_cmd"
+    [[ -n "$COMMAND" ]] && echo "$COMMAND" >> "$tmp_cmd"
+    echo "rm -f \"$tmp_cmd\"" >> "$tmp_cmd"
 
     lp_info "Adding window '$WINDOW_NAME' to session '$session_name'..."
-    tmux new-window -n "$WINDOW_NAME" "$user_shell -ic '$final_cmd'"
+    
+    # Create window with the initialization and custom command
+    tmux new-window -n "$WINDOW_NAME" "$user_shell -ic \"source $tmp_cmd; exec $user_shell\""
 }
 
 main() {
