@@ -143,8 +143,8 @@ _lp_ns_cmds() {
         git/patch)        echo "lp git patch <url>" ;;
         git/bisect)       echo "lp git bisect -g <good> -b <bad> [branch]" ;;
         self/update)      echo "lp self update [-v]" ;;
-        modules/changed) echo "lp modules changed [base_branch]" ;;
-        modules/deploy)   echo "lp modules deploy [options] [module_path]" ;;
+        modules/changed) echo "lp modules changed [options] [base_branch]" ;;
+        modules/deploy)   echo "lp modules deploy [options] [module_path...]" ;;
         *)                echo "" ;;
         esac
         }
@@ -315,11 +315,16 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         modules/changed)
-            echo "  -h, --help      Show this help"
+            echo "  -u, --uncommitted  Include only modules with uncommitted work"
+            echo "  -h, --help         Show this help"
             ;;
         modules/deploy)
             echo "  -c, --changed      Deploy all modules changed in the current branch"
+            echo "  -u, --uncommitted  Deploy only modules with uncommitted work"
             echo "  -b, --base <branch> Base branch to compare against for --changed (default: master)"
+            echo "  -n, --workers <n>  Number of parallel workers (default: 1)"
+            echo "  -r, --restart      Run 'gw clean deploy' instead of just 'gw deploy'"
+            echo "  -v, --verbose      Show full gradle output"
             echo "  -h, --help         Show this help"
             ;;
         *)                echo "" ;;
@@ -485,11 +490,15 @@ _lp_ns_cmds() {
         modules/changed)
             echo "  lp modules changed"
             echo "  lp modules changed ee"
+            echo "  lp modules changed --uncommitted"
             ;;
         modules/deploy)
             echo "  lp modules deploy"
             echo "  lp modules deploy modules/apps/portal-workflow/portal-workflow-api"
             echo "  lp modules deploy --changed"
+            echo "  lp modules deploy --uncommitted"
+            echo "  lp modules deploy -n 4 -c"
+            echo "  lp modules deploy -r"
             echo "  lp modules deploy -c -b ee"
             ;;
         *)
