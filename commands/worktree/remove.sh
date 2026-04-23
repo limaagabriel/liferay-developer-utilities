@@ -1,91 +1,97 @@
 #!/bin/bash
-# Usage: lp worktree remove [-v] <branch>
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "worktree" "remove" "$@"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+parse_arguments() {
+    DELETE_BRANCH=0
+    BRANCH=""
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Remove a worktree, its bundle directory, and any active session."
-    echo ""
-    echo "Usage: lp worktree remove [options] <branch>"
-    echo ""
-    echo "Options:"
-    echo "  -b, --branch    Also delete the local branch"
-    echo "  -v, --verbose   Show full git output"
-    echo "  -h, --help      Show this help"
-    echo ""
-    echo "If an active tmux session exists for the branch, it will be stopped."
-    echo ""
-    echo "Examples:"
-    echo "  lp worktree remove main"
-    echo "  lp worktree remove -b feature-xyz"
-    exit 0
-fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --branch|-b)  DELETE_BRANCH=1; shift ;;
+            --verbose|-v) shift ;;
+            -*)
+                lp_error "Unknown option: $1"
+                return 1 2>/dev/null || exit 1
+                ;;
+            *) BRANCH="$1"; shift ;;
+        esac
+    done
 
-VERBOSE=0
-DELETE_BRANCH=0
-BRANCH=""
+    BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
+    BRANCH="${BRANCH:-master}"
+}
 
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --verbose|-v) VERBOSE=1; shift ;;
-        --branch|-b)  DELETE_BRANCH=1; shift ;;
-        --help|-h)    shift ;;
-        -*)
-            lp_error "Unknown option: $1"
-            exit 1
-            ;;
-        *) BRANCH="$1"; shift ;;
-    esac
-done
+validate_arguments() {
+    if [[ "$BRANCH" == "master" || "$BRANCH" == "ee" ]]; then
+        lp_error "Cannot remove the $BRANCH branch."
+        return 1 2>/dev/null || exit 1
+    fi
+}
 
-source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
+confirm_removal() {
+    local confirm
+    if [[ "$DELETE_BRANCH" -eq 1 ]]; then
+        read -p " Remove worktree '$WORKTREE_DIR', bundle '$BUNDLE_DIR', session '$BRANCH' AND branch '$BRANCH'? [y/N] " confirm
+    else
+        read -p " Remove worktree '$WORKTREE_DIR', bundle '$BUNDLE_DIR' and session '$BRANCH'? [y/N] " confirm
+    fi
 
-BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
-BRANCH="${BRANCH:-master}"
+    if [[ "$confirm" != "y" ]]; then
+        lp_info "Aborted."
+        return 0 2>/dev/null || exit 0
+    fi
+}
 
-if [[ "$BRANCH" == "master" || "$BRANCH" == "ee" ]]; then
-    lp_error "Cannot remove the $BRANCH branch."
-    exit 1
-fi
+get_total_steps() {
+    local total=2
+    [[ "$DELETE_BRANCH" -eq 1 ]] && ((total++))
+    tmux has-session -t "$BRANCH" 2>/dev/null && ((total++))
+    echo "$total"
+}
 
-lp_branch_vars "$BRANCH"
+stop_session() {
+    if tmux has-session -t "$BRANCH" 2>/dev/null; then
+        lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Stopping active session '$BRANCH'"
+        lp_run tmux kill-session -t "$BRANCH"
+        ((CURRENT_STEP++))
+    fi
+}
 
-SESSION_NAME="$BRANCH"
-
-if [[ "$DELETE_BRANCH" -eq 1 ]]; then
-    read -p " Remove worktree '$WORKTREE_DIR', bundle '$BUNDLE_DIR', session '$SESSION_NAME' AND branch '$BRANCH'? [y/N] " confirm
-else
-    read -p " Remove worktree '$WORKTREE_DIR', bundle '$BUNDLE_DIR' and session '$SESSION_NAME'? [y/N] " confirm
-fi
-
-if [[ "$confirm" != "y" ]]; then
-    lp_info "Aborted."
-    exit 0
-fi
-
-TOTAL_STEPS=2
-[[ "$DELETE_BRANCH" -eq 1 ]] && TOTAL_STEPS=3
-tmux has-session -t "$SESSION_NAME" 2>/dev/null && ((TOTAL_STEPS++))
-
-CURRENT_STEP=1
-
-if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
-    lp_step $CURRENT_STEP $TOTAL_STEPS "Stopping active session '$SESSION_NAME'"
-    lp_run tmux kill-session -t "$SESSION_NAME" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
+remove_worktree() {
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Removing worktree"
+    lp_run git -C "$MAIN_REPO_DIR" worktree remove "$WORKTREE_DIR" --force
     ((CURRENT_STEP++))
-fi
+}
 
-lp_step $CURRENT_STEP $TOTAL_STEPS "Removing worktree"
-lp_run git -C "$MAIN_REPO_DIR" worktree remove "$WORKTREE_DIR" --force || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-((CURRENT_STEP++))
+remove_bundle() {
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Removing bundle directory"
+    lp_run rm -rf "$BUNDLE_DIR"
+    ((CURRENT_STEP++))
+}
 
-lp_step $CURRENT_STEP $TOTAL_STEPS "Removing bundle directory"
-lp_run rm -rf "$BUNDLE_DIR" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-((CURRENT_STEP++))
+delete_branch() {
+    if [[ "$DELETE_BRANCH" -eq 1 ]]; then
+        lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Deleting local branch '$BRANCH'"
+        lp_run git -C "$MAIN_REPO_DIR" branch -D "$BRANCH"
+    fi
+}
 
-if [[ "$DELETE_BRANCH" -eq 1 ]]; then
-    lp_step $CURRENT_STEP $TOTAL_STEPS "Deleting local branch '$BRANCH'"
-    lp_run git -C "$MAIN_REPO_DIR" branch -D "$BRANCH" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-fi
+main() {
+    parse_arguments "$@"
+    lp_branch_vars "$BRANCH"
+    validate_arguments
+    confirm_removal
+    
+    TOTAL_STEPS=$(get_total_steps)
+    CURRENT_STEP=1
+    
+    stop_session
+    remove_worktree
+    remove_bundle
+    delete_branch
+    
+    lp_success "Done!"
+}
 
-lp_success "Done!"
+main "$@"

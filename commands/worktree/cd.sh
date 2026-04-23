@@ -1,47 +1,40 @@
 #!/bin/bash
-# Usage: source lp worktree cd <branch-name>
-# NOTE: This script must be sourced (via `lp worktree cd`) to change the current
-#       shell directory. The `lp` function handles this automatically.
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "worktree" "cd" "$@"
 
-# Guard: detect if the script is being executed instead of sourced
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    echo "Error: This script must be sourced to change your current directory."
-    echo "Run it as:  lp worktree cd <branch-name>"
-    exit 1
-fi
+parse_arguments() {
+    BRANCH=""
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --verbose|-v) shift ;;
+            *) BRANCH="$1"; shift ;;
+        esac
+    done
+}
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Change the current directory to a worktree."
-    echo ""
-    echo "Usage: lp worktree cd <branch>"
-    echo ""
-    echo "Options:"
-    echo "  -h, --help   Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp worktree cd main"
-    return 0
-fi
+change_directory() {
+    cd "$WORKTREE_DIR" || { return 1 2>/dev/null || exit 1; }
+    lp_info "Moved to worktree: $WORKTREE_DIR ($BRANCH)"
+}
 
-source "$_LP_SCRIPTS_DIR/config.sh" || return 1
+update_reference() {
+    export LP_WORKTREE_REFERENCE_BRANCH="$BRANCH"
+}
 
-if [[ -z "$1" ]]; then
-    lp_error "Branch name is required."
-    echo "Usage: lp worktree cd <branch>"
-    return 1
-fi
+main() {
+    # Check if we are being sourced
+    if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+        lp_error "Error: this command must be sourced to change your directory."
+        lp_error "Usage: lp worktree cd [branch]"
+        return 1 2>/dev/null || exit 1
+    fi
 
-BRANCH="$1"
+    parse_arguments "$@"
+    lp_resolve_branch --reference --default-master --vars
+    lp_validate_worktree
+    change_directory
+    update_reference
+}
 
-lp_branch_vars "$BRANCH"
-
-if [[ ! -d "$WORKTREE_DIR" ]]; then
-    lp_error "Worktree '$WORKTREE_DIR' does not exist."
-    return 1
-fi
-
-lp_info "Changing directory to $WORKTREE_DIR..."
-cd "$WORKTREE_DIR"
-source "$_LP_SCRIPTS_DIR/commands/worktree/set.sh" "$BRANCH"
+main "$@"

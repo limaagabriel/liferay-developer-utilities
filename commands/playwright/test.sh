@@ -1,97 +1,66 @@
 #!/bin/bash
-# Usage: lp playwright test [options] <test-name>
-# Options:
-#   -n <number>  Number of iterations (default: 1)
-#   -g <string>  Filter to only run tests with a title matching the given string
-#   --ui         Open Playwright UI
-#   -h, --help   Show this help
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "playwright" "test" "$@"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+parse_arguments() {
+    ITERATIONS=1
+    TEST_NAME=""
+    GREP_OPTION=""
+    UI_FLAG=0
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Run Playwright tests in the current worktree."
-    echo ""
-    echo "Usage: lp playwright test [options] <test-name>"
-    echo ""
-    echo "Options:"
-    echo "  -n <number>  Number of times to run the test (default: 1)"
-    echo "  -g <string>  Filter to only run tests with a title matching the given string"
-    echo "  --ui         Open Playwright UI"
-    echo "  -v, --verbose Show full playwright output"
-    echo "  -h, --help    Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp playwright test tests/my-test.spec.ts"
-    echo "  lp playwright test -n 5 tests/flaky-test.spec.ts"
-    echo "  lp playwright test -g 'my test title' tests/my-test.spec.ts"
-    echo "  lp playwright test --ui tests/my-test.spec.ts"
-    exit 0
-fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -n)
+                ITERATIONS="$2"
+                shift 2
+                ;;
+            -g)
+                GREP_OPTION="$2"
+                shift 2
+                ;;
+            --ui)
+                UI_FLAG=1
+                shift
+                ;;
+            --verbose|-v)
+                shift
+                ;;
+            -*)
+                lp_error "Unknown option: $1"
+                return 1 2>/dev/null || exit 1
+                ;;
+            *)
+                TEST_NAME="$1"
+                shift
+                ;;
+        esac
+    done
+}
 
-source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
+validate_environment() {
+    if [[ -z "$TEST_NAME" ]]; then
+        lp_error "Error: No test name specified."
+        echo "Usage: lp playwright test [options] <test-name>"
+        return 1 2>/dev/null || exit 1
+    fi
 
-ITERATIONS=1
-TEST_NAME=""
-VERBOSE=0
-GREP_OPTION=""
-UI_FLAG=0
+    if ! lp_detect_worktree; then
+        lp_error "Error: Not currently in a worktree."
+        return 1 2>/dev/null || exit 1
+    fi
 
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -n)
-            ITERATIONS="$2"
-            shift 2
-            ;;
-        -g)
-            GREP_OPTION="$2"
-            shift 2
-            ;;
-        --ui)
-            UI_FLAG=1
-            shift
-            ;;
-        --verbose|-v)
-            VERBOSE=1
-            shift
-            ;;
-        -*)
-            lp_error "Unknown option: $1"
-            exit 1
-            ;;
-        *)
-            TEST_NAME="$1"
-            shift
-            ;;
-    esac
-done
+    PLAYWRIGHT_DIR="$LP_DETECTED_WORKTREE_DIR/modules/test/playwright"
 
-if [[ -z "$TEST_NAME" ]]; then
-    lp_error "Error: No test name specified."
-    echo "Usage: lp playwright test [options] <test-name>"
-    exit 1
-fi
+    if [[ ! -d "$PLAYWRIGHT_DIR" ]]; then
+        lp_error "Error: Playwright directory not found at '$PLAYWRIGHT_DIR'."
+        return 1 2>/dev/null || exit 1
+    fi
+}
 
-if ! lp_detect_worktree; then
-    lp_error "Error: Not currently in a worktree."
-    exit 1
-fi
+run_test_iterations() {
+    cd "$PLAYWRIGHT_DIR" || { return 1 2>/dev/null || exit 1; }
 
-PLAYWRIGHT_DIR="$LP_DETECTED_WORKTREE_DIR/modules/test/playwright"
-
-if [[ ! -d "$PLAYWRIGHT_DIR" ]]; then
-    lp_error "Error: Playwright directory not found at '$PLAYWRIGHT_DIR'."
-    exit 1
-fi
-
-cd "$PLAYWRIGHT_DIR" || exit 1
-
-SUCCESS_COUNT=0
-
-for ((i=1; i<=ITERATIONS; i++)); do
-    lp_step "$i" "$ITERATIONS" "Executing test: $TEST_NAME"
-
-    # Run the test. Using npx playwright test <test_name>
-    # We use lp_run to capture output on failure unless VERBOSE is set. || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
+    SUCCESS_COUNT=0
     PW_ARGS=()
     if [[ -n "$GREP_OPTION" ]]; then
         PW_ARGS+=("-g" "$GREP_OPTION")
@@ -100,30 +69,43 @@ for ((i=1; i<=ITERATIONS; i++)); do
         PW_ARGS+=("--ui")
     fi
 
-    lp_run npx playwright test "${PW_ARGS[@]}" "$TEST_NAME" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-    EXIT_CODE=$?
+    for ((i=1; i<=ITERATIONS; i++)); do
+        lp_step "$i" "$ITERATIONS" "Executing test: $TEST_NAME"
 
-    if [[ $EXIT_CODE -eq 0 ]]; then
-        SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-        lp_success "Iteration $i: SUCCESS"
-    else
-        lp_error "Iteration $i: FAILURE (Exit code: $EXIT_CODE)"
+        if lp_run npx playwright test "${PW_ARGS[@]}" "$TEST_NAME"; then
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+            lp_success "Iteration $i: SUCCESS"
+        else
+            local exit_code=$?
+            lp_error "Iteration $i: FAILURE (Exit code: $exit_code)"
+        fi
+
+        local rate
+        rate=$(awk -v s="$SUCCESS_COUNT" -v i="$i" 'BEGIN {printf "%.2f", s / i * 100}')
+        lp_info "Current success rate: $SUCCESS_COUNT/$i ($rate%)"
+        lp_info "--------------------------------------------------"
+    done
+}
+
+display_final_report() {
+    local total_rate
+    total_rate=$(awk -v s="$SUCCESS_COUNT" -v iter="$ITERATIONS" 'BEGIN {printf "%.2f", s / iter * 100}')
+    
+    lp_info "=================================================="
+    lp_info "Final Report for $TEST_NAME"
+    lp_info "Success Rate: $SUCCESS_COUNT/$ITERATIONS ($total_rate%)"
+    lp_info "=================================================="
+}
+
+main() {
+    parse_arguments "$@"
+    validate_environment
+    run_test_iterations
+    display_final_report
+
+    if [[ $SUCCESS_COUNT -lt $ITERATIONS ]]; then
+        return 1 2>/dev/null || exit 1
     fi
+}
 
-    # Calculate current success rate
-    # Using awk for floating point math since bash is integer-only
-    RATE=$(awk -v s="$SUCCESS_COUNT" -v i="$i" 'BEGIN {printf "%.2f", s / i * 100}')
-    lp_info "Current success rate: $SUCCESS_COUNT/$i ($RATE%)"
-    lp_info "--------------------------------------------------"
-done
-
-# Final report
-TOTAL_RATE=$(awk -v s="$SUCCESS_COUNT" -v iter="$ITERATIONS" 'BEGIN {printf "%.2f", s / iter * 100}')
-lp_info "=================================================="
-lp_info "Final Report for $TEST_NAME"
-lp_info "Success Rate: $SUCCESS_COUNT/$ITERATIONS ($TOTAL_RATE%)"
-lp_info "=================================================="
-
-if [[ $SUCCESS_COUNT -lt $ITERATIONS ]]; then
-    exit 1
-fi
+main "$@"

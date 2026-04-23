@@ -1,87 +1,97 @@
 #!/bin/bash
-# Usage: lp session add <window-name>
-# Adds a new window to the current tmux session.
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "session" "add" "$@"
+source "$_LP_SCRIPTS_DIR/lib/session.sh"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
-
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Add a new window to the current development session."
-    echo ""
-    echo "Usage: lp session add [options] <window-name>"
-    echo ""
-    echo "Options:"
-    echo "  -c, --command <cmd>  Run a command in the new window"
-    echo "  -h, --help           Show this help"
-    exit 0
-fi
-
-if [[ -z "$TMUX" ]]; then
-    lp_error "Not currently in a tmux session. Please enter a session first."
-    exit 1
-fi
-
-COMMAND=""
-WINDOW_NAME=""
-HAS_COMMAND_FLAG=false
-
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --command|-c)
-            HAS_COMMAND_FLAG=true
-            if [[ -n "$2" && "$2" != -* ]]; then
-                COMMAND="$2"
-                shift 2
-            else
-                shift
-            fi
-            ;;
-        --help|-h)    shift ;; # Handled above
-        -*)
-            lp_error "Unknown option: $1"
-            exit 1
-            ;;
-        *)
-            if [[ -z "$WINDOW_NAME" ]]; then
-                WINDOW_NAME="$1"
-            else
-                lp_error "Too many arguments: $1"
-                exit 1
-            fi
-            shift
-            ;;
-    esac
-done
-
-if [[ "$HAS_COMMAND_FLAG" == "true" ]]; then
-    if [[ -z "$COMMAND" && -n "$WINDOW_NAME" ]]; then
-        COMMAND="$WINDOW_NAME"
-    elif [[ -n "$COMMAND" && -z "$WINDOW_NAME" ]]; then
-        WINDOW_NAME="$COMMAND"
+check_tmux_session() {
+    if [[ -z "$TMUX" ]]; then
+        lp_error "Not currently in a tmux session. Please enter a session first."
+        return 1 2>/dev/null || exit 1
     fi
-fi
+}
 
-if [[ -z "$WINDOW_NAME" ]]; then
-    lp_error "Window name is required."
-    echo "Usage: lp session add [options] <window-name>"
-    exit 1
-fi
+parse_arguments() {
+    COMMAND=""
+    WINDOW_NAME=""
+    HAS_COMMAND_FLAG=false
 
-# Get current session name (which is the branch name)
-SESSION_NAME=$(tmux display-message -p '#S')
-BRANCH="$SESSION_NAME"
-USER_SHELL="${SHELL:-bash}"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --command|-c)
+                HAS_COMMAND_FLAG=true
+                if [[ -n "$2" && "$2" != -* ]]; then
+                    COMMAND="$2"
+                    shift 2
+                else
+                    shift
+                fi
+                ;;
+            --help|-h)    shift ;;
+            -*)
+                lp_error "Unknown option: $1"
+                return 1 2>/dev/null || exit 1
+                ;;
+            *)
+                if [[ -z "$WINDOW_NAME" ]]; then
+                    WINDOW_NAME="$1"
+                else
+                    lp_error "Too many arguments: $1"
+                    return 1 2>/dev/null || exit 1
+                fi
+                shift
+                ;;
+        esac
+    done
 
-lp_info "Adding window '$WINDOW_NAME' to session '$SESSION_NAME'..."
+    if [[ "$HAS_COMMAND_FLAG" == "true" ]]; then
+        if [[ -z "$COMMAND" && -n "$WINDOW_NAME" ]]; then
+            COMMAND="$WINDOW_NAME"
+        elif [[ -n "$COMMAND" && -z "$WINDOW_NAME" ]]; then
+            WINDOW_NAME="$COMMAND"
+        fi
+    fi
+}
 
-# Prepare the final command
-# We explicitly source lp.sh to ensure the 'lp' function is available
-FINAL_CMD="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1;"
+validate_arguments() {
+    if [[ -z "$WINDOW_NAME" ]]; then
+        lp_error "Window name is required."
+        lp_info "Usage: lp session add [options] <window-name>"
+        return 1 2>/dev/null || exit 1
+    fi
+}
 
-if [[ -n "$COMMAND" ]]; then
-    FINAL_CMD="$FINAL_CMD $COMMAND;"
-fi
+get_final_command() {
+    local session_name
+    session_name=$(tmux display-message -p '#S')
+    local branch="$session_name"
+    local user_shell="${SHELL:-bash}"
+    
+    local final_cmd="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$branch\" > /dev/null 2>&1;"
 
-FINAL_CMD="$FINAL_CMD exec $USER_SHELL"
+    if [[ -n "$COMMAND" ]]; then
+        final_cmd="$final_cmd $COMMAND;"
+    fi
 
-# Create the new window
-tmux new-window -n "$WINDOW_NAME" "$USER_SHELL -ic '$FINAL_CMD'"
+    final_cmd="$final_cmd exec $user_shell"
+    echo "$final_cmd"
+}
+
+add_window() {
+    local session_name
+    session_name=$(tmux display-message -p '#S')
+    local user_shell="${SHELL:-bash}"
+    local final_cmd
+    final_cmd=$(get_final_command)
+
+    lp_info "Adding window '$WINDOW_NAME' to session '$session_name'..."
+    tmux new-window -n "$WINDOW_NAME" "$user_shell -ic '$final_cmd'"
+}
+
+main() {
+    check_tmux_session
+    parse_arguments "$@"
+    validate_arguments
+    add_window
+}
+
+main "$@"

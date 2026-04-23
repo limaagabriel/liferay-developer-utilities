@@ -1,74 +1,67 @@
 #!/bin/bash
-# Usage: lp bundle reset [-v] [branch]
-# If no branch is given, uses the reference branch.
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "bundle" "reset" "$@"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+parse_arguments() {
+    BRANCH=""
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Reset the bundle database and caches (work, temp, osgi/state)."
-    echo ""
-    echo "Usage: lp bundle reset [-v] [branch]"
-    echo ""
-    echo "This command removes the following from the bundle directory:"
-    echo "  - Tomcat 'work' and 'temp' directories"
-    echo "  - OSGi 'state' and 'work' directories"
-    echo "  - Hypersonic 'data' directory"
-    echo ""
-    echo "Options:"
-    echo "  -v, --verbose   Show full output"
-    echo "  -h, --help      Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp bundle reset main"
-    echo "  lp bundle reset           # uses reference branch"
-    exit 0
-fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --verbose|-v) shift ;;
+            -*)
+                lp_error "Unknown option: $1"
+                return 1 2>/dev/null || exit 1
+                ;;
+            *) BRANCH="$1"; shift ;;
+        esac
+    done
 
-VERBOSE=0
-BRANCH=""
+    BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
+    BRANCH="${BRANCH:-master}"
+}
 
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --verbose|-v) VERBOSE=1; shift ;;
-        --help|-h)    shift ;;
-        -*)
-            lp_error "Unknown option: $1"
-            exit 1
-            ;;
-        *) BRANCH="$1"; shift ;;
-    esac
-done
+validate_bundle() {
+    if [[ ! -d "$BUNDLE_DIR" ]]; then
+        lp_error "Bundle directory '$BUNDLE_DIR' does not exist."
+        return 1 2>/dev/null || exit 1
+    fi
+}
 
-source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
+clean_tomcat_caches() {
+    local tomcat_dir
+    tomcat_dir=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" | head -n 1)
 
-# If no branch is provided, use the reference branch or default to master
-BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
-BRANCH="${BRANCH:-master}"
+    if [[ -n "$tomcat_dir" ]]; then
+        lp_step 1 3 "Cleaning Tomcat caches ($tomcat_dir)"
+        lp_run rm -rf "$tomcat_dir/work" \
+            "$tomcat_dir/temp" \
+            "$tomcat_dir/osgi/state" \
+            "$tomcat_dir/osgi/work" \
+            "$tomcat_dir/data" || return $?
+    fi
+}
 
-lp_branch_vars "$BRANCH"
+clean_bundle_root_caches() {
+    lp_step 2 3 "Cleaning bundle root caches and data"
+    lp_run rm -rf "$BUNDLE_DIR/osgi/state" "$BUNDLE_DIR/osgi/work" || return $?
+}
 
-if [[ ! -d "$BUNDLE_DIR" ]]; then
-    lp_error "Bundle directory '$BUNDLE_DIR' does not exist."
-    exit 1
-fi
+clean_hypersonic_data() {
+    if [[ -d "$BUNDLE_DIR/data" ]]; then
+        lp_step 3 3 "Cleaning Hypersonic data"
+        lp_run rm -rf "$BUNDLE_DIR/data" || return $?
+    fi
+}
 
-lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
+main() {
+    parse_arguments "$@"
+    lp_branch_vars "$BRANCH"
+    validate_bundle
+    lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
+    clean_tomcat_caches
+    clean_bundle_root_caches
+    clean_hypersonic_data
+    lp_success "Bundle database and caches reset successfully for branch '$BRANCH'."
+}
 
-# Finding the Tomcat directory
-TOMCAT_DIR=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" | head -n 1)
-
-if [[ -n "$TOMCAT_DIR" ]]; then
-    lp_step 1 2 "Cleaning Tomcat caches ($TOMCAT_DIR)"
-    lp_run rm -rf "$TOMCAT_DIR/work" "$TOMCAT_DIR/temp" "$TOMCAT_DIR/osgi/state" "$TOMCAT_DIR/osgi/work" "$TOMCAT_DIR/data" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-fi
-
-lp_step 2 2 "Cleaning bundle root caches and data"
-# Standard Liferay locations for these if they are siblings to Tomcat
-lp_run rm -rf "$BUNDLE_DIR/osgi/state" "$BUNDLE_DIR/osgi/work" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-
-# Handling Hypersonic data.
-if [[ -d "$BUNDLE_DIR/data" ]]; then
-    lp_run rm -rf "$BUNDLE_DIR/data" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-fi
-
-lp_success "Bundle database and caches reset successfully for branch '$BRANCH'."
+main "$@"

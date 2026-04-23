@@ -1,54 +1,41 @@
 #!/bin/bash
-# Usage: lp mysql start [-v]
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "mysql" "start" "$@"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+prepare_environment() {
+    cd "$_LP_SCRIPTS_DIR/commands/mysql" || { return 1 2>/dev/null || exit 1; }
+}
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Start MySQL via Docker Compose and reset the database."
-    echo ""
-    echo "Usage: lp mysql start [-v]"
-    echo ""
-    echo "Options:"
-    echo "  -v, --verbose   Show full docker output"
-    echo "  -h, --help      Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp mysql start"
-    exit 0
-fi
+start_mysql_container() {
+    lp_step 1 3 "Starting MySQL container"
 
-VERBOSE=0
+    if docker ps -a --format '{{.Names}}' | grep -q '^mysql$'; then
+        lp_run docker compose -f ./template.yaml down || return $?
+        lp_run docker rm -f mysql &> /dev/null || true
+    fi
 
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --verbose|-v) VERBOSE=1; shift ;;
-        --help|-h)    shift ;;
-        -*)
-            lp_error "Unknown option: $1"
-            exit 1
-            ;;
-        *) shift ;;
-    esac
-done
+    lp_run docker compose -f ./template.yaml up -d || return $?
+}
 
-cd "$_LP_SCRIPTS_DIR/commands/mysql" || exit 1
+wait_for_mysql_ready() {
+    lp_step 2 3 "Waiting for MySQL to be ready"
+    until docker exec mysql mysql -uroot -proot -e "select 1" &> /dev/null; do
+        sleep 1
+    done
+}
 
-lp_step 1 3 "Starting MySQL container"
+initialize_database() {
+    lp_step 3 3 "Creating lportal database"
+    lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists lportal;" || return $?
+    lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;" || return $?
+}
 
-if docker ps -a --format '{{.Names}}' | grep -q '^mysql$'; then
-    lp_run docker compose -f ./template.yaml down || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-    lp_run docker rm -f mysql &> /dev/null || true
-fi
+main() {
+    prepare_environment
+    start_mysql_container
+    wait_for_mysql_ready
+    initialize_database
+    lp_success "MySQL is ready."
+}
 
-lp_run docker compose -f ./template.yaml up -d || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-
-lp_step 2 3 "Waiting for MySQL to be ready"
-until docker exec mysql mysql -uroot -proot -e "select 1" &> /dev/null; do
-    sleep 1
-done
-
-lp_step 3 3 "Creating lportal database"
-lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists lportal;" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-
-lp_success "MySQL is ready."
+main "$@"

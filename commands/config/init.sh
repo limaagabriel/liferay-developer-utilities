@@ -1,93 +1,93 @@
 #!/bin/bash
-# Usage: lp config init
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "config" "init" "$@"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+check_existing_config() {
+    local config_file="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Interactively create the per-user lp configuration file."
-    echo ""
-    echo "Usage: lp config init"
-    echo ""
-    echo "Options:"
-    echo "  -h, --help   Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp config init"
-    exit 0
-fi
-
-_LP_USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
-
-# Check if config file already exists (task 4.3)
-if [[ -f "$_LP_USER_CONFIG" ]]; then
-    lp_info "A config file already exists at '$_LP_USER_CONFIG'."
-    printf "Overwrite it? [y/N] "
-    read -r _confirm
-    case "$_confirm" in
-        [yY]|[yY][eE][sS]) ;;
-        *)
-            lp_info "Aborted. Existing config left unchanged."
-            exit 0
-            ;;
-    esac
-fi
-
-lp_info "Creating per-user lp configuration."
-lp_info "Press Enter to accept the default shown in brackets."
-echo ""
-
-# Prompt helper: _lp_prompt <var_name> <description> <default>
-_lp_prompt() {
-    local var="$1"
-    local desc="$2"
-    local default="$3"
-    printf "%s [%s]: " "$desc" "$default"
-    read -r _input
-    if [[ -z "$_input" ]]; then
-        printf -v "$var" '%s' "$default"
-    else
-        printf -v "$var" '%s' "$_input"
+    if [[ -f "$config_file" ]]; then
+        lp_info "A config file already exists at '$config_file'."
+        printf "Overwrite it? [y/N] "
+        read -r confirm
+        case "$confirm" in
+            [yY]|[yY][eE][sS]) ;;
+            *)
+                lp_info "Aborted. Existing config left unchanged."
+                return 0 2>/dev/null || exit 0
+                ;;
+        esac
     fi
 }
 
-# Prompt for each variable (task 4.1 / 4.2)
-_lp_prompt _BASE_PROJECT_DIR "Base project directory" "$HOME/dev/projects"
-_lp_prompt _MAIN_REPO_NAME   "Main repository name"   "liferay-portal"
-_lp_prompt _MAIN_REPO_DIR    "Main repository path"   "$_BASE_PROJECT_DIR/$_MAIN_REPO_NAME"
-_lp_prompt _EE_REPO_DIR      "EE repository path"     "$_BASE_PROJECT_DIR/liferay-portal-ee"
-_lp_prompt _BUNDLES_DIR      "Bundles directory"       "$HOME/dev/bundles"
-_lp_prompt _LIFERAY_USER     "Liferay user name (for property files)" "$(whoami)"
-_lp_prompt _ENABLE_AUTOCOMPLETE "Enable tab completion (yes/no)" "yes"
-_lp_prompt _ENABLE_ALIASES "Enable simplified aliases (yes/no)" "yes"
-_lp_prompt _WORKTREE_LIMIT "Worktree limit" "8"
-_lp_prompt _SESSION_CUSTOM_WINDOWS "Custom tmux windows (name1:cmd1,name2:cmd2)" ""
+prompt_for_value() {
+    local var_name="$1"
+    local description="$2"
+    local default_value="$3"
+    local input_value
 
-# Create config directory if needed (task 4.4)
-_LP_CONFIG_DIR="$(dirname "$_LP_USER_CONFIG")"
-if [[ ! -d "$_LP_CONFIG_DIR" ]]; then
-    mkdir -p "$_LP_CONFIG_DIR"
-fi
+    printf "%s [%s]: " "$description" "$default_value"
+    read -r input_value
 
-# Write the config file (task 4.5)
-cat > "$_LP_USER_CONFIG" <<EOF
+    if [[ -z "$input_value" ]]; then
+        printf -v "$var_name" '%s' "$default_value"
+    else
+        printf -v "$var_name" '%s' "$input_value"
+    fi
+}
+
+prompt_for_all_values() {
+    lp_info "Creating per-user lp configuration."
+    lp_info "Press Enter to accept the default shown in brackets."
+    echo ""
+
+    prompt_for_value BASE_PROJECT_DIR_VAL "Base project directory" "$HOME/dev/projects"
+    prompt_for_value MAIN_REPO_NAME_VAL "Main repository name" "liferay-portal"
+    prompt_for_value MAIN_REPO_DIR_VAL "Main repository path" "$BASE_PROJECT_DIR_VAL/$MAIN_REPO_NAME_VAL"
+    prompt_for_value EE_REPO_DIR_VAL "EE repository path" "$BASE_PROJECT_DIR_VAL/liferay-portal-ee"
+    prompt_for_value BUNDLES_DIR_VAL "Bundles directory" "$HOME/dev/bundles"
+    prompt_for_value LIFERAY_USER_VAL "Liferay user name (for property files)" "$(whoami)"
+    prompt_for_value ENABLE_AUTOCOMPLETE_VAL "Enable tab completion (yes/no)" "yes"
+    prompt_for_value ENABLE_ALIASES_VAL "Enable simplified aliases (yes/no)" "yes"
+    prompt_for_value WORKTREE_LIMIT_VAL "Worktree limit" "8"
+    prompt_for_value SESSION_CUSTOM_WINDOWS_VAL "Custom tmux windows (name1:cmd1,name2:cmd2)" ""
+}
+
+write_config_file() {
+    local config_file="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
+    local config_dir="$(dirname "$config_file")"
+
+    if [[ ! -d "$config_dir" ]]; then
+        mkdir -p "$config_dir"
+    fi
+
+    cat > "$config_file" <<EOF
 # lp per-user configuration
 # This file is sourced as bash (KEY=value format).
 # Do NOT add executable statements, function definitions, or arbitrary code.
 # Regenerate with: lp config init
 
-BASE_PROJECT_DIR=$_BASE_PROJECT_DIR
-MAIN_REPO_NAME=$_MAIN_REPO_NAME
-MAIN_REPO_DIR=$_MAIN_REPO_DIR
-EE_REPO_DIR=$_EE_REPO_DIR
-BUNDLES_DIR=$_BUNDLES_DIR
-LIFERAY_USER=$_LIFERAY_USER
-ENABLE_AUTOCOMPLETE=$_ENABLE_AUTOCOMPLETE
-ENABLE_ALIASES=$_ENABLE_ALIASES
-WORKTREE_LIMIT=$_WORKTREE_LIMIT
-SESSION_CUSTOM_WINDOWS=$_SESSION_CUSTOM_WINDOWS
+BASE_PROJECT_DIR=$BASE_PROJECT_DIR_VAL
+MAIN_REPO_NAME=$MAIN_REPO_NAME_VAL
+MAIN_REPO_DIR=$MAIN_REPO_DIR_VAL
+EE_REPO_DIR=$EE_REPO_DIR_VAL
+BUNDLES_DIR=$BUNDLES_DIR_VAL
+LIFERAY_USER=$LIFERAY_USER_VAL
+ENABLE_AUTOCOMPLETE=$ENABLE_AUTOCOMPLETE_VAL
+ENABLE_ALIASES=$ENABLE_ALIASES_VAL
+WORKTREE_LIMIT=$WORKTREE_LIMIT_VAL
+SESSION_CUSTOM_WINDOWS=$SESSION_CUSTOM_WINDOWS_VAL
 EOF
+}
 
-# Success message (task 4.6)
-echo ""
-lp_success "Config written to '$_LP_USER_CONFIG'."
-lp_info "Run 'lp config' to verify the resolved values."
+main() {
+    check_existing_config
+    prompt_for_all_values
+    write_config_file
+
+    local config_file="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
+    echo ""
+    lp_success "Config written to '$config_file'."
+    lp_info "Run 'lp config' to verify the resolved values."
+}
+
+main "$@"

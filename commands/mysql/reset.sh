@@ -1,40 +1,21 @@
 #!/bin/bash
-# Usage: lp mysql reset [-v]
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "mysql" "reset" "$@"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+drop_database() {
+    lp_step 1 2 "Dropping lportal database"
+    lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists lportal;"
+}
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Reset the lportal database (drop and recreate)."
-    echo ""
-    echo "Usage: lp mysql reset [-v]"
-    echo ""
-    echo "Options:"
-    echo "  -v, --verbose   Show full docker output"
-    echo "  -h, --help      Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp mysql reset"
-    exit 0
-fi
+create_database() {
+    lp_step 2 2 "Creating lportal database"
+    lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;"
+}
 
-VERBOSE=0
+main() {
+    drop_database
+    create_database
+    lp_success "Database reset complete."
+}
 
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --verbose|-v) VERBOSE=1; shift ;;
-        --help|-h)    shift ;;
-        -*)
-            lp_error "Unknown option: $1"
-            exit 1
-            ;;
-        *) shift ;;
-    esac
-done
-
-lp_step 1 2 "Dropping lportal database"
-lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists lportal;" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-
-lp_step 2 2 "Creating lportal database"
-lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;" || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
-
-lp_success "Database reset complete."
+main "$@"

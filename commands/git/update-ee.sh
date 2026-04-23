@@ -1,43 +1,37 @@
 #!/bin/bash
-# Usage: lp git update-ee [-v]
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Update the ee branch in the EE repository by pulling from upstream and pushing to origin."
-    echo ""
-    echo "Usage: lp git update-ee [-v]"
-    echo ""
-    echo "Options:"
-    echo "  -v, --verbose   Show full git output"
-    echo "  -h, --help      Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp git update-ee"
-    exit 0
-fi
+update_ee_branch() {
+	local ee_repo_dir="$1"
 
-VERBOSE=0
-if [[ "$1" == "--verbose" || "$1" == "-v" ]]; then
-    VERBOSE=1
-fi
+	lp_step 1 5 "Navigating to EE repository: $ee_repo_dir"
 
-# Load config to get EE_REPO_DIR
-source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
+	cd "$ee_repo_dir" || { return 1 2>/dev/null || exit 1; }
 
-lp_step 1 5 "Navigating to EE repository: $EE_REPO_DIR"
-cd "$EE_REPO_DIR" || exit 1
+	lp_step 2 5 "Checking out ee branch"
 
-lp_step 2 5 "Checking out ee branch"
-lp_run git checkout ee || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
+	lp_run git checkout ee || return $?
 
-lp_step 3 5 "Fetching all remotes"
-lp_run git fetch --all || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
+	lp_step 3 5 "Fetching all remotes"
 
-lp_step 4 5 "Pulling from upstream ee"
-lp_run git pull upstream ee || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
+	lp_run git fetch --all || return $?
 
-lp_step 5 5 "Pushing to origin ee"
-lp_run git push origin ee || { _lp_exit=$?; return $_lp_exit 2>/dev/null || exit $_lp_exit; }
+	lp_step 4 5 "Pulling from upstream ee"
 
-lp_success "Successfully updated ee branch."
+	lp_run git pull upstream ee || return $?
+
+	lp_step 5 5 "Pushing to origin ee"
+
+	lp_run git push origin ee || return $?
+
+	lp_success "Successfully updated ee branch."
+}
+
+main() {
+	lp_init_command "git" "update-ee" "$@"
+
+	update_ee_branch "$EE_REPO_DIR"
+}
+
+main "$@"

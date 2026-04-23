@@ -1,61 +1,53 @@
 #!/bin/bash
-# Usage: source lp portal gw [tasks...]
-# Runs gradle tasks in the current directory.
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "portal" "gw" "$@"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+find_gradlew() {
+    local current_dir
+    current_dir=$(pwd)
+    local max_depth=10
+    local depth=0
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Run gradle tasks in the current directory."
-    echo ""
-    echo "Usage: lp portal gw [tasks...]"
-    echo ""
-    echo "Options:"
-    echo "  -h, --help   Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp portal gw clean deploy"
-    return 0 2>/dev/null || exit 0
-fi
+    while [[ "$depth" -le "$max_depth" ]]; do
+        if [[ -e "$current_dir/gradlew" ]]; then
+            echo "$current_dir/gradlew"
+            return 0
+        fi
+        current_dir=$(dirname "$current_dir")
+        ((depth++))
+        
+        if [[ "$current_dir" == "/" ]]; then
+            break
+        fi
+    done
 
-source "$_LP_SCRIPTS_DIR/config.sh" || return 1 2>/dev/null || exit 1
-
-# Logic copied from original gw/execute_gradlew functions
-execute_gradlew() {
-    if [ -e gradlew ]
-    then
-        ./gradlew "${@}"
-    elif [ -e ../gradlew ]
-    then
-        ../gradlew "${@}"
-    elif [ -e ../../gradlew ]
-    then
-        ../../gradlew "${@}"
-    elif [ -e ../../../gradlew ]
-    then
-        ../../../gradlew "${@}"
-    elif [ -e ../../../../gradlew ]
-    then
-        ../../../../gradlew "${@}"
-    elif [ -e ../../../../../gradlew ]
-    then
-        ../../../../../gradlew "${@}"
-    elif [ -e ../../../../../../gradlew ]
-    then
-        ../../../../../../gradlew "${@}"
-    elif [ -e ../../../../../../../gradlew ]
-    then
-        ../../../../../../../gradlew "${@}"
-    elif [ -e ../../../../../../../../gradlew ]
-    then
-        ../../../../../../../../gradlew "${@}"
-    elif [ -e ../../../../../../../../../gradlew ]
-    then
-        ../../../../../../../../../gradlew "${@}"
-    else
-        lp_error "Error: Unable to locate Gradle wrapper."
-        return 1
-    fi
+    return 1
 }
 
-lp_info "Running gw in $(pwd) with tasks: ${*//\//:}"
-execute_gradlew "${@//\//:}" --daemon
+run_gradle_task() {
+    local gradlew_path
+    gradlew_path=$(find_gradlew)
+
+    if [[ -z "$gradlew_path" ]]; then
+        lp_error "Error: Unable to locate Gradle wrapper (gradlew) in current or parent directories."
+        return 1
+    fi
+
+    local tasks="${*//\//:}"
+    lp_info "Running gradle tasks: $tasks (using $gradlew_path)"
+    
+    # Execute gradlew with the tasks, replacing slashes with colons for gradle subprojects
+    # Wrap in lp_run to respect VERBOSE flag
+    lp_run "$gradlew_path" ${@//\//:} --daemon
+}
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        lp_error "No Gradle tasks specified."
+        return 1
+    fi
+
+    run_gradle_task "$@"
+}
+
+main "$@"

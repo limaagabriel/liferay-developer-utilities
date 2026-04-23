@@ -1,113 +1,117 @@
 #!/bin/bash
-# Usage: lp portal db [mysql|hypersonic|database_name]
-# Switches between mysql (with optional db name) and hypersonic.
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Switch between mysql (with optional db name) and hypersonic."
-    echo ""
-    echo "Usage: lp portal db [mysql|hypersonic|database_name]"
-    echo ""
-    echo "Options:"
-    echo "  -h, --help   Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp portal db mysql"
-    echo "  lp portal db hypersonic"
-    echo "  lp portal db lportal_test   # Switch to mysql and use lportal_test database"
-    echo ""
-    echo "If no argument is provided, it shows the current database being used."
-    return 0 2>/dev/null || exit 0
-fi
-
-PROPERTIES_FILE="$HOME/portal-ext.properties"
-
-MYSQL_DRIVER="jdbc.default.driverClassName=com.mysql.cj.jdbc.Driver"
-MYSQL_URL_PREFIX="jdbc.default.url=jdbc:mysql://localhost:3307/"
-MYSQL_URL_SUFFIX="?useUnicode=true&characterEncoding=UTF-8&useFastDateParsing=false"
-MYSQL_USER="jdbc.default.username=root"
-MYSQL_PASSWORD="jdbc.default.password=root"
-
-# Function to check if mysql is active
 is_mysql_active() {
-    if [ ! -f "$PROPERTIES_FILE" ]; then
-        return 1
-    fi
-    grep -q "^jdbc.default.driverClassName" "$PROPERTIES_FILE"
+	local properties_file="$1"
+
+	if [[ ! -f "$properties_file" ]]; then
+		return 1
+	fi
+
+	grep -q "^jdbc.default.driverClassName" "$properties_file"
 }
 
-# Ensure properties file exists
-if [ ! -f "$PROPERTIES_FILE" ]; then
-    lp_error "Error: $PROPERTIES_FILE not found. Please create it first."
-    return 1 2>/dev/null || exit 1
-fi
-
-# No argument provided: show current status
-if [ -z "$1" ]; then
-    if is_mysql_active; then
-        # Try to extract database name from URL if possible
-        DB_NAME=$(grep "^jdbc.default.url" "$PROPERTIES_FILE" | sed "s|.*localhost:3307/||;s|?.*||")
-        if [ -n "$DB_NAME" ]; then
-            lp_info "Current database: MySQL ($DB_NAME)"
-        else
-            lp_info "Current database: MySQL"
-        fi
-    else
-        lp_info "Current database: Hypersonic"
-    fi
-    return 0 2>/dev/null || exit 0
-fi
-
-ARG=$(echo "$1" | tr '[:upper:]' '[:lower:]')
-
-# Helper to ensure a property is present (commented or not)
 ensure_property_present() {
-    local key="$1"
-    local default_value="$2"
-    if ! grep -q "^[#[:space:]]*$key=" "$PROPERTIES_FILE"; then
-        echo "$default_value" >> "$PROPERTIES_FILE"
-    fi
+	local properties_file="$1"
+	local key="$2"
+	local default_value="$3"
+
+	if ! grep -q "^[#[:space:]]*$key=" "$properties_file"; then
+		echo "$default_value" >> "$properties_file"
+	fi
 }
 
-if [[ "$ARG" == "hypersonic" || "$ARG" == "hsql" ]]; then
-    if ! is_mysql_active; then
-        lp_info "Database is already Hypersonic."
-    else
-        # Comment mysql properties
-        sed -i "s/^[[:space:]]*jdbc.default.driverClassName=/# jdbc.default.driverClassName=/" "$PROPERTIES_FILE"
-        sed -i "s/^[[:space:]]*jdbc.default.url=/# jdbc.default.url=/" "$PROPERTIES_FILE"
-        sed -i "s/^[[:space:]]*jdbc.default.username=/# jdbc.default.username=/" "$PROPERTIES_FILE"
-        sed -i "s/^[[:space:]]*jdbc.default.password=/# jdbc.default.password=/" "$PROPERTIES_FILE"
-        
-        lp_success "Switched to Hypersonic."
-        lp_info "Note: This won't switch the database for a running bundle, only for new bundle executions."
-    fi
-else
-    # Treat as mysql switch. If $1 is not "mysql", it's a specific database name.
-    DB_NAME="lportal"
-    if [[ "$ARG" != "mysql" ]]; then
-        DB_NAME="$1"
-    fi
-    
-    FULL_MYSQL_URL="${MYSQL_URL_PREFIX}${DB_NAME}${MYSQL_URL_SUFFIX}"
+show_current_status() {
+	local properties_file="$1"
 
-    # Ensure all properties exist in some form (commented or not)
-    ensure_property_present "jdbc.default.driverClassName" "$MYSQL_DRIVER"
-    ensure_property_present "jdbc.default.url" "$FULL_MYSQL_URL"
-    ensure_property_present "jdbc.default.username" "$MYSQL_USER"
-    ensure_property_present "jdbc.default.password" "$MYSQL_PASSWORD"
+	if is_mysql_active "$properties_file"; then
+		local db_name=$(grep "^jdbc.default.url" "$properties_file" | sed "s|.*localhost:3307/||;s|?.*||")
 
-    # Escape & for sed replacement string
-    # We don't need to escape ? in the replacement string, but & must be escaped as \&
-    ESCAPED_URL=$(echo "$FULL_MYSQL_URL" | sed 's/&/\\\&/g')
+		if [[ -n "$db_name" ]]; then
+			lp_info "Current database: MySQL ($db_name)"
+		else
+			lp_info "Current database: MySQL"
+		fi
+	else
+		lp_info "Current database: Hypersonic"
+	fi
+}
 
-    # We replace any line starting with # (plus optional space) and the key, or just the key
-    sed -i "s|^[#[:space:]]*jdbc.default.driverClassName=.*|$MYSQL_DRIVER|" "$PROPERTIES_FILE"
-    sed -i "s|^[#[:space:]]*jdbc.default.url=.*|$ESCAPED_URL|" "$PROPERTIES_FILE"
-    sed -i "s|^[#[:space:]]*jdbc.default.username=.*|$MYSQL_USER|" "$PROPERTIES_FILE"
-    sed -i "s|^[#[:space:]]*jdbc.default.password=.*|$MYSQL_PASSWORD|" "$PROPERTIES_FILE"
-    
-    lp_success "Switched to MySQL ($DB_NAME)."
-    lp_info "Note: This won't switch the database for a running bundle, only for new bundle executions."
-fi
+switch_to_hypersonic() {
+	local properties_file="$1"
+
+	if ! is_mysql_active "$properties_file"; then
+		lp_info "Database is already Hypersonic."
+	else
+		sed -i "s/^[[:space:]]*jdbc.default.driverClassName=/# jdbc.default.driverClassName=/" "$properties_file"
+		sed -i "s/^[[:space:]]*jdbc.default.url=/# jdbc.default.url=/" "$properties_file"
+		sed -i "s/^[[:space:]]*jdbc.default.username=/# jdbc.default.username=/" "$properties_file"
+		sed -i "s/^[[:space:]]*jdbc.default.password=/# jdbc.default.password=/" "$properties_file"
+
+		lp_success "Switched to Hypersonic."
+		lp_info "Note: This won't switch the database for a running bundle, only for new bundle executions."
+	fi
+}
+
+switch_to_mysql() {
+	local properties_file="$1"
+	local db_name="$2"
+
+	local mysql_driver="jdbc.default.driverClassName=com.mysql.cj.jdbc.Driver"
+	local mysql_url_prefix="jdbc.default.url=jdbc:mysql://localhost:3307/"
+	local mysql_url_suffix="?useUnicode=true&characterEncoding=UTF-8&useFastDateParsing=false"
+	local mysql_user="jdbc.default.username=root"
+	local mysql_password="jdbc.default.password=root"
+
+	local full_mysql_url="${mysql_url_prefix}${db_name}${mysql_url_suffix}"
+
+	ensure_property_present "$properties_file" "jdbc.default.driverClassName" "$mysql_driver"
+	ensure_property_present "$properties_file" "jdbc.default.url" "$full_mysql_url"
+	ensure_property_present "$properties_file" "jdbc.default.username" "$mysql_user"
+	ensure_property_present "$properties_file" "jdbc.default.password" "$mysql_password"
+
+	local escaped_url=$(echo "$full_mysql_url" | sed 's/&/\\\&/g')
+
+	sed -i "s|^[#[:space:]]*jdbc.default.driverClassName=.*|$mysql_driver|" "$properties_file"
+	sed -i "s|^[#[:space:]]*jdbc.default.url=.*|$escaped_url|" "$properties_file"
+	sed -i "s|^[#[:space:]]*jdbc.default.username=.*|$mysql_user|" "$properties_file"
+	sed -i "s|^[#[:space:]]*jdbc.default.password=.*|$mysql_password|" "$properties_file"
+
+	lp_success "Switched to MySQL ($db_name)."
+	lp_info "Note: This won't switch the database for a running bundle, only for new bundle executions."
+}
+
+main() {
+	lp_init_command "portal" "db" "$@"
+
+	local properties_file="$HOME/portal-ext.properties"
+
+	if [[ ! -f "$properties_file" ]]; then
+		lp_error "Error: $properties_file not found. Please create it first."
+
+		return 1 2>/dev/null || exit 1
+	fi
+
+	if [[ -z "$1" ]]; then
+		show_current_status "$properties_file"
+
+		return 0 2>/dev/null || exit 0
+	fi
+
+	local argument=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+
+	if [[ "$argument" == "hypersonic" || "$argument" == "hsql" ]]; then
+		switch_to_hypersonic "$properties_file"
+	else
+		local db_name="lportal"
+
+		if [[ "$argument" != "mysql" ]]; then
+			db_name="$1"
+		fi
+
+		switch_to_mysql "$properties_file" "$db_name"
+	fi
+}
+
+main "$@"

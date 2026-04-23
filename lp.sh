@@ -37,6 +37,7 @@ fi
 unset _LP_USER_CONFIG _LP_AUTOCOMPLETE _LP_ENABLE_ALIASES
 
 lp() {
+    local VERBOSE
     # No arguments — show top-level help
     if [[ $# -eq 0 ]]; then
         lp_top_level_help

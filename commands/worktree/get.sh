@@ -1,7 +1,23 @@
 #!/bin/bash
-# Usage: lp worktree get
-# Returns the current reference branch for the session.
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "worktree" "get" "$@"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --verbose|-v) shift ;;
+            *) shift ;;
+        esac
+    done
+}
 
-lp_info "${LP_WORKTREE_REFERENCE_BRANCH:-master}"
+display_reference_branch() {
+    lp_info "${LP_WORKTREE_REFERENCE_BRANCH:-master}"
+}
+
+main() {
+    parse_arguments "$@"
+    display_reference_branch
+}
+
+main "$@"

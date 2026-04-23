@@ -1,55 +1,49 @@
 #!/bin/bash
-# Usage: lp playwright trace [options] <trace-file>
-# Options:
-#   -h, --help   Show this help
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "playwright" "trace" "$@"
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+parse_arguments() {
+    TRACE_FILE="$1"
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Open a Playwright trace file in the trace viewer."
-    echo ""
-    echo "Usage: lp playwright trace <trace-file>"
-    echo ""
-    echo "Options:"
-    echo "  -h, --help    Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp playwright trace playwright-report/trace.zip"
-    echo "  lp playwright trace /path/to/trace.zip"
-    exit 0
-fi
+    if [[ -z "$TRACE_FILE" ]]; then
+        lp_error "Error: No trace file specified."
+        echo "Usage: lp playwright trace <trace-file>"
+        return 1 2>/dev/null || exit 1
+    fi
 
-source "$_LP_SCRIPTS_DIR/config.sh" || exit 1
+    if [[ ! -f "$TRACE_FILE" ]]; then
+        lp_error "Error: Trace file not found at '$TRACE_FILE'."
+        return 1 2>/dev/null || exit 1
+    fi
 
-TRACE_FILE="$1"
+    ABS_TRACE_FILE=$(cd "$(dirname "$TRACE_FILE")" && echo "$PWD/$(basename "$TRACE_FILE")")
+}
 
-if [[ -z "$TRACE_FILE" ]]; then
-    lp_error "Error: No trace file specified."
-    echo "Usage: lp playwright trace <trace-file>"
-    exit 1
-fi
+validate_environment() {
+    if ! lp_detect_worktree; then
+        lp_error "Error: Not currently in a worktree."
+        return 1 2>/dev/null || exit 1
+    fi
 
-if [[ ! -f "$TRACE_FILE" ]]; then
-    lp_error "Error: Trace file not found at '$TRACE_FILE'."
-    exit 1
-fi
+    PLAYWRIGHT_DIR="$LP_DETECTED_WORKTREE_DIR/modules/test/playwright"
 
-# Resolve absolute path before changing directories
-ABS_TRACE_FILE=$(cd "$(dirname "$TRACE_FILE")" && echo "$PWD/$(basename "$TRACE_FILE")")
+    if [[ ! -d "$PLAYWRIGHT_DIR" ]]; then
+        lp_error "Error: Playwright directory not found at '$PLAYWRIGHT_DIR'."
+        return 1 2>/dev/null || exit 1
+    fi
+}
 
-if ! lp_detect_worktree; then
-    lp_error "Error: Not currently in a worktree."
-    exit 1
-fi
+show_trace() {
+    cd "$PLAYWRIGHT_DIR" || { return 1 2>/dev/null || exit 1; }
 
-PLAYWRIGHT_DIR="$LP_DETECTED_WORKTREE_DIR/modules/test/playwright"
+    lp_info "Opening trace viewer for $TRACE_FILE..."
+    npx playwright show-trace "$ABS_TRACE_FILE"
+}
 
-if [[ ! -d "$PLAYWRIGHT_DIR" ]]; then
-    lp_error "Error: Playwright directory not found at '$PLAYWRIGHT_DIR'."
-    exit 1
-fi
+main() {
+    parse_arguments "$@"
+    validate_environment
+    show_trace
+}
 
-cd "$PLAYWRIGHT_DIR" || exit 1
-
-lp_info "Opening trace viewer for $TRACE_FILE..."
-npx playwright show-trace "$ABS_TRACE_FILE"
+main "$@"

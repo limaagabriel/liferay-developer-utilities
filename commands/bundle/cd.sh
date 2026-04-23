@@ -1,49 +1,55 @@
 #!/bin/bash
-# Usage: source lp bundle cd <branch-name>
-# NOTE: This script must be sourced (via `lp bundle cd`) to change the current
-#       shell directory. The `lp` function handles this automatically.
+source "$_LP_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "bundle" "cd" "$@"
 
-# Guard: detect if the script is being executed instead of sourced
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    echo "Error: This script must be sourced to change your current directory."
-    echo "Run it as:  lp bundle cd <branch-name>"
-    exit 1
-fi
+parse_arguments() {
+    BRANCH=""
 
-source "$_LP_SCRIPTS_DIR/lib/output.sh"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --verbose|-v) shift ;;
+            *) BRANCH="$1"; shift ;;
+        esac
+    done
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    echo "Change the current directory to a bundle."
-    echo ""
-    echo "Usage: lp bundle cd <branch>"
-    echo ""
-    echo "Options:"
-    echo "  -h, --help   Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  lp bundle cd main"
-    return 0
-fi
+    BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
+}
 
-source "$_LP_SCRIPTS_DIR/config.sh" || return 1
+check_sourced() {
+    if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+        lp_error "This script must be sourced to change your current directory."
+        lp_info "Run it as:  lp bundle cd <branch-name>"
+        return 1 2>/dev/null || exit 1
+    fi
+}
 
-BRANCH="${1:-$LP_WORKTREE_REFERENCE_BRANCH}"
+validate_bundle() {
+    local props_file="$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties"
 
-lp_branch_vars "$BRANCH"
+    if [[ ! -f "$props_file" ]]; then
+        lp_error "app.server.${LIFERAY_USER}.properties not found at '$WORKTREE_DIR'."
+        return 1 2>/dev/null || exit 1
+    fi
 
-PROPS_FILE=$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties
+    BUNDLE_DIR=$(grep 'app.server.parent.dir' "$props_file" | cut -d'=' -f2)
 
-if [[ ! -f "$PROPS_FILE" ]]; then
-    lp_error "app.server.${LIFERAY_USER}.properties not found at '$WORKTREE_DIR'."
-    return 1
-fi
+    if [[ ! -d "$BUNDLE_DIR" ]]; then
+        lp_error "Bundle directory '$BUNDLE_DIR' does not exist."
+        return 1 2>/dev/null || exit 1
+    fi
+}
 
-BUNDLE_DIR=$(grep 'app.server.parent.dir' "$PROPS_FILE" | cut -d'=' -f2)
+change_directory() {
+    lp_info "Changing directory to $BUNDLE_DIR..."
+    cd "$BUNDLE_DIR" || return 1
+}
 
-if [[ ! -d "$BUNDLE_DIR" ]]; then
-    lp_error "Bundle directory '$BUNDLE_DIR' does not exist."
-    return 1
-fi
+main() {
+    check_sourced
+    parse_arguments "$@"
+    lp_branch_vars "$BRANCH"
+    validate_bundle
+    change_directory
+}
 
-lp_info "Changing directory to $BUNDLE_DIR..."
-cd "$BUNDLE_DIR"
+main "$@"

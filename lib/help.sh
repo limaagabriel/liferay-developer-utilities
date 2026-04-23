@@ -557,3 +557,31 @@ lp_namespace_help() {
     done
     echo "Run 'lp $ns <command> --help' for full options on a command."
 }
+
+# lp_print_command_help <ns> <cmd> — print full help for a specific command
+lp_print_command_help() {
+    local ns="$1"
+    local cmd="$2"
+    local desc usage opts examples
+
+    desc=$(_lp_cmd_desc "$ns" "$cmd")
+    usage=$(_lp_cmd_usage "$ns" "$cmd")
+    opts=$(_lp_cmd_opts "$ns" "$cmd")
+    examples=$(_lp_cmd_examples "$ns" "$cmd")
+
+    echo "$desc"
+    echo ""
+    echo "Usage: $usage"
+    
+    if [[ -n "$opts" ]]; then
+        echo ""
+        echo "Options:"
+        echo "$opts"
+    fi
+
+    if [[ -n "$examples" ]]; then
+        echo ""
+        echo "Examples:"
+        echo "$examples"
+    fi
+}
