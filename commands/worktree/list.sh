@@ -14,13 +14,17 @@ parse_arguments() {
 list_git_worktrees() {
     lp_info "Active Liferay Portal (Master) worktrees:"
     lp_info "-----------------------------------------"
-    lp_run git -C "$MAIN_REPO_DIR" worktree list
+    git -C "$MAIN_REPO_DIR" worktree list | while read -r line; do
+        lp_info "    $line"
+    done
 
     if [[ -d "$EE_REPO_DIR" ]]; then
         lp_info ""
         lp_info "Active Liferay Portal (EE) worktrees:"
         lp_info "-------------------------------------"
-        lp_run git -C "$EE_REPO_DIR" worktree list
+        git -C "$EE_REPO_DIR" worktree list | while read -r line; do
+            lp_info "    $line"
+        done
     fi
 }
 
@@ -51,9 +55,12 @@ list_bundle_mappings_for_repo() {
             continue
         fi
         
+        # We don't want the helper to exit the script if it fails for one entry
+        # and we want to suppress its error messages since we're just listing.
         local bundle_dir
-        bundle_dir=$(grep 'app.server.parent.dir' "$props" | cut -d'=' -f2)
-        lp_info "  [$worktree_dir] -> $bundle_dir"
+        bundle_dir=$(sed -n 's/^[[:space:]]*app.server.parent.dir[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$props" | tail -n 1 | tr -d '\r' | xargs)
+        
+        lp_info "  [$worktree_dir] -> ${bundle_dir:-Unknown}"
     done
 }
 

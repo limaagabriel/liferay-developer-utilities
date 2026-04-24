@@ -38,10 +38,10 @@ _lp_ns_desc() {
 _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove get set unset root" ;;
-        bundle)   echo "build start reset cd remove" ;;
+        bundle)   echo "build db properties start reset cd remove" ;;
         portal)   echo "cdm db gw sample modified-modules" ;;
         playwright) echo "test trace" ;;
-        mysql)    echo "reset start" ;;
+        mysql)    echo "reset start stop drop status" ;;
         session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
         git)      echo "add-remote remove-remote update-master update-ee patch bisect" ;;
@@ -68,12 +68,17 @@ _lp_ns_cmds() {
         playwright/test)  echo "Run Playwright tests in the current worktree" ;;
         playwright/trace) echo "Open a Playwright trace file in the trace viewer" ;;
         bundle/build)     echo "Build the portal bundle from the worktree" ;;
+        bundle/db)        echo "Control the database backend inside a bundle (hypersonic/mysql)" ;;
+        bundle/properties) echo "Copy portal-ext.properties and set database to branch name" ;;
         bundle/start)     echo "Start the Liferay server for a bundle" ;;
         bundle/reset)     echo "Reset the bundle database and caches (work, temp, osgi/state)" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
-        mysql/reset)      echo "Reset the lportal database (drop and recreate)" ;;
-        mysql/start)      echo "Start MySQL via Docker Compose and reset the database" ;;
+        mysql/reset)      echo "Reset a specific database (drop and recreate)" ;;
+        mysql/start)      echo "Start MySQL container and ensure a branch-specific database exists" ;;
+        mysql/stop)       echo "Stop the MySQL container (preserving data)" ;;
+        mysql/drop)       echo "Drop a specific branch's database" ;;
+        mysql/status)     echo "Check MySQL container status and list databases" ;;
         session/list)     echo "List all active development sessions (tmux)" ;;
         session/start)    echo "Start a new development session using tmux" ;;
         session/stop)     echo "Stop a development session and kill tmux" ;;
@@ -113,16 +118,22 @@ _lp_ns_cmds() {
         worktree/root)    echo "lp worktree root" ;;
         portal/cdm)       echo "lp portal cdm" ;;
         portal/db)        echo "lp portal db [mysql|hypersonic|database_name]" ;;
-        portal/gw)        echo "lp portal gw [tasks...]" ;;
+        portal/gw)
+            echo "lp portal gw [options] [tasks...]" ;;
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
         bundle/build)     echo "lp bundle build [-q] [-y] [-s] <branch>" ;;
+        bundle/db)        echo "lp bundle db [mysql|hypersonic] [branch]" ;;
+        bundle/properties) echo "lp bundle properties [branch]" ;;
         bundle/start)     echo "lp bundle start [-v] [branch]" ;;
         bundle/reset)     echo "lp bundle reset [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
-        mysql/reset)      echo "lp mysql reset [-v]" ;;
-        mysql/start)      echo "lp mysql start [-v]" ;;
+        mysql/reset)      echo "lp mysql reset [branch]" ;;
+        mysql/start)      echo "lp mysql start [branch]" ;;
+        mysql/stop)       echo "lp mysql stop" ;;
+        mysql/drop)       echo "lp mysql drop [branch]" ;;
+        mysql/status)     echo "lp mysql status" ;;
         session/list)     echo "lp session list" ;;
         session/start)    echo "lp session start [options] [branch]" ;;
         session/stop)     echo "lp session stop [branch]" ;;
@@ -191,6 +202,8 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         portal/gw)
+            echo "  -q, --quiet     Hide gradle output"
+            echo "  -v, --verbose   Show full gradle output (default)"
             echo "  -h, --help      Show this help"
             ;;
         portal/sample)
@@ -225,6 +238,10 @@ _lp_ns_cmds() {
             echo "  -h, --help   Show this help"
             ;;
         bundle/remove)
+            echo "  -v, --verbose   Show full output"
+            echo "  -h, --help      Show this help"
+            ;;
+        bundle/properties)
             echo "  -v, --verbose   Show full output"
             echo "  -h, --help      Show this help"
             ;;
@@ -375,6 +392,7 @@ _lp_ns_cmds() {
             ;;
         portal/gw)
             echo "  lp portal gw clean deploy"
+            echo "  lp portal gw -q clean deploy"
             ;;
         portal/sample)
             echo "  lp portal sample -c my-extension"
@@ -410,11 +428,30 @@ _lp_ns_cmds() {
         bundle/remove)
             echo "  lp bundle remove main"
             ;;
+        bundle/db)
+            echo "  lp bundle db mysql"
+            echo "  lp bundle db hypersonic feature-abc"
+            ;;
+        bundle/properties)
+            echo "  lp bundle properties"
+            echo "  lp bundle properties main"
+            ;;
         mysql/reset)
             echo "  lp mysql reset"
+            echo "  lp mysql reset feature-xyz"
             ;;
         mysql/start)
             echo "  lp mysql start"
+            echo "  lp mysql start feature-xyz"
+            ;;
+        mysql/stop)
+            echo "  lp mysql stop"
+            ;;
+        mysql/drop)
+            echo "  lp mysql drop feature-xyz"
+            ;;
+        mysql/status)
+            echo "  lp mysql status"
             ;;
         session/list)
             echo "  lp session list"

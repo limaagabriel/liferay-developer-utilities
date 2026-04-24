@@ -42,12 +42,23 @@ run_gradle_task() {
 }
 
 main() {
-    if [[ $# -eq 0 ]]; then
+    VERBOSE=1
+    local tasks=()
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --quiet|-q) VERBOSE=0; shift ;;
+            --verbose|-v) VERBOSE=1; shift ;;
+            *) tasks+=("$1"); shift ;;
+        esac
+    done
+
+    if [[ ${#tasks[@]} -eq 0 ]]; then
         lp_error "No Gradle tasks specified."
         return 1
     fi
 
-    run_gradle_task "$@"
+    run_gradle_task "${tasks[@]}"
 }
 
 main "$@"

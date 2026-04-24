@@ -19,18 +19,8 @@ BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
 BRANCH="${BRANCH:-master}"
 
 lp_branch_vars "$BRANCH"
-
-if [[ ! -d "$WORKTREE_DIR" ]]; then
-    lp_error "Worktree '$WORKTREE_DIR' does not exist."
-    return 1 2>/dev/null || exit 1
-fi
-
-BUNDLE_DIR=$(grep 'app.server.parent.dir' "$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties" | cut -d'=' -f2)
-
-if [[ -z "$BUNDLE_DIR" ]]; then
-    lp_error "Could not find bundle directory for worktree '$WORKTREE_DIR'."
-    return 1 2>/dev/null || exit 1
-fi
+lp_validate_worktree || return $?
+lp_load_bundle_dir || return $?
 
 cd "$WORKTREE_DIR"
 

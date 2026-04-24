@@ -77,6 +77,14 @@ delete_branch() {
     fi
 }
 
+drop_database() {
+    if docker ps --format '{{.Names}}' | grep -q '^mysql$'; then
+        lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Dropping database '$BRANCH'"
+        docker exec mysql mysql -uroot -proot -e "drop database if exists \`$BRANCH\`;" &> /dev/null
+        ((CURRENT_STEP++))
+    fi
+}
+
 main() {
     parse_arguments "$@"
     lp_branch_vars "$BRANCH"
@@ -84,11 +92,17 @@ main() {
     confirm_removal
     
     TOTAL_STEPS=$(get_total_steps)
+    # Add step for database if mysql is running
+    if docker ps --format '{{.Names}}' | grep -q '^mysql$'; then
+        ((TOTAL_STEPS++))
+    fi
+
     CURRENT_STEP=1
     
     stop_session
     remove_worktree
     remove_bundle
+    drop_database
     delete_branch
     
     lp_success "Done!"

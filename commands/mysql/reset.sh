@@ -2,14 +2,30 @@
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "mysql" "reset" "$@"
 
+BRANCH=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --verbose|-v) shift ;;
+        -*)
+            lp_error "Unknown option: $1"
+            return 1 2>/dev/null || exit 1
+            ;;
+        *) BRANCH="$1"; shift ;;
+    esac
+done
+
+BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
+BRANCH="${BRANCH:-master}"
+
 drop_database() {
-    lp_step 1 2 "Dropping lportal database"
-    lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists lportal;"
+    lp_step 1 2 "Dropping database '$BRANCH'"
+    lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists \`$BRANCH\`;"
 }
 
 create_database() {
-    lp_step 2 2 "Creating lportal database"
-    lp_run docker exec mysql mysql -uroot -proot -e "create schema lportal default character set utf8;"
+    lp_step 2 2 "Creating database '$BRANCH'"
+    lp_run docker exec mysql mysql -uroot -proot -e "create schema \`$BRANCH\` default character set utf8;"
 }
 
 main() {

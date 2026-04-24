@@ -77,3 +77,33 @@ lp_validate_worktree() {
         return 1 2>/dev/null || exit 1
     fi
 }
+
+# lp_load_bundle_dir [worktree_dir]
+# Loads BUNDLE_DIR from the app.server.properties file in the given worktree.
+# Uses $WORKTREE_DIR if no argument is provided.
+lp_load_bundle_dir() {
+    local wt_dir="${1:-$WORKTREE_DIR}"
+    local props_file="$wt_dir/app.server.${LIFERAY_USER}.properties"
+
+    if [[ ! -f "$props_file" ]]; then
+        lp_error "Error: Properties file not found at '$props_file'."
+        return 1 2>/dev/null || exit 1
+    fi
+
+    # Parse app.server.parent.dir, handling spaces and ignoring comments
+    local dir
+    dir=$(sed -n 's/^[[:space:]]*app.server.parent.dir[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' "$props_file" | tail -n 1)
+
+    # Trim trailing carriage return if any (for Windows-edited files)
+    dir=$(echo "$dir" | tr -d '\r')
+
+    # Trim leading/trailing whitespace from the captured value
+    dir=$(echo "$dir" | xargs)
+
+    if [[ -z "$dir" ]]; then
+        lp_error "Error: Could not find 'app.server.parent.dir' in '$props_file'."
+        return 1 2>/dev/null || exit 1
+    fi
+
+    BUNDLE_DIR="$dir"
+}

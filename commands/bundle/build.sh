@@ -26,25 +26,6 @@ parse_arguments() {
     BRANCH="${BRANCH:-master}"
 }
 
-validate_worktree_properties() {
-    local props_file="$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties"
-    if [[ ! -f "$props_file" ]]; then
-        lp_error "app.server.${LIFERAY_USER}.properties not found at '$WORKTREE_DIR'."
-        return 1 2>/dev/null || exit 1
-    fi
-}
-
-get_bundle_dir() {
-    validate_worktree_properties
-    local props_file="$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties"
-    BUNDLE_DIR=$(grep 'app.server.parent.dir' "$props_file" | cut -d'=' -f2)
-
-    if [[ -z "$BUNDLE_DIR" ]]; then
-        lp_error "Could not find bundle directory for worktree '$WORKTREE_DIR'."
-        return 1 2>/dev/null || exit 1
-    fi
-}
-
 prepare_bundle_directory() {
     BUNDLE_REMOVED=0
     if [[ ! -d "$BUNDLE_DIR" ]]; then
@@ -92,10 +73,11 @@ run_build() {
 main() {
     parse_arguments "$@"
     lp_branch_vars "$BRANCH"
-    lp_validate_worktree
-    get_bundle_dir
-    prepare_bundle_directory
-    run_build
+    lp_validate_worktree || return $?
+    lp_load_bundle_dir || return $?
+    prepare_bundle_directory || return $?
+    run_build || return $?
+    "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "$BRANCH"
     lp_success "Bundle built at '$BUNDLE_DIR'."
 }
 
