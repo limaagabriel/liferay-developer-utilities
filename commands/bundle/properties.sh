@@ -58,6 +58,9 @@ if [[ -f "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" ]]; then
     fi
 
     lp_success "Copied portal-ext.properties and set database to $BRANCH"
+
+    # Configure ports
+    "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"
 else
     lp_error "Base portal-ext.properties not found in assets."
     return 1 2>/dev/null || exit 1

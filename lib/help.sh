@@ -38,7 +38,7 @@ _lp_ns_desc() {
 _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove get set unset root" ;;
-        bundle)   echo "build db properties start reset cd remove" ;;
+        bundle)   echo "build db properties ports start reset cd remove" ;;
         portal)   echo "cdm db gw sample modified-modules" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start stop drop status" ;;
@@ -70,6 +70,7 @@ _lp_ns_cmds() {
         bundle/build)     echo "Build the portal bundle from the worktree" ;;
         bundle/db)        echo "Control the database backend inside a bundle (hypersonic/mysql)" ;;
         bundle/properties) echo "Copy portal-ext.properties and set database to branch name" ;;
+        bundle/ports)     echo "Configure TCP port offsets for the bundle" ;;
         bundle/start)     echo "Start the Liferay server for a bundle" ;;
         bundle/reset)     echo "Reset the bundle database and caches (work, temp, osgi/state)" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
@@ -125,6 +126,7 @@ _lp_ns_cmds() {
         bundle/build)     echo "lp bundle build [-q] [-y] [-s] <branch>" ;;
         bundle/db)        echo "lp bundle db [mysql|hypersonic] [branch]" ;;
         bundle/properties) echo "lp bundle properties [branch]" ;;
+        bundle/ports)     echo "lp bundle ports [branch]" ;;
         bundle/start)     echo "lp bundle start [-v] [branch]" ;;
         bundle/reset)     echo "lp bundle reset [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
@@ -242,6 +244,10 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         bundle/properties)
+            echo "  -v, --verbose   Show full output"
+            echo "  -h, --help      Show this help"
+            ;;
+        bundle/ports)
             echo "  -v, --verbose   Show full output"
             echo "  -h, --help      Show this help"
             ;;
@@ -435,6 +441,10 @@ _lp_ns_cmds() {
         bundle/properties)
             echo "  lp bundle properties"
             echo "  lp bundle properties main"
+            ;;
+        bundle/ports)
+            echo "  lp bundle ports"
+            echo "  lp bundle ports main"
             ;;
         mysql/reset)
             echo "  lp mysql reset"
