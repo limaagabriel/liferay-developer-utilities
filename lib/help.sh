@@ -131,7 +131,7 @@ _lp_ns_cmds() {
         bundle/properties) echo "lp bundle properties [options] [branch]" ;;
         bundle/ports)     echo "lp bundle ports [branch]" ;;
         bundle/start)     echo "lp bundle start [-v] [branch]" ;;
-        bundle/reset)     echo "lp bundle reset [-v] [branch]" ;;
+        bundle/reset)     echo "lp bundle reset [-y|--yes] [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         mysql/reset)      echo "lp mysql reset [-y|--yes] [branch]" ;;
@@ -245,6 +245,7 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         bundle/reset)
+            echo "  -y, --yes       Skip confirmation prompt"
             echo "  -v, --verbose   Show full output"
             echo "  -h, --help      Show this help"
             ;;
@@ -445,6 +446,7 @@ _lp_ns_cmds() {
             ;;
         bundle/reset)
             echo "  lp bundle reset main"
+            echo "  lp bundle reset -y"
             echo "  lp bundle reset"
             ;;
         bundle/cd)
