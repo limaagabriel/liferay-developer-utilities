@@ -39,7 +39,7 @@ _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove get set unset root" ;;
         bundle)   echo "build db properties ports start reset cd remove" ;;
-        portal)   echo "cdm db gw sf sample modified-modules" ;;
+        portal)   echo "buildLang cdm db gw sf sample" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start stop drop status" ;;
         session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
@@ -62,6 +62,7 @@ _lp_ns_cmds() {
         worktree/set)     echo "Set the reference branch for the session" ;;
         worktree/unset)   echo "Reset the reference branch to master" ;;
         worktree/root)    echo "Change the current directory to the root of a worktree" ;;
+        portal/buildLang) echo "Run buildLang task in the portal-language-lang module" ;;
         portal/cdm)       echo "Fuzzy module search and cd in the current git repository" ;;
         portal/db)        echo "Switch between mysql (with optional db name) and hypersonic" ;;
         portal/gw)        echo "Run gradle tasks in the current directory" ;;
@@ -118,6 +119,7 @@ _lp_ns_cmds() {
         worktree/set)     echo "lp worktree set [branch-name]" ;;
         worktree/unset)   echo "lp worktree unset" ;;
         worktree/root)    echo "lp worktree root" ;;
+        portal/buildLang) echo "lp portal buildLang [options]" ;;
         portal/cdm)       echo "lp portal cdm" ;;
         portal/db)        echo "lp portal db [mysql|hypersonic|database_name]" ;;
         portal/gw)
@@ -197,6 +199,11 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         worktree/root)
+            echo "  -h, --help      Show this help"
+            ;;
+        portal/buildLang)
+            echo "  -q, --quiet     Hide gradle output"
+            echo "  -v, --verbose   Show full gradle output (default)"
             echo "  -h, --help      Show this help"
             ;;
         portal/cdm)
@@ -401,6 +408,9 @@ _lp_ns_cmds() {
             ;;
         worktree/root)
             echo "  lp worktree root"
+            ;;
+        portal/buildLang)
+            echo "  lp portal buildLang"
             ;;
         portal/cdm)
             echo "  lp portal cdm"
