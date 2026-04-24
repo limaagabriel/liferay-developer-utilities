@@ -29,7 +29,7 @@ confirm_drop() {
 
 drop_database() {
     lp_step 1 1 "Dropping database '$BRANCH'"
-    lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists \`$BRANCH\`;"
+    lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "drop database if exists \`$BRANCH\`;"
 }
 
 main() {

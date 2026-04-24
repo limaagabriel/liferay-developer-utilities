@@ -36,7 +36,7 @@ start_mysql_container() {
 
 wait_for_mysql_ready() {
     lp_step 2 3 "Waiting for MySQL to be ready"
-    until docker exec mysql mysql -uroot -proot -e "select 1" &> /dev/null; do
+    until docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "select 1" &> /dev/null; do
         sleep 1
     done
 }
@@ -44,10 +44,10 @@ wait_for_mysql_ready() {
 initialize_database() {
     lp_step 3 3 "Creating database '$BRANCH'"
     
-    if docker exec mysql mysql -uroot -proot -e "show databases;" | grep -q "^$BRANCH$"; then
+    if docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "show databases;" | grep -q "^$BRANCH$"; then
         lp_info "Database '$BRANCH' already exists, skipping creation."
     else
-        lp_run docker exec mysql mysql -uroot -proot -e "create schema \`$BRANCH\` default character set utf8;" || return $?
+        lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "create schema \`$BRANCH\` default character set utf8;" || return $?
     fi
 }
 

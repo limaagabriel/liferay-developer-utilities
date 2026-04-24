@@ -20,12 +20,12 @@ BRANCH="${BRANCH:-master}"
 
 drop_database() {
     lp_step 1 2 "Dropping database '$BRANCH'"
-    lp_run docker exec mysql mysql -uroot -proot -e "drop database if exists \`$BRANCH\`;"
+    lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "drop database if exists \`$BRANCH\`;"
 }
 
 create_database() {
     lp_step 2 2 "Creating database '$BRANCH'"
-    lp_run docker exec mysql mysql -uroot -proot -e "create schema \`$BRANCH\` default character set utf8;"
+    lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "create schema \`$BRANCH\` default character set utf8;"
 }
 
 main() {
