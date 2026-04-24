@@ -202,6 +202,10 @@ run_parallel_deployment() {
 }
 
 main() {
+    lp_init_command "modules" "deploy" "$@" || {
+        local ec=$?
+        [[ $ec -eq 255 ]] && return 0 || return $ec
+    }
     parse_arguments "$@"
     validate_arguments
     resolve_modules

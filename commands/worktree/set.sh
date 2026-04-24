@@ -19,6 +19,11 @@ set_reference_branch() {
 }
 
 main() {
+    lp_init_command "worktree" "set" "$@" || {
+        local ec=$?
+        [[ $ec -eq 255 ]] && return 0 || return $ec
+    }
+
     # Check if we are being sourced
     if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         lp_error "Error: this command must be sourced to update your session."

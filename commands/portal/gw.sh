@@ -42,6 +42,10 @@ run_gradle_task() {
 }
 
 main() {
+    lp_init_command "portal" "gw" "$@" || {
+        local ec=$?
+        [[ $ec -eq 255 ]] && return 0 || return $ec
+    }
     VERBOSE=1
     local tasks=()
 

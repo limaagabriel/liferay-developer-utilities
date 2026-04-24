@@ -3,10 +3,21 @@ source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "bundle" "properties" "$@"
 
 BRANCH=""
+DB_TYPE="$DEFAULT_DATABASE"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --db|-d)
+            if [[ -n "$2" && "$2" != -* ]]; then
+                DB_TYPE="$2"
+                shift 2
+            else
+                lp_error "Option $1 requires a value (hypersonic|mysql)."
+                return 1 2>/dev/null || exit 1
+            fi
+            ;;
         --verbose|-v) shift ;;
+        --help|-h) shift ;;
         -*)
             lp_error "Unknown option: $1"
             return 1 2>/dev/null || exit 1
@@ -33,13 +44,6 @@ if [[ -z "$BUNDLE_DIR" ]]; then
 fi
 
 properties_file="$BUNDLE_DIR/portal-ext.properties"
-use_mysql=0
-
-if [[ -f "$properties_file" ]]; then
-    if grep -q "^jdbc.default.driverClassName" "$properties_file"; then
-        use_mysql=1
-    fi
-fi
 
 if [[ -f "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" ]]; then
     lp_info "Copying portal-ext.properties to $BUNDLE_DIR"
@@ -49,15 +53,14 @@ if [[ -f "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" ]]; then
     # Replace default database name with branch name
     sed -i "s|localhost:3307/lportal|localhost:3307/$BRANCH|" "$properties_file"
 
-    if [[ $use_mysql -eq 1 ]]; then
-        lp_info "Restoring MySQL state"
-        sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.driverClassName=/jdbc.default.driverClassName=/" "$properties_file"
-        sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.url=/jdbc.default.url=/" "$properties_file"
-        sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.username=/jdbc.default.username=/" "$properties_file"
-        sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.password=/jdbc.default.password=/" "$properties_file"
+    lp_success "Copied portal-ext.properties"
+
+    # Configure database
+    if [[ "$DB_TYPE" == "mysql" ]]; then
+        "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "$BRANCH"
     fi
 
-    lp_success "Copied portal-ext.properties and set database to $BRANCH"
+    "$_LP_SCRIPTS_DIR/commands/bundle/db.sh" "$DB_TYPE" "$BRANCH"
 
     # Configure ports (disabled temporarily)
     # "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"

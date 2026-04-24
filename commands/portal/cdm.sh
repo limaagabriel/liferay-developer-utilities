@@ -44,7 +44,10 @@ find_module_directory() {
 }
 
 main() {
-	lp_init_command "portal" "cdm" "$@"
+	lp_init_command "portal" "cdm" "$@" || {
+		local ec=$?
+		[[ $ec -eq 255 ]] && return 0 || return $ec
+	}
 
 	check_dependencies || return 1 2>/dev/null || exit 1
 

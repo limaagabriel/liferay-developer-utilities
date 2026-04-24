@@ -7,13 +7,24 @@ parse_arguments() {
     ASSUME_YES=0
     SKIP_IF_EXISTS=0
     BRANCH=""
+    DB_TYPE=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
+            --db|-d)
+                if [[ -n "$2" && "$2" != -* ]]; then
+                    DB_TYPE="$2"
+                    shift 2
+                else
+                    lp_error "Option $1 requires a value (hypersonic|mysql)."
+                    return 1 2>/dev/null || exit 1
+                fi
+                ;;
             --quiet|-q)           VERBOSE=0; shift ;;
             --yes|-y)             ASSUME_YES=1; shift ;;
             --skip-if-exists|-s)  SKIP_IF_EXISTS=1; shift ;;
             --verbose|-v)         shift ;;
+            --help|-h)            shift ;;
             -*)
                 lp_error "Unknown option: $1"
                 return 1 2>/dev/null || exit 1
@@ -77,7 +88,14 @@ main() {
     lp_load_bundle_dir || return $?
     prepare_bundle_directory || return $?
     run_build || return $?
-    "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "$BRANCH"
+    
+    local properties_args=()
+    if [[ -n "$DB_TYPE" ]]; then
+        properties_args+=("-d" "$DB_TYPE")
+    fi
+    properties_args+=("$BRANCH")
+
+    "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "${properties_args[@]}"
     lp_success "Bundle built at '$BUNDLE_DIR'."
 }
 

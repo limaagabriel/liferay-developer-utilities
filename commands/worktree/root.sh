@@ -24,6 +24,11 @@ change_to_worktree_root() {
 }
 
 main() {
+    lp_init_command "worktree" "root" "$@" || {
+        local ec=$?
+        [[ $ec -eq 255 ]] && return 0 || return $ec
+    }
+
     # Check if we are being sourced
     if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         lp_error "Error: this command must be sourced to change your directory."

@@ -107,6 +107,10 @@ handle_post_add_actions() {
 }
 
 main() {
+    lp_init_command "worktree" "add" "$@" || {
+        local ec=$?
+        [[ $ec -eq 255 ]] && return 0 || return $ec
+    }
     parse_arguments "$@"
     lp_branch_vars "$BRANCH"
     check_worktree_limit

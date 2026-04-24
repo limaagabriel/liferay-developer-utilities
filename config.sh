@@ -30,19 +30,21 @@ source "$_LP_USER_CONFIG"
 BASE_PROJECT_DIR="${BASE_PROJECT_DIR:=$HOME/dev/projects}"
 MAIN_REPO_NAME="${MAIN_REPO_NAME:=liferay-portal}"
 MAIN_REPO_DIR="${MAIN_REPO_DIR:=$BASE_PROJECT_DIR/$MAIN_REPO_NAME}"
-EE_REPO_DIR="${EE_REPO_DIR:=$BASE_PROJECT_DIR/liferay-portal-ee}"
+EE_REPO_NAME="${EE_REPO_NAME:=liferay-portal-ee}"
+EE_REPO_DIR="${EE_REPO_DIR:=$BASE_PROJECT_DIR/$EE_REPO_NAME}"
 BUNDLES_DIR="${BUNDLES_DIR:=$HOME/dev/bundles}"
 LIFERAY_USER="${LIFERAY_USER:=$(whoami)}"
 ENABLE_AUTOCOMPLETE="${ENABLE_AUTOCOMPLETE:=yes}"
 ENABLE_ALIASES="${ENABLE_ALIASES:=yes}"
 WORKTREE_LIMIT="${WORKTREE_LIMIT:=8}"
+DEFAULT_DATABASE="${DEFAULT_DATABASE:=hypersonic}"
 SESSION_CUSTOM_WINDOWS="${SESSION_CUSTOM_WINDOWS:=}"
 
 # ---------------------------------------------------------------------------
 # Warn for any expected variable that is still unset (task 2.6)
 # ---------------------------------------------------------------------------
 
-for _lp_var in BASE_PROJECT_DIR MAIN_REPO_NAME MAIN_REPO_DIR EE_REPO_DIR BUNDLES_DIR LIFERAY_USER ENABLE_AUTOCOMPLETE ENABLE_ALIASES WORKTREE_LIMIT; do
+for _lp_var in BASE_PROJECT_DIR MAIN_REPO_NAME EE_REPO_NAME MAIN_REPO_DIR EE_REPO_DIR BUNDLES_DIR LIFERAY_USER ENABLE_AUTOCOMPLETE ENABLE_ALIASES WORKTREE_LIMIT DEFAULT_DATABASE; do
     eval "_lp_val=\"\${$_lp_var}\""
     if [[ -z "$_lp_val" ]]; then
         echo "lp: warning: '$_lp_var' is unset after loading config." >&2

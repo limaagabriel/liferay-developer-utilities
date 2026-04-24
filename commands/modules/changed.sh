@@ -95,6 +95,10 @@ get_changed_modules() {
 }
 
 main() {
+    lp_init_command "modules" "changed" "$@" || {
+        local ec=$?
+        [[ $ec -eq 255 ]] && return 0 || return $ec
+    }
     parse_arguments "$@"
     validate_environment
 

@@ -126,9 +126,9 @@ _lp_ns_cmds() {
             echo "lp portal sf [options]" ;;
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
-        bundle/build)     echo "lp bundle build [-q] [-y] [-s] <branch>" ;;
+        bundle/build)     echo "lp bundle build [options] <branch>" ;;
         bundle/db)        echo "lp bundle db [mysql|hypersonic] [branch]" ;;
-        bundle/properties) echo "lp bundle properties [branch]" ;;
+        bundle/properties) echo "lp bundle properties [options] [branch]" ;;
         bundle/ports)     echo "lp bundle ports [branch]" ;;
         bundle/start)     echo "lp bundle start [-v] [branch]" ;;
         bundle/reset)     echo "lp bundle reset [-v] [branch]" ;;
@@ -234,6 +234,7 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         bundle/build)
+            echo "  -d, --db <database>     Database type (hypersonic|mysql)"
             echo "  -q, --quiet             Hide full ant/git output (unless error)"
             echo "  -y, --yes               Skip confirmation for deleting existing bundle"
             echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
@@ -255,8 +256,9 @@ _lp_ns_cmds() {
             echo "  -h, --help      Show this help"
             ;;
         bundle/properties)
-            echo "  -v, --verbose   Show full output"
-            echo "  -h, --help      Show this help"
+            echo "  -d, --db <database>     Database type (hypersonic|mysql)"
+            echo "  -v, --verbose           Show full output"
+            echo "  -h, --help              Show this help"
             ;;
         bundle/ports)
             echo "  -v, --verbose   Show full output"

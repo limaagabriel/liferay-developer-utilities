@@ -16,6 +16,10 @@ display_reference_branch() {
 }
 
 main() {
+    lp_init_command "worktree" "get" "$@" || {
+        local ec=$?
+        [[ $ec -eq 255 ]] && return 0 || return $ec
+    }
     parse_arguments "$@"
     display_reference_branch
 }

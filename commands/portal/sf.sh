@@ -5,14 +5,10 @@ main() {
 	# Initialize with namespace "portal" and command "sf"
 	# Set VERBOSE=1 before lp_init_command to make it default.
 	VERBOSE=1
-	lp_init_command "portal" "sf" "$@" || return 1
-
-	# Early exit if help was requested (lp_init_command returns 0 but does not stop caller when sourced)
-	for arg in "$@"; do
-		if [[ "$arg" == "--help" || "$arg" == "-h" ]]; then
-			return 0
-		fi
-	done
+	lp_init_command "portal" "sf" "$@" || {
+		local ec=$?
+		[[ $ec -eq 255 ]] && return 0 || return $ec
+	}
 
 	local ant_task="format-source-current-branch"
 	local ant_args=()

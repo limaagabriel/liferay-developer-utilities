@@ -29,6 +29,10 @@ change_directory() {
 }
 
 main() {
+    lp_init_command "bundle" "cd" "$@" || {
+        local ec=$?
+        [[ $ec -eq 255 ]] && return 0 || return $ec
+    }
     check_sourced
     parse_arguments "$@"
     lp_branch_vars "$BRANCH"

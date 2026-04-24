@@ -29,7 +29,11 @@ lp_init_command() {
         if [[ "$_lp_arg" == "--help" || "$_lp_arg" == "-h" ]]; then
             lp_print_command_help "$_lp_ns" "$_lp_cmd"
             # Return/exit depending on if we are sourced or executed
-            return 0 2>/dev/null || exit 0
+            if [[ "${BASH_SOURCE[1]}" == "${0}" ]]; then
+                exit 0
+            else
+                return 255
+            fi
         fi
     done
 

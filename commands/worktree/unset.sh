@@ -1,6 +1,5 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
-lp_init_command "worktree" "unset" "$@"
 
 parse_arguments() {
     while [[ $# -gt 0 ]]; do
@@ -20,6 +19,16 @@ main() {
     # Check if we are being sourced
     if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         lp_error "Error: this command must be sourced to update your session."
+        lp_error "Usage: lp worktree unset"
+        return 1 2>/dev/null || exit 1
+    fi
+
+    parse_arguments "$@"
+    unset_reference_branch
+}
+
+main "$@"
+r session."
         lp_error "Usage: lp worktree unset"
         return 1 2>/dev/null || exit 1
     fi

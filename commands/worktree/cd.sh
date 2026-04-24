@@ -1,6 +1,5 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
-lp_init_command "worktree" "cd" "$@"
 
 parse_arguments() {
     BRANCH=""
@@ -23,6 +22,11 @@ update_reference() {
 }
 
 main() {
+    lp_init_command "worktree" "cd" "$@" || {
+        local ec=$?
+        [[ $ec -eq 255 ]] && return 0 || return $ec
+    }
+
     # Check if we are being sourced
     if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         lp_error "Error: this command must be sourced to change your directory."
