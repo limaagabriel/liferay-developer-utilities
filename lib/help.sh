@@ -134,7 +134,7 @@ _lp_ns_cmds() {
         mysql/reset)      echo "lp mysql reset [branch]" ;;
         mysql/start)      echo "lp mysql start [branch]" ;;
         mysql/stop)       echo "lp mysql stop" ;;
-        mysql/drop)       echo "lp mysql drop [branch]" ;;
+        mysql/drop)       echo "lp mysql drop [-y|--yes] [branch]" ;;
         mysql/status)     echo "lp mysql status" ;;
         session/list)     echo "lp session list" ;;
         session/start)    echo "lp session start [options] [branch]" ;;

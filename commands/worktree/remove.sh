@@ -80,7 +80,7 @@ delete_branch() {
 drop_database() {
     if docker ps --format '{{.Names}}' | grep -q '^mysql$'; then
         lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Dropping database '$BRANCH'"
-        docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "drop database if exists \`$BRANCH\`;" &> /dev/null
+        lp_run "$_LP_SCRIPTS_DIR/lp.sh" mysql drop --yes "$BRANCH" &> /dev/null
         ((CURRENT_STEP++))
     fi
 }

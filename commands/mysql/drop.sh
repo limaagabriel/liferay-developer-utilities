@@ -2,10 +2,12 @@
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "mysql" "drop" "$@"
 
+ASSUME_YES=0
 BRANCH=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --yes|-y) ASSUME_YES=1; shift ;;
         --verbose|-v) shift ;;
         -*)
             lp_error "Unknown option: $1"
@@ -19,6 +21,10 @@ BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
 BRANCH="${BRANCH:-master}"
 
 confirm_drop() {
+    if [[ "$ASSUME_YES" -eq 1 ]]; then
+        return 0
+    fi
+
     local confirm
     read -p " Drop the database '$BRANCH'? [y/N] " confirm
     if [[ "$confirm" != "y" ]]; then
