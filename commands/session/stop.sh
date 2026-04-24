@@ -26,7 +26,7 @@ parse_arguments() {
 
 stop_session() {
     if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
-        lp_info "Stopping session '$SESSION_NAME'..."
+        lp_step 1 1 "Stopping session '$SESSION_NAME'"
         tmux kill-session -t "$SESSION_NAME"
         lp_success "Session stopped."
     else

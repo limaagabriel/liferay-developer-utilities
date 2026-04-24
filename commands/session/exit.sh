@@ -11,7 +11,7 @@ check_tmux_session() {
 }
 
 exit_session() {
-    lp_info "Exiting session (detaching)..."
+    lp_step 1 1 "Exiting session (detaching)"
     tmux detach-client
 }
 

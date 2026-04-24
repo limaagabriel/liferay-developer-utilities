@@ -43,10 +43,10 @@ validate_arguments() {
         return 1 2>/dev/null || exit 1
     fi
 }
-
-update_description() {
-    lp_info "Setting description for session '$BRANCH'..."
+set_description() {
+    lp_step 1 1 "Setting description for session '$BRANCH'"
     tmux set-option -t "$BRANCH" @lp-description "$DESCRIPTION"
+}
     _lp_update_tmux_status_line "$BRANCH"
     lp_success "Description updated."
 }

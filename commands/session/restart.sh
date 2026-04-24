@@ -34,12 +34,13 @@ confirm_restart() {
 }
 
 stop_portal() {
-    lp_info "Stopping portal in 'bundle' window..."
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Stopping portal in 'bundle' window"
     tmux send-keys -t "$SESSION_NAME:bundle" C-c
+    ((CURRENT_STEP++))
 }
 
 wait_for_server_to_stop() {
-    lp_info "Waiting for server to stop..."
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Waiting for server to stop"
 
     local shell_name="${SHELL##*/}"
     [[ -z "$shell_name" ]] && shell_name="bash"
@@ -65,17 +66,23 @@ wait_for_server_to_stop() {
         sleep 1
         ((wait_count++))
     done
+    ((CURRENT_STEP++))
 }
 
 restart_portal() {
-    lp_info "Server stopped. Restarting..."
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Restarting portal"
     tmux send-keys -t "$SESSION_NAME:bundle" "lp bundle start" Enter
+    ((CURRENT_STEP++))
 }
 
 main() {
     check_tmux_context
     verify_lp_session
     confirm_restart
+
+    TOTAL_STEPS=3
+    CURRENT_STEP=1
+
     stop_portal
     wait_for_server_to_stop
     restart_portal

@@ -130,7 +130,7 @@ EOF
 
 setup_tmux_session() {
     USER_SHELL="${SHELL:-bash}"
-    lp_info "Starting new session '$SESSION_NAME' at $WORKTREE_DIR using $USER_SHELL..."
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Starting new session '$SESSION_NAME' at $WORKTREE_DIR"
 
     local bundle_cmd
     bundle_cmd=$(get_bundle_command)
@@ -159,9 +159,13 @@ setup_tmux_session() {
     _lp_update_tmux_status_line "$SESSION_NAME"
     tmux set-window-option -t "$SESSION_NAME" window-status-format "  #I:#W#F "
     tmux set-window-option -t "$SESSION_NAME" window-status-current-format "  #I:#W#F "
+
+    ((CURRENT_STEP++))
 }
 
 add_standard_windows() {
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Adding standard windows (git, workspace)"
+
     # Initialize git window (index 2)
     local git_cmd
     git_cmd=$(get_git_command)
@@ -180,6 +184,8 @@ add_standard_windows() {
     echo "$workspace_preamble" >> "$tmp_workspace"
     echo "rm -f \"$tmp_workspace\"" >> "$tmp_workspace"
     tmux new-window -t "$SESSION_NAME" -n "workspace" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_workspace; exec $USER_SHELL\""
+
+    ((CURRENT_STEP++))
 }
 
 add_custom_windows() {
@@ -191,15 +197,25 @@ add_custom_windows() {
             IFS=$IFSOLD
             
             if [[ -n "$CUSTOM_NAME" && -n "$CUSTOM_CMD" ]]; then
-                lp_info "Adding custom window '$CUSTOM_NAME'..."
+                lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Adding custom window '$CUSTOM_NAME'"
                 local tmp_custom
                 tmp_custom=$(mktemp)
                 echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1; $CUSTOM_CMD" > "$tmp_custom"
                 echo "rm -f \"$tmp_custom\"" >> "$tmp_custom"
                 tmux new-window -t "$SESSION_NAME" -n "$CUSTOM_NAME" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_custom; exec $USER_SHELL\""
+                ((CURRENT_STEP++))
             fi
         done
     fi
+}
+
+get_total_steps() {
+    local total=2 # setup session, standard windows
+    if [[ -n "$SESSION_CUSTOM_WINDOWS" ]]; then
+        IFS=',' read -ra ADDR <<< "$SESSION_CUSTOM_WINDOWS"
+        total=$((total + ${#ADDR[@]}))
+    fi
+    echo "$total"
 }
 
 main() {
@@ -208,6 +224,10 @@ main() {
     lp_branch_vars "$BRANCH"
     lp_validate_worktree || return 1
     handle_existing_session || return 0
+
+    TOTAL_STEPS=$(get_total_steps)
+    CURRENT_STEP=1
+
     setup_tmux_session
     add_standard_windows
     add_custom_windows

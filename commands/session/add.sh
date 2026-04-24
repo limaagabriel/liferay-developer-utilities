@@ -74,7 +74,7 @@ add_window() {
     [[ -n "$COMMAND" ]] && echo "$COMMAND" >> "$tmp_cmd"
     echo "rm -f \"$tmp_cmd\"" >> "$tmp_cmd"
 
-    lp_info "Adding window '$WINDOW_NAME' to session '$session_name'..."
+    lp_step 1 1 "Adding window '$WINDOW_NAME' to session '$session_name'"
     
     # Create window with the initialization and custom command
     tmux new-window -n "$WINDOW_NAME" "$user_shell -ic \"source $tmp_cmd; exec $user_shell\""

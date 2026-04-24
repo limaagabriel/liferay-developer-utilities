@@ -34,12 +34,13 @@ confirm_action() {
 }
 
 stop_server() {
-    lp_info "Stopping portal in 'bundle' window..."
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Stopping portal in 'bundle' window"
     tmux send-keys -t "$SESSION_NAME:bundle" C-c
+    ((CURRENT_STEP++))
 }
 
 wait_for_server_to_stop() {
-    lp_info "Waiting for server to stop..."
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Waiting for server to stop"
 
     local shell_name="${SHELL##*/}"
     [[ -z "$shell_name" ]] && shell_name="bash"
@@ -65,21 +66,27 @@ wait_for_server_to_stop() {
         sleep 1
         ((wait_count++))
     done
+    ((CURRENT_STEP++))
 }
 
 send_rebuild_command() {
-    lp_info "Server stopped. Starting rebuild and restart..."
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Starting rebuild and restart"
 
     local build_cmd="lp bundle build -y && lp bundle start"
     tmux send-keys -t "$SESSION_NAME:bundle" "$build_cmd" Enter
 
     lp_success "Rebuild and restart commands sent to 'bundle' window."
+    ((CURRENT_STEP++))
 }
 
 main() {
     check_tmux_session
     validate_lp_session
     confirm_action
+
+    TOTAL_STEPS=3
+    CURRENT_STEP=1
+
     stop_server
     wait_for_server_to_stop
     send_rebuild_command

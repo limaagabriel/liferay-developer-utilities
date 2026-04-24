@@ -53,29 +53,41 @@ is_mysql_active() {
     grep -q "^jdbc.default.driverClassName" "$properties_file"
 }
 
+get_total_steps() {
+    local total=1 # bundle root caches is always cleaned
+    local tomcat_dir
+    tomcat_dir=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" 2>/dev/null | head -n 1)
+    [[ -n "$tomcat_dir" ]] && ((total++))
+    [[ -d "$BUNDLE_DIR/data" ]] && ((total++))
+    echo "$total"
+}
+
 clean_tomcat_caches() {
     local tomcat_dir
-    tomcat_dir=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" | head -n 1)
+    tomcat_dir=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" 2>/dev/null | head -n 1)
 
     if [[ -n "$tomcat_dir" ]]; then
-        lp_step 1 3 "Cleaning Tomcat caches ($tomcat_dir)"
+        lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Cleaning Tomcat caches ($tomcat_dir)"
         lp_run rm -rf "$tomcat_dir/work" \
             "$tomcat_dir/temp" \
             "$tomcat_dir/osgi/state" \
             "$tomcat_dir/osgi/work" \
             "$tomcat_dir/data" || return $?
+        ((CURRENT_STEP++))
     fi
 }
 
 clean_bundle_root_caches() {
-    lp_step 2 3 "Cleaning bundle root caches and data"
+    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Cleaning bundle root caches and data"
     lp_run rm -rf "$BUNDLE_DIR/osgi/state" "$BUNDLE_DIR/osgi/work" || return $?
+    ((CURRENT_STEP++))
 }
 
 clean_hypersonic_data() {
     if [[ -d "$BUNDLE_DIR/data" ]]; then
-        lp_step 3 3 "Cleaning Hypersonic data"
+        lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Cleaning Hypersonic data"
         lp_run rm -rf "$BUNDLE_DIR/data" || return $?
+        ((CURRENT_STEP++))
     fi
 }
 
@@ -89,6 +101,9 @@ main() {
     if is_mysql_active "$BUNDLE_DIR/portal-ext.properties"; then
         "$_LP_SCRIPTS_DIR/commands/mysql/reset.sh" --yes "$BRANCH"
     fi
+
+    TOTAL_STEPS=$(get_total_steps)
+    CURRENT_STEP=1
 
     clean_tomcat_caches
     clean_bundle_root_caches

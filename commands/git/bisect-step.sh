@@ -2,13 +2,24 @@
 
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 
+get_total_steps() {
+	local session_name="$1"
+	local bundle_dir="$2"
+	local total=1 # start build is always executed
+
+	tmux has-session -t "$session_name" 2>/dev/null && ((total++))
+	[[ -d "$bundle_dir" ]] && ((total++))
+	echo "$total"
+}
+
 clean_up_existing_session() {
 	local session_name="$1"
 
 	if tmux has-session -t "$session_name" 2>/dev/null; then
-		lp_step 1 3 "Cleaning up existing tmux session '$session_name'"
+		lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Cleaning up existing tmux session '$session_name'"
 
 		tmux kill-session -t "$session_name"
+		((CURRENT_STEP++))
 	fi
 }
 
@@ -16,9 +27,10 @@ remove_existing_bundle() {
 	local bundle_dir="$1"
 
 	if [[ -d "$bundle_dir" ]]; then
-		lp_step 2 3 "Removing existing bundle directory '$bundle_dir'"
+		lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Removing existing bundle directory '$bundle_dir'"
 
 		rm -rf "$bundle_dir"
+		((CURRENT_STEP++))
 	fi
 }
 
@@ -27,7 +39,7 @@ start_build_in_tmux() {
 	local worktree_dir="$2"
 	local user_shell="${SHELL:-bash}"
 
-	lp_step 3 3 "Starting build and bundle in tmux session '$session_name'"
+	lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Starting build and bundle in tmux session '$session_name'"
 	lp_info "Command: lp bundle build -y && lp bundle start"
 
 	local tmp_bisect
@@ -41,6 +53,7 @@ start_build_in_tmux() {
 	lp_info "Monitoring the build:"
 	lp_info "  tmux attach -t $session_name"
 	lp_info ""
+	((CURRENT_STEP++))
 }
 
 get_user_verdict() {
@@ -96,6 +109,9 @@ main() {
 
 	git bisect log | grep -v "^#" | head -n 1
 	echo ""
+
+	TOTAL_STEPS=$(get_total_steps "$session_name" "$BUNDLE_DIR")
+	CURRENT_STEP=1
 
 	clean_up_existing_session "$session_name"
 	remove_existing_bundle "$BUNDLE_DIR"
