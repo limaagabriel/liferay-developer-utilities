@@ -27,6 +27,17 @@ validate_bundle() {
     fi
 }
 
+is_mysql_active() {
+    local properties_file="$1"
+
+    if [[ ! -f "$properties_file" ]]; then
+        return 1
+    fi
+
+    # Check if the properties are not commented out
+    grep -q "^jdbc.default.driverClassName" "$properties_file"
+}
+
 clean_tomcat_caches() {
     local tomcat_dir
     tomcat_dir=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" | head -n 1)
@@ -58,6 +69,11 @@ main() {
     lp_branch_vars "$BRANCH"
     validate_bundle
     lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
+
+    if is_mysql_active "$BUNDLE_DIR/portal-ext.properties"; then
+        "$_LP_SCRIPTS_DIR/commands/mysql/reset.sh" --yes "$BRANCH"
+    fi
+
     clean_tomcat_caches
     clean_bundle_root_caches
     clean_hypersonic_data

@@ -134,7 +134,7 @@ _lp_ns_cmds() {
         bundle/reset)     echo "lp bundle reset [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
-        mysql/reset)      echo "lp mysql reset [branch]" ;;
+        mysql/reset)      echo "lp mysql reset [-y|--yes] [branch]" ;;
         mysql/start)      echo "lp mysql start [branch]" ;;
         mysql/stop)       echo "lp mysql stop" ;;
         mysql/drop)       echo "lp mysql drop [-y|--yes] [branch]" ;;
@@ -467,6 +467,7 @@ _lp_ns_cmds() {
             ;;
         mysql/reset)
             echo "  lp mysql reset"
+            echo "  lp mysql reset -y"
             echo "  lp mysql reset feature-xyz"
             ;;
         mysql/start)
