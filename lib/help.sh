@@ -39,7 +39,7 @@ _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove get set unset root" ;;
         bundle)   echo "build db properties ports start reset cd remove" ;;
-        portal)   echo "cdm db gw sample modified-modules" ;;
+        portal)   echo "cdm db gw sf sample modified-modules" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start stop drop status" ;;
         session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
@@ -65,6 +65,7 @@ _lp_ns_cmds() {
         portal/cdm)       echo "Fuzzy module search and cd in the current git repository" ;;
         portal/db)        echo "Switch between mysql (with optional db name) and hypersonic" ;;
         portal/gw)        echo "Run gradle tasks in the current directory" ;;
+        portal/sf)        echo "Run source formatter for the current branch" ;;
         playwright/test)  echo "Run Playwright tests in the current worktree" ;;
         playwright/trace) echo "Open a Playwright trace file in the trace viewer" ;;
         bundle/build)     echo "Build the portal bundle from the worktree" ;;
@@ -121,6 +122,8 @@ _lp_ns_cmds() {
         portal/db)        echo "lp portal db [mysql|hypersonic|database_name]" ;;
         portal/gw)
             echo "lp portal gw [options] [tasks...]" ;;
+        portal/sf)
+            echo "lp portal sf [options]" ;;
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
         bundle/build)     echo "lp bundle build [-q] [-y] [-s] <branch>" ;;
@@ -207,6 +210,14 @@ _lp_ns_cmds() {
             echo "  -q, --quiet     Hide gradle output"
             echo "  -v, --verbose   Show full gradle output (default)"
             echo "  -h, --help      Show this help"
+            ;;
+        portal/sf)
+            echo "  -a, --all         Run format-source-all instead of format-source-current-branch"
+            echo "  -e, --extension   Filter by file extension (e.g. java, tss, css)"
+            echo "  -c, --check       Filter by check name"
+            echo "  -q, --quiet       Hide ant output"
+            echo "  -v, --verbose     Show full ant output (default)"
+            echo "  -h, --help        Show this help"
             ;;
         portal/sample)
             echo "  -c, --client-extension [pattern]  Deploy matching client extensions (or list all if no pattern)"
@@ -399,6 +410,12 @@ _lp_ns_cmds() {
         portal/gw)
             echo "  lp portal gw clean deploy"
             echo "  lp portal gw -q clean deploy"
+            ;;
+        portal/sf)
+            echo "  lp portal sf"
+            echo "  lp portal sf --all"
+            echo "  lp portal sf --extension java"
+            echo "  lp portal sf --check JSONPackageJSONDependencyVersionCheck"
             ;;
         portal/sample)
             echo "  lp portal sample -c my-extension"

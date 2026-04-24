@@ -13,6 +13,17 @@ lp_init_command() {
     source "$_LP_SCRIPTS_DIR/lib/help.sh"
     source "$_LP_SCRIPTS_DIR/lib/worktree.sh"
 
+    # Source configuration (mandatory)
+    if [[ "$_lp_ns" == "config" ]]; then
+        # For config namespace, we allow it to fail or proceed with defaults
+        source "$_LP_SCRIPTS_DIR/config.sh" >/dev/null 2>&1 || true
+    else
+        source "$_LP_SCRIPTS_DIR/config.sh" || {
+            lp_error "Failed to load configuration."
+            return 1 2>/dev/null || exit 1
+        }
+    fi
+
     # Handle help flag early
     for _lp_arg in "$@"; do
         if [[ "$_lp_arg" == "--help" || "$_lp_arg" == "-h" ]]; then
@@ -33,16 +44,4 @@ lp_init_command() {
         fi
     done
     export VERBOSE
-
-    # Source configuration (mandatory)
-    # Note: we use 'source' and 'return' so it works when the caller is sourced.
-    if [[ "$_lp_ns" == "config" ]]; then
-        # For config namespace, we allow it to fail or proceed with defaults
-        source "$_LP_SCRIPTS_DIR/config.sh" >/dev/null 2>&1 || true
-    else
-        source "$_LP_SCRIPTS_DIR/config.sh" || {
-            lp_error "Failed to load configuration."
-            return 1 2>/dev/null || exit 1
-        }
-    fi
 }

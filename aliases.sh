@@ -6,3 +6,4 @@
 
 alias cdm="lp portal cdm"
 alias gw="lp portal gw"
+alias sf="lp portal sf"
