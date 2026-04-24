@@ -124,6 +124,7 @@ echo "    lp session describe <msg> Update the session description";
 echo "    lp session status <status> Update the session status (e.g. ready)";
 echo "    lp session exit           Detach from this session (same as Ctrl+b d)";
 echo "    lp session enter          Re-enter an existing session";
+echo "";
 EOF
 }
 
