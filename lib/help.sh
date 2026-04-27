@@ -42,18 +42,28 @@ _lp_ns_cmds() {
         portal)   echo "buildLang cdm db gw sf sample" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start stop drop status" ;;
-        session)  echo "list start stop enter exit add rebuild restart describe status update" ;;
+        session)  echo "list start stop enter exit detach add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
         git)      echo "add-remote remove-remote update-master update-ee patch bisect" ;;
         self)     echo "update" ;;
         modules)  echo "changed deploy" ;;
         *)        echo "" ;;
-        esac
-        }
+    esac
+}
 
-        # _lp_cmd_desc <ns> <cmd> — one-line description
-        _lp_cmd_desc() {
-        case "$1/$2" in
+# _lp_cmd_alias <ns> <cmd> — resolve a command alias to its real name
+_lp_cmd_alias() {
+    case "$1/$2" in
+        session/detach) echo "exit" ;;
+        *) echo "$2" ;;
+    esac
+}
+
+# _lp_cmd_desc <ns> <cmd> — one-line description
+_lp_cmd_desc() {
+    local cmd
+    cmd=$(_lp_cmd_alias "$1" "$2")
+    case "$1/$cmd" in
         worktree/add)     echo "Add a new git worktree for a branch" ;;
         worktree/cd)      echo "Change the current directory to a worktree" ;;
         worktree/list)    echo "List all active worktrees and their bundles" ;;
@@ -105,12 +115,14 @@ _lp_ns_cmds() {
         modules/changed) echo "List all changed modules in the current branch comparing to a base branch" ;;
         modules/deploy)   echo "Run gw deploy in a module or all changed modules" ;;
         *)                echo "" ;;
-        esac
-        }
+    esac
+}
 
-        # _lp_cmd_usage <ns> <cmd> — usage synopsis
-        _lp_cmd_usage() {
-        case "$1/$2" in
+# _lp_cmd_usage <ns> <cmd> — usage synopsis
+_lp_cmd_usage() {
+    local cmd
+    cmd=$(_lp_cmd_alias "$1" "$2")
+    case "$1/$cmd" in
         worktree/add)     echo "lp worktree add [options] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
@@ -164,12 +176,14 @@ _lp_ns_cmds() {
         modules/changed) echo "lp modules changed [options] [base_branch]" ;;
         modules/deploy)   echo "lp modules deploy [options] [module_path...]" ;;
         *)                echo "" ;;
-        esac
-        }
+    esac
+}
 
-        # _lp_cmd_opts <ns> <cmd> — options block (multi-line)
-        _lp_cmd_opts() {
-        case "$1/$2" in
+# _lp_cmd_opts <ns> <cmd> — options block (multi-line)
+_lp_cmd_opts() {
+    local cmd
+    cmd=$(_lp_cmd_alias "$1" "$2")
+    case "$1/$cmd" in
         worktree/add)
             echo "  -b, --base <branch>     Base branch to create from (defaults to master)"
             echo "  -r, --remote <remote>   Track from a remote branch"
@@ -372,12 +386,14 @@ _lp_ns_cmds() {
             echo "  -h, --help         Show this help"
             ;;
         *)                echo "" ;;
-        esac
-        }
+    esac
+}
 
-        # _lp_cmd_examples <ns> <cmd> — examples block (multi-line)
-        _lp_cmd_examples() {
-        case "$1/$2" in
+# _lp_cmd_examples <ns> <cmd> — examples block (multi-line)
+_lp_cmd_examples() {
+    local cmd
+    cmd=$(_lp_cmd_alias "$1" "$2")
+    case "$1/$cmd" in
         worktree/add)
             echo "  lp worktree add main"
             echo "  lp worktree add -b LPS-12345 feature-xyz"

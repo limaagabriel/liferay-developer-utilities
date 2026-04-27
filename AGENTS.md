@@ -113,6 +113,7 @@ Use these, not raw `echo`:
 ## Sync Rules
 
 - **Help:** `lp_init_command` handles `--help` automatically via the registry. New/changed commands → update `lib/help.sh`.
+- **Aliases:** Script-level aliases (e.g. `session detach` → `session exit`) are registered in `lib/help.sh` via `_lp_cmd_alias`. Add them to `_lp_ns_cmds` if they should be visible in help.
 - **Config:** new vars in `config.sh` or `commands/config/init.sh` → also update `commands/config/show.sh` (so `lp config` shows them).
 
 ## Safety

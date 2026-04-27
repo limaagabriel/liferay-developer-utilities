@@ -47,7 +47,7 @@ Orchestrate your workflow with `tmux`. These commands are the primary way to dev
 ```bash
 lp session start my-feature  # Start tmux with bundle, git, and workspace shell
 lp session enter my-feature  # Re-attach to an existing session
-lp session exit              # Detach from the session
+lp session exit (or detach)    # Detach from the session
 lp session stop my-feature   # Kill the session and stop the portal
 ```
 

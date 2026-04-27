@@ -79,13 +79,18 @@ lp() {
         return 0
     fi
 
+    # Resolve alias
+    local real_command
+    real_command=$(_lp_cmd_alias "$namespace" "$command")
+
     # Print preamble banner
     echo ""
     echo "Liferay Portal Developer CLI"
     echo "Running lp $namespace $command..."
     echo ""
 
-    local script="$_LP_SCRIPTS_DIR/commands/$namespace/$command.sh"
+    local script="$_LP_SCRIPTS_DIR/commands/$namespace/$real_command.sh"
+
 
     if [[ ! -f "$script" ]]; then
         echo "lp: unknown command '$namespace $command'" >&2
@@ -95,7 +100,7 @@ lp() {
     # Commands that must be sourced to affect the current shell's working directory
     # or environment (e.g. session-scoped variables)
     local _lp_start_time=$(date +%s)
-    case "$namespace/$command" in
+    case "$namespace/$real_command" in
         worktree/cd|bundle/cd|worktree/set|worktree/unset|worktree/get|worktree/root|portal/cdm|portal/gw|portal/sf|portal/buildLang|worktree/add|modules/changed|modules/deploy)
             local _cd_args=("${@:3}")
             set -- "${_cd_args[@]}"
