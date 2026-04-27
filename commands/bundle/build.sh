@@ -57,28 +57,32 @@ prepare_bundle_directory() {
         fi
     fi
 
-    lp_step 1 3 "Removing bundle directory '$BUNDLE_DIR'"
+    lp_step "$STEP" "$TOTAL_STEPS" "Removing bundle directory '$BUNDLE_DIR'"
     lp_run rm -rf "$BUNDLE_DIR" || return $?
     mkdir -p "$BUNDLE_DIR"
     BUNDLE_REMOVED=1
+    STEP=$((STEP + 1))
 }
 
 run_build() {
-    local start_step=2
-    local total_steps=3
-    
-    if [[ $BUNDLE_REMOVED -eq 0 ]]; then
-        start_step=1
-        total_steps=2
-    fi
-
     cd "$WORKTREE_DIR" || { return 1 2>/dev/null || exit 1; }
 
-    lp_step "$start_step" "$total_steps" "Running ant setup-profile-dxp"
+    lp_step "$STEP" "$TOTAL_STEPS" "Running ant setup-profile-dxp"
     lp_run ant setup-profile-dxp || return $?
+    STEP=$((STEP + 1))
 
-    lp_step "$((start_step + 1))" "$total_steps" "Running ant all"
+    lp_step "$STEP" "$TOTAL_STEPS" "Running ant all"
     lp_run ant all || return $?
+    STEP=$((STEP + 1))
+}
+
+configure_properties() {
+    local properties_args=()
+    [[ -n "$DB_TYPE" ]] && properties_args+=("-d" "$DB_TYPE")
+    properties_args+=("$BRANCH")
+
+    lp_step "$STEP" "$TOTAL_STEPS" "Configuring portal properties"
+    "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "${properties_args[@]}"
 }
 
 main() {
@@ -86,16 +90,17 @@ main() {
     lp_branch_vars "$BRANCH"
     lp_validate_worktree || return $?
     lp_load_bundle_dir || return $?
+
+    TOTAL_STEPS=3
+    if [[ -d "$BUNDLE_DIR" && $SKIP_IF_EXISTS -eq 0 ]]; then
+        TOTAL_STEPS=4
+    fi
+    STEP=1
+
     prepare_bundle_directory || return $?
     run_build || return $?
-    
-    local properties_args=()
-    if [[ -n "$DB_TYPE" ]]; then
-        properties_args+=("-d" "$DB_TYPE")
-    fi
-    properties_args+=("$BRANCH")
+    configure_properties || return $?
 
-    "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "${properties_args[@]}"
     lp_success "Bundle built at '$BUNDLE_DIR'."
 }
 
