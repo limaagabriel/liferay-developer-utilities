@@ -50,10 +50,9 @@ validate_status() {
         return 1 2>/dev/null || exit 1
     fi
 }
-set_status() {
+update_status() {
     lp_step 1 1 "Setting status for session '$BRANCH' to '$STATUS_NAME'"
     tmux set-option -t "$BRANCH" @lp-status "$STATUS_NAME"
-}
     _lp_update_tmux_status_line "$BRANCH"
 }
 
