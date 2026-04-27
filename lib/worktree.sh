@@ -107,3 +107,19 @@ lp_load_bundle_dir() {
 
     BUNDLE_DIR="$dir"
 }
+
+# lp_resolve_workspace_dir
+# Echoes the workspace root (managed worktree dir, else current git toplevel).
+# Returns 1 with an error if neither is detected.
+lp_resolve_workspace_dir() {
+    if lp_detect_worktree; then
+        echo "$LP_DETECTED_WORKTREE_DIR"
+        return 0
+    fi
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        git rev-parse --show-toplevel
+        return 0
+    fi
+    lp_error "Not in a Liferay Portal repository or worktree."
+    return 1
+}
