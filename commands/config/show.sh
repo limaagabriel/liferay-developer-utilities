@@ -20,6 +20,7 @@ display_config_values() {
     lp_info "MAIN_REPO_DIR              = $MAIN_REPO_DIR"
     lp_info "EE_REPO_DIR                = $EE_REPO_DIR"
     lp_info "BUNDLES_DIR                = $BUNDLES_DIR"
+    lp_info "BASE_BUNDLES_DIR           = $BASE_BUNDLES_DIR"
     lp_info "LIFERAY_USER               = $LIFERAY_USER"
     lp_info "ENABLE_AUTOCOMPLETE        = $ENABLE_AUTOCOMPLETE"
     lp_info "ENABLE_ALIASES             = $ENABLE_ALIASES"

@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle portal playwright mysql session config git self modules"
+_LP_NAMESPACES="worktree bundle base portal playwright mysql session config git self modules"
 
 # _lp_ns_alias <token> — resolve a namespace shorthand to its real name.
 # Returns the input unchanged if no alias matches.
@@ -23,6 +23,7 @@ _lp_ns_alias() {
     case "$1" in
         w)  echo "worktree" ;;
         b)  echo "bundle" ;;
+        ba) echo "base" ;;
         p)  echo "portal" ;;
         pw) echo "playwright" ;;
         ms) echo "mysql" ;;
@@ -40,6 +41,7 @@ _lp_ns_alias_for() {
     case "$1" in
         worktree)   echo "w" ;;
         bundle)     echo "b" ;;
+        base)       echo "ba" ;;
         portal)     echo "p" ;;
         playwright) echo "pw" ;;
         mysql)      echo "ms" ;;
@@ -57,6 +59,7 @@ _lp_ns_desc() {
     case "$1" in
         worktree) echo "Manage git worktrees for portal branches" ;;
         bundle)   echo "Manage Liferay bundle directories" ;;
+        base)     echo "Manage reusable base bundles for fast cloning into worktrees" ;;
         portal)   echo "Liferay Portal development utilities" ;;
         playwright) echo "Playwright test utilities" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
@@ -74,6 +77,7 @@ _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove get set unset root" ;;
         bundle)   echo "build db properties ports start reset cd remove" ;;
+        base)     echo "build list info refresh sync remove" ;;
         portal)   echo "buildLang cdm db gw sf sample" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start stop drop status" ;;
@@ -122,6 +126,12 @@ _lp_cmd_desc() {
         bundle/reset)     echo "Reset the bundle database and caches (work, temp, osgi/state)" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
+        base/build)       echo "Snapshot a worktree bundle into a named base" ;;
+        base/list)        echo "List all base bundles with size, age, commit, and source branch" ;;
+        base/info)        echo "Show provenance metadata for a base" ;;
+        base/refresh)     echo "Re-snapshot an existing base (alias for 'build --force')" ;;
+        base/sync)        echo "Re-clone a worktree bundle from its base if drifted" ;;
+        base/remove)      echo "Remove a base bundle" ;;
         mysql/reset)      echo "Reset a specific database (drop and recreate)" ;;
         mysql/start)      echo "Start MySQL container and ensure a branch-specific database exists" ;;
         mysql/stop)       echo "Stop the MySQL container (preserving data)" ;;
@@ -183,6 +193,12 @@ _lp_cmd_usage() {
         bundle/reset)     echo "lp bundle reset [-y|--yes] [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
+        base/build)       echo "lp base build [-b <branch>] [-f] <name>" ;;
+        base/list)        echo "lp base list [--names]" ;;
+        base/info)        echo "lp base info <name>" ;;
+        base/refresh)     echo "lp base refresh [-b <branch>] <name>" ;;
+        base/sync)        echo "lp base sync [-y] [<branch>]" ;;
+        base/remove)      echo "lp base remove <name>" ;;
         mysql/reset)      echo "lp mysql reset [-y|--yes] [branch]" ;;
         mysql/start)      echo "lp mysql start [branch]" ;;
         mysql/stop)       echo "lp mysql stop" ;;
@@ -291,9 +307,37 @@ _lp_cmd_opts() {
             ;;
         bundle/build)
             echo "  -d, --db <database>     Database type (hypersonic|mysql)"
+            echo "  --from-base <name>      Clone from a base bundle instead of building from scratch"
             echo "  -q, --quiet             Hide full ant/git output (unless error)"
             echo "  -y, --yes               Skip confirmation for deleting existing bundle"
             echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
+            echo "  -h, --help              Show this help"
+            ;;
+        base/build)
+            echo "  -b, --branch <branch>   Source branch to snapshot (default: <name>)"
+            echo "  -f, --force             Overwrite an existing base"
+            echo "  -v, --verbose           Show full output"
+            echo "  -h, --help              Show this help"
+            ;;
+        base/list)
+            echo "  --names                 Print only base names (one per line)"
+            echo "  -h, --help              Show this help"
+            ;;
+        base/info)
+            echo "  -h, --help              Show this help"
+            ;;
+        base/refresh)
+            echo "  -b, --branch <branch>   Source branch to snapshot (default: <name>)"
+            echo "  -v, --verbose           Show full output"
+            echo "  -h, --help              Show this help"
+            ;;
+        base/sync)
+            echo "  -y, --yes               Skip confirmation prompt"
+            echo "  -v, --verbose           Show full output"
+            echo "  -h, --help              Show this help"
+            ;;
+        base/remove)
+            echo "  -v, --verbose           Show full output"
             echo "  -h, --help              Show this help"
             ;;
         bundle/start)
@@ -500,6 +544,29 @@ _lp_cmd_examples() {
             echo "  lp bundle build -q main"
             echo "  lp bundle build -y main"
             echo "  lp bundle build -s main"
+            echo "  lp bundle build LPD-12345 --from-base master"
+            ;;
+        base/build)
+            echo "  lp base build master"
+            echo "  lp base build snapshot-7-4 -b 7.4.x"
+            ;;
+        base/list)
+            echo "  lp base list"
+            echo "  lp base list --names"
+            ;;
+        base/info)
+            echo "  lp base info master"
+            ;;
+        base/refresh)
+            echo "  lp base refresh master"
+            ;;
+        base/sync)
+            echo "  lp base sync LPD-12345"
+            echo "  lp base sync           # auto-detect branch from cwd"
+            echo "  lp base sync -y        # skip confirmation"
+            ;;
+        base/remove)
+            echo "  lp base remove snapshot-7-4"
             ;;
         bundle/start)
             echo "  lp bundle start main"
@@ -643,11 +710,14 @@ _lp_cmd_examples() {
 
 # lp_top_level_help — print all namespaces and their commands with descriptions
 lp_top_level_help() {
+    if [[ -n "$ZSH_VERSION" ]]; then
+        setopt local_options sh_word_split typeset_silent
+    fi
+    local ns ns_desc ns_alias cmds cmd desc
     echo "Usage: lp <namespace> <command> [args...]"
     echo "   or: lp gw [branch] [tasks...]"
     echo ""
     for ns in $_LP_NAMESPACES; do
-        local ns_desc ns_alias
         ns_desc=$(_lp_ns_desc "$ns")
         ns_alias=$(_lp_ns_alias_for "$ns")
         if [[ -n "$ns_alias" ]]; then
@@ -655,10 +725,8 @@ lp_top_level_help() {
         else
             echo "$ns  —  $ns_desc"
         fi
-        local cmds
         cmds=$(_lp_ns_cmds "$ns")
         for cmd in $cmds; do
-            local desc
             desc=$(_lp_cmd_desc "$ns" "$cmd")
             printf "  %-10s  %s\n" "$cmd" "$desc"
         done
@@ -673,15 +741,16 @@ lp_top_level_help() {
 
 # lp_namespace_help <ns> — print all commands in a namespace with synopsis and example
 lp_namespace_help() {
+    if [[ -n "$ZSH_VERSION" ]]; then
+        setopt local_options sh_word_split typeset_silent
+    fi
     local ns="$1"
-    local ns_desc
+    local ns_desc cmds cmd desc usage example
     ns_desc=$(_lp_ns_desc "$ns")
     echo "lp $ns  —  $ns_desc"
     echo ""
-    local cmds
     cmds=$(_lp_ns_cmds "$ns")
     for cmd in $cmds; do
-        local desc usage example
         desc=$(_lp_cmd_desc "$ns" "$cmd")
         usage=$(_lp_cmd_usage "$ns" "$cmd")
         example=$(_lp_cmd_examples "$ns" "$cmd" | head -1)

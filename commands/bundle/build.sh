@@ -1,6 +1,7 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "bundle" "build" "$@"
+source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
 
 parse_arguments() {
     VERBOSE=1
@@ -8,6 +9,7 @@ parse_arguments() {
     SKIP_IF_EXISTS=0
     BRANCH=""
     DB_TYPE=""
+    FROM_BASE=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -17,6 +19,15 @@ parse_arguments() {
                     shift 2
                 else
                     lp_error "Option $1 requires a value (hypersonic|mysql)."
+                    return 1 2>/dev/null || exit 1
+                fi
+                ;;
+            --from-base)
+                if [[ -n "$2" && "$2" != -* ]]; then
+                    FROM_BASE="$2"
+                    shift 2
+                else
+                    lp_error "Option --from-base requires a base bundle name."
                     return 1 2>/dev/null || exit 1
                 fi
                 ;;
@@ -39,6 +50,7 @@ parse_arguments() {
 
 prepare_bundle_directory() {
     BUNDLE_REMOVED=0
+    BUILD_SKIPPED=0
     if [[ ! -d "$BUNDLE_DIR" ]]; then
         mkdir -p "$BUNDLE_DIR"
         return
@@ -46,14 +58,16 @@ prepare_bundle_directory() {
 
     if [[ $SKIP_IF_EXISTS -eq 1 ]]; then
         lp_info "Bundle directory '$BUNDLE_DIR' already exists. Skipping build (-s)."
-        return 0 2>/dev/null || exit 0
+        BUILD_SKIPPED=1
+        return 0
     fi
 
     if [[ $ASSUME_YES -eq 0 ]]; then
         read -p " Bundle directory '$BUNDLE_DIR' already exists. Delete and rebuild? [y/N] " confirm
         if [[ "$confirm" != "y" ]]; then
             lp_info "Aborted."
-            return 0 2>/dev/null || exit 0
+            BUILD_SKIPPED=1
+            return 0
         fi
     fi
 
@@ -76,6 +90,41 @@ run_build() {
     STEP=$((STEP + 1))
 }
 
+clone_from_base() {
+    BUILD_SKIPPED=0
+    local base_path
+    base_path=$(_lp_bundle_resolve_base "$FROM_BASE") || return $?
+
+    if [[ -d "$BUNDLE_DIR" ]]; then
+        if [[ $SKIP_IF_EXISTS -eq 1 ]]; then
+            lp_info "Bundle directory '$BUNDLE_DIR' already exists. Skipping (-s)."
+            BUILD_SKIPPED=1
+            return 0
+        fi
+        if [[ $ASSUME_YES -eq 0 ]]; then
+            read -p " Bundle directory '$BUNDLE_DIR' already exists. Delete and rebuild from base '$FROM_BASE'? [y/N] " confirm
+            if [[ "$confirm" != "y" ]]; then
+                lp_info "Aborted."
+                BUILD_SKIPPED=1
+                return 0
+            fi
+        fi
+        lp_step "$STEP" "$TOTAL_STEPS" "Removing existing bundle '$BUNDLE_DIR'"
+        lp_run rm -rf "$BUNDLE_DIR" || return $?
+        STEP=$((STEP + 1))
+    fi
+
+    mkdir -p "$BUNDLES_DIR"
+
+    lp_step "$STEP" "$TOTAL_STEPS" "Cloning base '$FROM_BASE' -> $BUNDLE_DIR"
+    _lp_bundle_clone "$base_path" "$BUNDLE_DIR" || return $?
+    STEP=$((STEP + 1))
+
+    lp_step "$STEP" "$TOTAL_STEPS" "Resetting mutable state"
+    _lp_bundle_init_mutable_state "$BUNDLE_DIR"
+    STEP=$((STEP + 1))
+}
+
 configure_properties() {
     local properties_args=()
     [[ -n "$DB_TYPE" ]] && properties_args+=("-d" "$DB_TYPE")
@@ -83,6 +132,43 @@ configure_properties() {
 
     lp_step "$STEP" "$TOTAL_STEPS" "Configuring portal properties"
     "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "${properties_args[@]}"
+    STEP=$((STEP + 1))
+}
+
+write_meta() {
+    local source_label="${1:-scratch}"
+    lp_step "$STEP" "$TOTAL_STEPS" "Writing provenance metadata"
+    _lp_bundle_write_meta "$BUNDLE_DIR" "$source_label" "$BRANCH" "$WORKTREE_DIR"
+    STEP=$((STEP + 1))
+}
+
+build_from_base() {
+    TOTAL_STEPS=4
+    [[ -d "$BUNDLE_DIR" ]] && TOTAL_STEPS=5
+    STEP=1
+
+    clone_from_base || return $?
+    [[ $BUILD_SKIPPED -eq 1 ]] && return 0
+    configure_properties || return $?
+    write_meta "base:$FROM_BASE" || return $?
+
+    lp_success "Bundle cloned from base '$FROM_BASE' at '$BUNDLE_DIR'."
+}
+
+build_from_scratch() {
+    TOTAL_STEPS=4
+    if [[ -d "$BUNDLE_DIR" ]]; then
+        TOTAL_STEPS=5
+    fi
+    STEP=1
+
+    prepare_bundle_directory || return $?
+    [[ $BUILD_SKIPPED -eq 1 ]] && return 0
+    run_build || return $?
+    configure_properties || return $?
+    write_meta "scratch" || return $?
+
+    lp_success "Bundle built at '$BUNDLE_DIR'."
 }
 
 main() {
@@ -91,17 +177,11 @@ main() {
     lp_validate_worktree || return $?
     lp_load_bundle_dir || return $?
 
-    TOTAL_STEPS=3
-    if [[ -d "$BUNDLE_DIR" && $SKIP_IF_EXISTS -eq 0 ]]; then
-        TOTAL_STEPS=4
+    if [[ -n "$FROM_BASE" ]]; then
+        build_from_base
+    else
+        build_from_scratch
     fi
-    STEP=1
-
-    prepare_bundle_directory || return $?
-    run_build || return $?
-    configure_properties || return $?
-
-    lp_success "Bundle built at '$BUNDLE_DIR'."
 }
 
 main "$@"

@@ -52,11 +52,24 @@ _lp_has_branch_arg() {
         worktree/cd|worktree/start|worktree/remove|\
         worktree/build|worktree/clean|worktree/set|bundle/cd|bundle/remove|\
         portal/sample|modules/changed|mysql/reset|mysql/start|hypersonic/clean|session/start|session/stop|\
-        session/enter|session/describe|session/status|session/update|git/bisect)
+        session/enter|session/describe|session/status|session/update|git/bisect|\
+        base/sync)
             return 0 ;;
         *)
             return 1 ;;
     esac
+}
+
+_lp_get_base_names() {
+    local _config="$_LP_COMPLETIONS_SCRIPTS_DIR/config.sh"
+    [[ -f "$_config" ]] || return 0
+    source "$_config" 2>/dev/null
+    [[ -n "${BASE_BUNDLES_DIR:-}" && -d "$BASE_BUNDLES_DIR" ]] || return 0
+    local entry
+    for entry in "$BASE_BUNDLES_DIR"/*/; do
+        [[ -d "$entry" ]] || continue
+        basename "$entry"
+    done
 }
 
 # _lp_get_db_completions
@@ -85,6 +98,11 @@ _lp_complete() {
             branches=$(_lp_get_branches)
             # shellcheck disable=SC2207
             COMPREPLY=( $(compgen -W "$branches" -- "$cur") )
+        elif [[ "$ns" == "base" && ( "$cmd" == "info" || "$cmd" == "remove" || "$cmd" == "refresh" ) ]]; then
+            local names
+            names=$(_lp_get_base_names)
+            # shellcheck disable=SC2207
+            COMPREPLY=( $(compgen -W "$names" -- "$cur") )
         elif [[ "$ns/$cmd" == "portal/db" && $COMP_CWORD -eq 3 ]]; then
             local dbs
             dbs=$(_lp_get_db_completions)
@@ -117,6 +135,10 @@ if [[ -n "${ZSH_VERSION:-}" ]]; then
                 local -a branches
                 branches=( $(_lp_get_branches) )
                 compadd -- "${branches[@]}"
+            elif [[ "$ns" == "base" && ( "$cmd" == "info" || "$cmd" == "remove" || "$cmd" == "refresh" ) ]]; then
+                local -a names
+                names=( $(_lp_get_base_names) )
+                compadd -- "${names[@]}"
             elif [[ "$ns/$cmd" == "portal/db" ]]; then
                 local -a dbs
                 dbs=( $(_lp_get_db_completions) )
