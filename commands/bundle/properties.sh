@@ -60,14 +60,14 @@ cp "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" "$properties_file"
 sed -i "s|localhost:3307/lportal|localhost:3307/$BRANCH|" "$properties_file"
 STEP=$((STEP + 1))
 
+lp_section "$STEP" "$TOTAL_STEPS" "Configuring database ($DB_TYPE)" \
+    "$_LP_SCRIPTS_DIR/commands/bundle/db.sh" "$DB_TYPE" "$BRANCH"
+STEP=$((STEP + 1))
+
 if [[ "$DB_TYPE" == "mysql" ]]; then
     lp_section "$STEP" "$TOTAL_STEPS" "Starting MySQL" \
         "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "$BRANCH"
-    STEP=$((STEP + 1))
 fi
-
-lp_section "$STEP" "$TOTAL_STEPS" "Configuring database ($DB_TYPE)" \
-    "$_LP_SCRIPTS_DIR/commands/bundle/db.sh" "$DB_TYPE" "$BRANCH"
 
 # Configure ports (disabled temporarily)
 # "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"
