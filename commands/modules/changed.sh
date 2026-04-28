@@ -56,20 +56,14 @@ get_changed_files() {
 
 find_module_root() {
     local dir_path="$1"
-    
-    while [[ -n "$dir_path" && "$dir_path" != "." && "$dir_path" != "/" ]]; do
-        if [[ -f "$dir_path/bnd.bnd" || -f "$dir_path/package.json" || -f "$dir_path/client-extension.yaml" ]]; then
-             echo "$dir_path"
-             return
+
+    while [[ -n "$dir_path" && "$dir_path" != "." && "$dir_path" != "/" && "$dir_path" != "modules" ]]; do
+        if [[ -f "$dir_path/build.gradle" ]]; then
+            echo "$dir_path"
+            return
         fi
 
-        if [[ -d "$dir_path/src" && ( -f "$dir_path/build.gradle" || -f "$dir_path/pom.xml" || -f "$dir_path/build.xml" ) ]]; then
-             echo "$dir_path"
-             return
-        fi
-
-        local parent_dir
-        parent_dir=$(dirname "$dir_path")
+        local parent_dir=$(dirname "$dir_path")
         if [[ "$parent_dir" == "$dir_path" ]]; then
             break
         fi
