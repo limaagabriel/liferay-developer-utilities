@@ -98,12 +98,18 @@ main() {
     confirm_reset
     lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
 
-    if is_mysql_active "$BUNDLE_DIR/portal-ext.properties"; then
-        "$_LP_SCRIPTS_DIR/commands/mysql/reset.sh" --yes "$BRANCH"
-    fi
+    local mysql_active=0
+    is_mysql_active "$BUNDLE_DIR/portal-ext.properties" && mysql_active=1
 
     TOTAL_STEPS=$(get_total_steps)
+    [[ $mysql_active -eq 1 ]] && TOTAL_STEPS=$((TOTAL_STEPS + 1))
     CURRENT_STEP=1
+
+    if [[ $mysql_active -eq 1 ]]; then
+        lp_section "$CURRENT_STEP" "$TOTAL_STEPS" "Resetting MySQL database '$BRANCH'" \
+            "$_LP_SCRIPTS_DIR/commands/mysql/reset.sh" --yes "$BRANCH"
+        ((CURRENT_STEP++))
+    fi
 
     clean_tomcat_caches
     clean_bundle_root_caches

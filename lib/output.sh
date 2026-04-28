@@ -4,11 +4,23 @@
 # Source this file at the top of lp scripts:
 #   source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
-LP_OUTPUT_PREFIX="  "
+LP_OUTPUT_DEPTH="${LP_OUTPUT_DEPTH:-0}"
+LP_OUTPUT_PREFIX="$(printf '%*s' $(( (LP_OUTPUT_DEPTH + 1) * 2 )) '')"
 
 # lp_step N TOTAL "message" — print " [N/TOTAL] message..."
 lp_step() {
     echo "${LP_OUTPUT_PREFIX}[$1/$2] $3..."
+}
+
+# lp_section N TOTAL "message" [cmd args...]
+# Print a top-level step heading. If a command follows, run it with child
+# output indented one level deeper (LP_OUTPUT_DEPTH+1).
+lp_section() {
+    local current=$1 total=$2 msg=$3
+    shift 3
+    echo "${LP_OUTPUT_PREFIX}[$current/$total] $msg..."
+    [[ $# -eq 0 ]] && return 0
+    LP_OUTPUT_DEPTH=$((LP_OUTPUT_DEPTH + 1)) "$@"
 }
 
 # lp_info "message" — print an informational line

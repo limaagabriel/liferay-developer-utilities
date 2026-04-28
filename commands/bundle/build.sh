@@ -130,8 +130,8 @@ configure_properties() {
     [[ -n "$DB_TYPE" ]] && properties_args+=("-d" "$DB_TYPE")
     properties_args+=("$BRANCH")
 
-    lp_step "$STEP" "$TOTAL_STEPS" "Configuring portal properties"
-    "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "${properties_args[@]}"
+    lp_section "$STEP" "$TOTAL_STEPS" "Configuring portal properties" \
+        "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "${properties_args[@]}"
     STEP=$((STEP + 1))
 }
 

@@ -122,11 +122,11 @@ deploy_module() {
     fi
 
     display_name=$(get_display_name "$module")
-    lp_step "$current_step" "$total_steps" "Deploying $display_name ($tasks)"
-    
+    lp_section "$current_step" "$total_steps" "Deploying $display_name ($tasks)"
+
     (
         cd "$module" || { return 1 2>/dev/null || exit 1; }
-        "$_LP_SCRIPTS_DIR/commands/portal/gw.sh" $tasks
+        LP_OUTPUT_DEPTH=$((${LP_OUTPUT_DEPTH:-0} + 1)) "$_LP_SCRIPTS_DIR/commands/portal/gw.sh" $tasks
     )
 }
 

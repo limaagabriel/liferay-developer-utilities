@@ -45,26 +45,29 @@ fi
 
 properties_file="$BUNDLE_DIR/portal-ext.properties"
 
-if [[ -f "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" ]]; then
-    lp_info "Copying portal-ext.properties to $BUNDLE_DIR"
-    mkdir -p "$BUNDLE_DIR"
-    cp "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" "$properties_file"
-    
-    # Replace default database name with branch name
-    sed -i "s|localhost:3307/lportal|localhost:3307/$BRANCH|" "$properties_file"
-
-    lp_success "Copied portal-ext.properties"
-
-    # Configure database
-    if [[ "$DB_TYPE" == "mysql" ]]; then
-        "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "$BRANCH"
-    fi
-
-    "$_LP_SCRIPTS_DIR/commands/bundle/db.sh" "$DB_TYPE" "$BRANCH"
-
-    # Configure ports (disabled temporarily)
-    # "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"
-else
+if [[ ! -f "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" ]]; then
     lp_error "Base portal-ext.properties not found in assets."
     return 1 2>/dev/null || exit 1
 fi
+
+TOTAL_STEPS=2
+[[ "$DB_TYPE" == "mysql" ]] && TOTAL_STEPS=3
+STEP=1
+
+lp_step "$STEP" "$TOTAL_STEPS" "Copying portal-ext.properties to $BUNDLE_DIR"
+mkdir -p "$BUNDLE_DIR"
+cp "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" "$properties_file"
+sed -i "s|localhost:3307/lportal|localhost:3307/$BRANCH|" "$properties_file"
+STEP=$((STEP + 1))
+
+if [[ "$DB_TYPE" == "mysql" ]]; then
+    lp_section "$STEP" "$TOTAL_STEPS" "Starting MySQL" \
+        "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "$BRANCH"
+    STEP=$((STEP + 1))
+fi
+
+lp_section "$STEP" "$TOTAL_STEPS" "Configuring database ($DB_TYPE)" \
+    "$_LP_SCRIPTS_DIR/commands/bundle/db.sh" "$DB_TYPE" "$BRANCH"
+
+# Configure ports (disabled temporarily)
+# "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"

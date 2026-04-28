@@ -48,8 +48,10 @@ main() {
 	fi
 
 	lp_info "Running source formatter ($ANT_TASK) in $portal_impl_dir"
-	cd "$portal_impl_dir" || return 1
-	lp_run ant "$ANT_TASK" "${ANT_ARGS[@]}"
+	(
+		cd "$portal_impl_dir" || exit 1
+		lp_run ant "$ANT_TASK" "${ANT_ARGS[@]}"
+	)
 }
 
 main "$@"
