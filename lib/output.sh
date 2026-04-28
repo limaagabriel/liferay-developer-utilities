@@ -5,11 +5,14 @@
 #   source "$_LP_SCRIPTS_DIR/lib/output.sh"
 
 LP_OUTPUT_DEPTH="${LP_OUTPUT_DEPTH:-0}"
-LP_OUTPUT_PREFIX="$(printf '%*s' $(( (LP_OUTPUT_DEPTH + 1) * 2 )) '')"
+
+_lp_prefix() {
+    printf '%*s' $(( (LP_OUTPUT_DEPTH + 1) * 2 )) ''
+}
 
 # lp_step N TOTAL "message" — print " [N/TOTAL] message..."
 lp_step() {
-    echo "${LP_OUTPUT_PREFIX}[$1/$2] $3..."
+    echo "$(_lp_prefix)[$1/$2] $3..."
 }
 
 # lp_section N TOTAL "message" [cmd args...]
@@ -18,24 +21,24 @@ lp_step() {
 lp_section() {
     local current=$1 total=$2 msg=$3
     shift 3
-    echo "${LP_OUTPUT_PREFIX}[$current/$total] $msg..."
+    echo "$(_lp_prefix)[$current/$total] $msg..."
     [[ $# -eq 0 ]] && return 0
     LP_OUTPUT_DEPTH=$((LP_OUTPUT_DEPTH + 1)) "$@"
 }
 
 # lp_info "message" — print an informational line
 lp_info() {
-    echo "${LP_OUTPUT_PREFIX}$1"
+    echo "$(_lp_prefix)$1"
 }
 
 # lp_success "message" — print a success confirmation
 lp_success() {
-    echo "${LP_OUTPUT_PREFIX}$1"
+    echo "$(_lp_prefix)$1"
 }
 
 # lp_error "message" — print an error message to stderr
 lp_error() {
-    echo "${LP_OUTPUT_PREFIX}$1" >&2
+    echo "$(_lp_prefix)$1" >&2
 }
 
 # lp_run <cmd> [args...] — run a command, suppressing stdout+stderr unless VERBOSE=1.
@@ -51,8 +54,10 @@ lp_run() {
         local exit_code=$?
         
         if [[ $exit_code -ne 0 ]]; then
-            echo "${LP_OUTPUT_PREFIX}Command failed with exit code $exit_code: $*" >&2
-            echo "${LP_OUTPUT_PREFIX}Last 100 lines of output:" >&2
+            local prefix
+            prefix="$(_lp_prefix)"
+            echo "${prefix}Command failed with exit code $exit_code: $*" >&2
+            echo "${prefix}Last 100 lines of output:" >&2
             tail -n 100 "$tmp_out" >&2
             rm -f "$tmp_out"
             return $exit_code

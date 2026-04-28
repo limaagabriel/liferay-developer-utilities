@@ -35,6 +35,23 @@ validate_arguments() {
     done
 }
 
+mysql_running() {
+    docker ps --format '{{.Names}}' | grep -q '^mysql$'
+}
+
+database_exists() {
+    local branch="$1"
+    mysql_running || return 1
+    local result
+    result=$(docker exec -e MYSQL_PWD=root mysql mysql -uroot -N -e \
+        "show databases like '$branch';" 2>/dev/null)
+    [[ -n "$result" ]]
+}
+
+session_exists() {
+    tmux has-session -t "$1" 2>/dev/null
+}
+
 confirm_removal() {
     [[ "$ASSUME_YES" -eq 1 ]] && return 0
 
@@ -44,7 +61,8 @@ confirm_removal() {
         echo "  Branch '$branch':"
         echo "    - worktree: $WORKTREE_DIR"
         echo "    - bundle:   $BUNDLE_DIR"
-        echo "    - session:  $branch"
+        session_exists "$branch" && echo "    - session:  $branch"
+        database_exists "$branch" && echo "    - database: $branch"
         [[ "$DELETE_BRANCH" -eq 1 ]] && echo "    - branch:   $branch"
     done
 
@@ -56,53 +74,48 @@ confirm_removal() {
     fi
 }
 
-count_steps_for_branch() {
+count_branch_steps() {
     local branch="$1"
     local total=2
+    session_exists "$branch" && ((total++))
+    database_exists "$branch" && ((total++))
     [[ "$DELETE_BRANCH" -eq 1 ]] && ((total++))
-    tmux has-session -t "$branch" 2>/dev/null && ((total++))
-    docker ps --format '{{.Names}}' | grep -q '^mysql$' && ((total++))
     echo "$total"
 }
 
-stop_session() {
+process_branch() {
     local branch="$1"
-    if tmux has-session -t "$branch" 2>/dev/null; then
-        lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Stopping active session '$branch'"
+    lp_branch_vars "$branch"
+
+    local total
+    total=$(count_branch_steps "$branch")
+    local step=1
+
+    if session_exists "$branch"; then
+        lp_step $step $total "Stopping active session"
         lp_run tmux kill-session -t "$branch"
-        ((CURRENT_STEP++))
+        ((step++))
     fi
-}
 
-remove_worktree() {
-    local wt_dir="$1"
-    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Removing worktree '$wt_dir'"
-    lp_run git -C "$MAIN_REPO_DIR" worktree remove "$wt_dir" --force
-    ((CURRENT_STEP++))
-}
+    lp_step $step $total "Removing worktree '$WORKTREE_DIR'"
+    lp_run git -C "$MAIN_REPO_DIR" worktree remove "$WORKTREE_DIR" --force
+    ((step++))
 
-remove_bundle() {
-    local bundle_dir="$1"
-    lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Removing bundle directory '$bundle_dir'"
-    lp_run rm -rf "$bundle_dir"
-    ((CURRENT_STEP++))
-}
+    lp_step $step $total "Removing bundle '$BUNDLE_DIR'"
+    lp_run rm -rf "$BUNDLE_DIR"
+    ((step++))
 
-drop_database() {
-    local branch="$1"
-    if docker ps --format '{{.Names}}' | grep -q '^mysql$'; then
-        lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Dropping database '$branch'"
-        lp_run "$_LP_SCRIPTS_DIR/lp.sh" mysql drop --yes "$branch" &> /dev/null
-        ((CURRENT_STEP++))
+    if database_exists "$branch"; then
+        lp_step $step $total "Dropping database '$branch'"
+        lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e \
+            "drop database if exists \`$branch\`;"
+        ((step++))
     fi
-}
 
-delete_branch() {
-    local branch="$1"
     if [[ "$DELETE_BRANCH" -eq 1 ]]; then
-        lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Deleting local branch '$branch'"
+        lp_step $step $total "Deleting local branch '$branch'"
         lp_run git -C "$MAIN_REPO_DIR" branch -D "$branch"
-        ((CURRENT_STEP++))
+        ((step++))
     fi
 }
 
@@ -111,19 +124,12 @@ main() {
     validate_arguments
     confirm_removal
 
-    TOTAL_STEPS=0
+    local total=${#BRANCHES[@]}
+    local idx=1
     for branch in "${BRANCHES[@]}"; do
-        TOTAL_STEPS=$((TOTAL_STEPS + $(count_steps_for_branch "$branch")))
-    done
-
-    CURRENT_STEP=1
-    for branch in "${BRANCHES[@]}"; do
-        lp_branch_vars "$branch"
-        stop_session "$branch"
-        remove_worktree "$WORKTREE_DIR"
-        remove_bundle "$BUNDLE_DIR"
-        drop_database "$branch"
-        delete_branch "$branch"
+        lp_section "$idx" "$total" "Branch '$branch'" \
+            process_branch "$branch"
+        ((idx++))
     done
 
     lp_success "Done!"
