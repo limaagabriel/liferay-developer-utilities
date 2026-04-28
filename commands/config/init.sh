@@ -40,16 +40,16 @@ prompt_for_all_values() {
     lp_info "Press Enter to accept the default shown in brackets."
     echo ""
 
-    prompt_for_value BASE_PROJECT_DIR_VAL "Base project directory" "$HOME/dev/projects"
-    prompt_for_value MAIN_REPO_NAME_VAL "Main repository name" "liferay-portal"
-    prompt_for_value EE_REPO_NAME_VAL "EE repository name" "liferay-portal-ee"
-    prompt_for_value BUNDLES_DIR_VAL "Bundles directory" "$HOME/dev/bundles"
-    prompt_for_value LIFERAY_USER_VAL "Liferay user name (for property files)" "$(whoami)"
-    prompt_for_value ENABLE_AUTOCOMPLETE_VAL "Enable tab completion (yes/no)" "yes"
-    prompt_for_value ENABLE_ALIASES_VAL "Enable simplified aliases (yes/no)" "yes"
-    prompt_for_value WORKTREE_LIMIT_VAL "Worktree limit" "8"
-    prompt_for_value DEFAULT_DATABASE_VAL "Default database (hypersonic|mysql)" "hypersonic"
-    prompt_for_value SESSION_CUSTOM_WINDOWS_VAL "Custom tmux windows (name1:cmd1,name2:cmd2)" ""
+    prompt_for_value BASE_PROJECT_DIR_VAL "Base project directory" "${BASE_PROJECT_DIR:-$HOME/dev/projects}"
+    prompt_for_value MAIN_REPO_NAME_VAL "Main repository name" "${MAIN_REPO_NAME:-liferay-portal}"
+    prompt_for_value EE_REPO_NAME_VAL "EE repository name" "${EE_REPO_NAME:-liferay-portal-ee}"
+    prompt_for_value BUNDLES_DIR_VAL "Bundles directory" "${BUNDLES_DIR:-$HOME/dev/bundles}"
+    prompt_for_value LIFERAY_USER_VAL "Liferay user name (for property files)" "${LIFERAY_USER:-$(whoami)}"
+    prompt_for_value ENABLE_AUTOCOMPLETE_VAL "Enable tab completion (yes/no)" "${ENABLE_AUTOCOMPLETE:-yes}"
+    prompt_for_value ENABLE_ALIASES_VAL "Enable simplified aliases (yes/no)" "${ENABLE_ALIASES:-yes}"
+    prompt_for_value WORKTREE_LIMIT_VAL "Worktree limit" "${WORKTREE_LIMIT:-8}"
+    prompt_for_value DEFAULT_DATABASE_VAL "Default database (hypersonic|mysql)" "${DEFAULT_DATABASE:-hypersonic}"
+    prompt_for_value SESSION_CUSTOM_WINDOWS_VAL "Custom tmux windows (name1:cmd1,name2:cmd2)" "${SESSION_CUSTOM_WINDOWS:-}"
 }
 
 write_config_file() {
