@@ -50,7 +50,7 @@ _lp_get_branches() {
 _lp_has_branch_arg() {
     case "$1/$2" in
         worktree/cd|worktree/start|worktree/remove|\
-        worktree/build|worktree/clean|worktree/set|bundle/cd|bundle/remove|\
+        worktree/build|worktree/clean|worktree/set|bundle/cd|bundle/remove|bundle/info|\
         portal/sample|modules/changed|mysql/reset|mysql/start|hypersonic/clean|session/start|session/stop|\
         session/enter|session/describe|session/status|session/update|git/bisect|\
         base/sync)

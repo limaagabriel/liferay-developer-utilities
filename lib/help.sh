@@ -76,7 +76,7 @@ _lp_ns_desc() {
 _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove get set unset root" ;;
-        bundle)   echo "build db properties ports start reset cd remove" ;;
+        bundle)   echo "build db properties ports start reset cd remove info" ;;
         base)     echo "build list info refresh sync remove" ;;
         portal)   echo "buildLang cdm db gw sf sample" ;;
         playwright) echo "test trace" ;;
@@ -126,6 +126,7 @@ _lp_cmd_desc() {
         bundle/reset)     echo "Reset the bundle database and caches (work, temp, osgi/state)" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
+        bundle/info)      echo "Show provenance metadata for a worktree's bundle" ;;
         base/build)       echo "Snapshot a worktree bundle into a named base" ;;
         base/list)        echo "List all base bundles with size, age, commit, and source branch" ;;
         base/info)        echo "Show provenance metadata for a base" ;;
@@ -193,6 +194,7 @@ _lp_cmd_usage() {
         bundle/reset)     echo "lp bundle reset [-y|--yes] [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
+        bundle/info)      echo "lp bundle info [<branch>]" ;;
         base/build)       echo "lp base build [-b <branch>] [-f] <name>" ;;
         base/list)        echo "lp base list [--names]" ;;
         base/info)        echo "lp base info <name>" ;;
@@ -354,6 +356,9 @@ _lp_cmd_opts() {
             ;;
         bundle/remove)
             echo "  -v, --verbose   Show full output"
+            echo "  -h, --help      Show this help"
+            ;;
+        bundle/info)
             echo "  -h, --help      Show this help"
             ;;
         bundle/properties)
@@ -582,6 +587,10 @@ _lp_cmd_examples() {
             ;;
         bundle/remove)
             echo "  lp bundle remove main"
+            ;;
+        bundle/info)
+            echo "  lp bundle info"
+            echo "  lp bundle info LPD-12345"
             ;;
         bundle/db)
             echo "  lp bundle db mysql"
