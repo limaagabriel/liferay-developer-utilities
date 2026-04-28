@@ -172,7 +172,7 @@ _lp_cmd_usage() {
         worktree/add)     echo "lp worktree add [options] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
-        worktree/remove)  echo "lp worktree remove [-b] [-v] <branch>" ;;
+        worktree/remove)  echo "lp worktree remove [-b] [-y] [-v] <branch>..." ;;
         worktree/get)     echo "lp worktree get" ;;
         worktree/set)     echo "lp worktree set [branch-name]" ;;
         worktree/unset)   echo "lp worktree unset" ;;
@@ -253,6 +253,7 @@ _lp_cmd_opts() {
             ;;
         worktree/remove)
             echo "  -b, --branch    Also delete the local branch"
+            echo "  -y, --yes       Skip confirmation prompt"
             echo "  -v, --verbose   Show full git output"
             echo "  -h, --help      Show this help"
             ;;
@@ -496,6 +497,7 @@ _lp_cmd_examples() {
         worktree/remove)
             echo "  lp worktree remove main"
             echo "  lp worktree remove -b feature-xyz"
+            echo "  lp worktree remove -y feat-a feat-b feat-c"
             ;;
         worktree/get)
             echo "  lp worktree get"
