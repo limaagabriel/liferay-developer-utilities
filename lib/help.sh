@@ -130,7 +130,7 @@ _lp_cmd_desc() {
         base/build)       echo "Snapshot a worktree bundle into a named base" ;;
         base/list)        echo "List all base bundles with size, age, commit, and source branch" ;;
         base/info)        echo "Show provenance metadata for a base" ;;
-        base/refresh)     echo "Re-snapshot an existing base (alias for 'build --force')" ;;
+        base/refresh)     echo "Re-snapshot an existing base (alias for 'build --yes')" ;;
         base/sync)        echo "Re-clone a worktree bundle from its base if drifted" ;;
         base/remove)      echo "Remove a base bundle" ;;
         mysql/reset)      echo "Reset a specific database (drop and recreate)" ;;
@@ -195,7 +195,7 @@ _lp_cmd_usage() {
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         bundle/info)      echo "lp bundle info [<branch>]" ;;
-        base/build)       echo "lp base build [-b <branch>] [-f] <name>" ;;
+        base/build)       echo "lp base build [-b <branch>] [-y] <name>" ;;
         base/list)        echo "lp base list [--names]" ;;
         base/info)        echo "lp base info <name>" ;;
         base/refresh)     echo "lp base refresh [-b <branch>] <name>" ;;
@@ -309,7 +309,7 @@ _lp_cmd_opts() {
             ;;
         bundle/build)
             echo "  -d, --db <database>     Database type (hypersonic|mysql)"
-            echo "  --from-base <name>      Clone from a base bundle instead of building from scratch"
+            echo "  -f, --from-base <name>  Clone from a base bundle instead of building from scratch"
             echo "  -q, --quiet             Hide full ant/git output (unless error)"
             echo "  -y, --yes               Skip confirmation for deleting existing bundle"
             echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
@@ -317,7 +317,7 @@ _lp_cmd_opts() {
             ;;
         base/build)
             echo "  -b, --branch <branch>   Source branch to snapshot (default: <name>)"
-            echo "  -f, --force             Overwrite an existing base"
+            echo "  -y, --yes               Skip confirmation when overwriting an existing base"
             echo "  -v, --verbose           Show full output"
             echo "  -h, --help              Show this help"
             ;;
@@ -382,11 +382,12 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         session/start)
-            echo "  -n, --no-build      Create the bundle window but don't start the build automatically"
-            echo "  -b, --build-only    Build the bundle but don't start the server automatically"
-            echo "  -d, --description   Add a brief description to the session"
-            echo "  -s, --status        Set a status (pending, in-progress, important, ready)"
-            echo "  -h, --help          Show this help"
+            echo "  -n, --no-build           Create the bundle window but don't start the build automatically"
+            echo "  -b, --build-only         Build the bundle but don't start the server automatically"
+            echo "  -d, --description        Add a brief description to the session"
+            echo "  -s, --status             Set a status (pending, in-progress, important, ready)"
+            echo "  -f, --from-base <name>   Clone from a base bundle instead of building from scratch"
+            echo "  -h, --help               Show this help"
             echo "  Note: Requires 'tmux' to be installed. 'lazygit' is recommended for the git window."
             ;;
         session/stop)

@@ -42,7 +42,7 @@ parse_arguments() {
 
 main() {
     parse_arguments "$@" || return $?
-    "$_LP_SCRIPTS_DIR/commands/base/build.sh" --force "${SOURCE_BRANCH_ARGS[@]}" "$NAME"
+    "$_LP_SCRIPTS_DIR/commands/base/build.sh" --yes "${SOURCE_BRANCH_ARGS[@]}" "$NAME"
 }
 
 main "$@"

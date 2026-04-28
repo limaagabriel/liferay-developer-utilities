@@ -6,11 +6,11 @@ source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
 parse_arguments() {
     NAME=""
     SOURCE_BRANCH=""
-    FORCE=0
+    ASSUME_YES=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --force|-f)    FORCE=1; shift ;;
+            --yes|-y)      ASSUME_YES=1; shift ;;
             --branch|-b)
                 if [[ -n "$2" && "$2" != -* ]]; then
                     SOURCE_BRANCH="$2"; shift 2
@@ -38,7 +38,7 @@ parse_arguments() {
     done
 
     if [[ -z "$NAME" ]]; then
-        lp_error "Usage: lp base build [-b <branch>] [-f] <name>"
+        lp_error "Usage: lp base build [-b <branch>] [-y] <name>"
         return 1 2>/dev/null || exit 1
     fi
 }
@@ -67,10 +67,12 @@ main() {
     local step=1
 
     if [[ -d "$target" ]]; then
-        if [[ $FORCE -eq 0 ]]; then
-            lp_error "Base bundle '$NAME' already exists at $target."
-            lp_error "Pass --force to overwrite."
-            return 1
+        if [[ $ASSUME_YES -eq 0 ]]; then
+            read -p " Base bundle '$NAME' already exists at $target. Delete and rebuild? [y/N] " confirm
+            if [[ "$confirm" != "y" ]]; then
+                lp_info "Aborted."
+                return 0
+            fi
         fi
         lp_step $step $total "Removing existing base '$NAME'"
         lp_run rm -rf "$target" || return $?

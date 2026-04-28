@@ -16,6 +16,7 @@ parse_arguments() {
     BRANCH=""
     DESCRIPTION=""
     STATUS_NAME=""
+    FROM_BASE=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -23,6 +24,14 @@ parse_arguments() {
             --build-only|-b) BUILD_ONLY=true; shift ;;
             --description|-d) DESCRIPTION="$2"; shift 2 ;;
             --status|-s)  STATUS_NAME="$2"; shift 2 ;;
+            --from-base|-f)
+                if [[ -n "$2" && "$2" != -* ]]; then
+                    FROM_BASE="$2"; shift 2
+                else
+                    lp_error "Option $1 requires a base bundle name."
+                    return 1 2>/dev/null || exit 1
+                fi
+                ;;
             --verbose|-v)  shift ;;
             -*)
                 lp_error "Unknown option: $1"
@@ -41,6 +50,11 @@ parse_arguments() {
         esac
     done
 
+    if [[ -n "$FROM_BASE" && "$SKIP_BUNDLE" == "true" ]]; then
+        lp_error "--from-base cannot be combined with --no-build."
+        return 1 2>/dev/null || exit 1
+    fi
+
     lp_resolve_branch --reference --default-master
 }
 
@@ -55,6 +69,9 @@ handle_existing_session() {
 }
 
 get_bundle_command() {
+    local build_cmd="lp bundle build -s"
+    [[ -n "$FROM_BASE" ]] && build_cmd+=" --from-base \"$FROM_BASE\""
+
     if [[ "$SKIP_BUNDLE" == "true" ]]; then
         echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1;
         echo \"\";
@@ -62,10 +79,10 @@ get_bundle_command() {
         echo \"\";
         echo \"  To build and start the bundle, run:\";
         echo \"\";
-        echo \"    lp bundle build -s && lp bundle start\";
+        echo \"    $build_cmd && lp bundle start\";
         echo \"\""
     elif [[ "$BUILD_ONLY" == "true" ]]; then
-        echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp bundle build -s;
+        echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && $build_cmd;
         echo \"\";
         echo \"  Note: Automatic server start was skipped because the --build-only flag was provided.\";
         echo \"\";
@@ -74,7 +91,7 @@ get_bundle_command() {
         echo \"    lp bundle start\";
         echo \"\""
     else
-        echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && lp bundle build -s && lp bundle start"
+        echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1 && $build_cmd && lp bundle start"
     fi
 }
 

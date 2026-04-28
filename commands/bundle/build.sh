@@ -22,12 +22,12 @@ parse_arguments() {
                     return 1 2>/dev/null || exit 1
                 fi
                 ;;
-            --from-base)
+            --from-base|-f)
                 if [[ -n "$2" && "$2" != -* ]]; then
                     FROM_BASE="$2"
                     shift 2
                 else
-                    lp_error "Option --from-base requires a base bundle name."
+                    lp_error "Option $1 requires a base bundle name."
                     return 1 2>/dev/null || exit 1
                 fi
                 ;;
