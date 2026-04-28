@@ -5,18 +5,18 @@ lp_init_command "config" "init" "$@"
 check_existing_config() {
     local config_file="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
 
-    if [[ -f "$config_file" ]]; then
-        lp_info "A config file already exists at '$config_file'."
-        printf "Overwrite it? [y/N] "
-        read -r confirm
-        case "$confirm" in
-            [yY]|[yY][eE][sS]) ;;
-            *)
-                lp_info "Aborted. Existing config left unchanged."
-                return 0 2>/dev/null || exit 0
-                ;;
-        esac
-    fi
+    [[ -f "$config_file" ]] || return 0
+
+    lp_info "A config file already exists at '$config_file'."
+    printf "Overwrite it? [y/N] "
+    read -r confirm
+    case "$confirm" in
+        [yY]|[yY][eE][sS]) return 0 ;;
+        *)
+            lp_info "Aborted. Existing config left unchanged."
+            return 1
+            ;;
+    esac
 }
 
 prompt_for_value() {
@@ -44,6 +44,7 @@ prompt_for_all_values() {
     prompt_for_value MAIN_REPO_NAME_VAL "Main repository name" "${MAIN_REPO_NAME:-liferay-portal}"
     prompt_for_value EE_REPO_NAME_VAL "EE repository name" "${EE_REPO_NAME:-liferay-portal-ee}"
     prompt_for_value BUNDLES_DIR_VAL "Bundles directory" "${BUNDLES_DIR:-$HOME/dev/bundles}"
+    prompt_for_value BASE_BUNDLES_DIR_VAL "Base bundles directory" "${BASE_BUNDLES_DIR:-$BUNDLES_DIR_VAL/.base}"
     prompt_for_value LIFERAY_USER_VAL "Liferay user name (for property files)" "${LIFERAY_USER:-$(whoami)}"
     prompt_for_value ENABLE_AUTOCOMPLETE_VAL "Enable tab completion (yes/no)" "${ENABLE_AUTOCOMPLETE:-yes}"
     prompt_for_value ENABLE_ALIASES_VAL "Enable simplified aliases (yes/no)" "${ENABLE_ALIASES:-yes}"
@@ -70,6 +71,7 @@ BASE_PROJECT_DIR=$BASE_PROJECT_DIR_VAL
 MAIN_REPO_NAME=$MAIN_REPO_NAME_VAL
 EE_REPO_NAME=$EE_REPO_NAME_VAL
 BUNDLES_DIR=$BUNDLES_DIR_VAL
+BASE_BUNDLES_DIR=$BASE_BUNDLES_DIR_VAL
 LIFERAY_USER=$LIFERAY_USER_VAL
 ENABLE_AUTOCOMPLETE=$ENABLE_AUTOCOMPLETE_VAL
 ENABLE_ALIASES=$ENABLE_ALIASES_VAL
@@ -80,7 +82,7 @@ EOF
 }
 
 main() {
-    check_existing_config
+    check_existing_config || return 0
     prompt_for_all_values
     write_config_file
 
