@@ -14,6 +14,9 @@ else
     _LP_COMPLETIONS_SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 
+# Source help.sh for namespace alias resolution (idempotent — defines functions only).
+[[ -f "$_LP_COMPLETIONS_SCRIPTS_DIR/lib/help.sh" ]] && source "$_LP_COMPLETIONS_SCRIPTS_DIR/lib/help.sh"
+
 # _lp_get_branches — output branch names derived from git worktrees
 # Branches are extracted by stripping the BASE_PROJECT_DIR/MAIN_REPO_NAME- prefix
 # from each registered worktree path, consistent with lp_branch_vars in config.sh.
@@ -67,6 +70,11 @@ _lp_complete() {
     local ns="${COMP_WORDS[1]:-}"
     local cmd="${COMP_WORDS[2]:-}"
 
+    # Resolve namespace shorthand (e.g. w → worktree)
+    if declare -F _lp_ns_alias >/dev/null 2>&1; then
+        ns=$(_lp_ns_alias "$ns")
+    fi
+
     COMPREPLY=()
 
     # Offer branch completions when past `lp <ns> <cmd>` and the current word is
@@ -97,6 +105,11 @@ if [[ -n "${ZSH_VERSION:-}" ]]; then
     _lp_complete_zsh() {
         local ns="${words[2]:-}"
         local cmd="${words[3]:-}"
+
+        # Resolve namespace shorthand (e.g. w → worktree)
+        if (( $+functions[_lp_ns_alias] )); then
+            ns=$(_lp_ns_alias "$ns")
+        fi
 
         # Offer completions at position 4 (lp <ns> <cmd> <branch/db>)
         if (( CURRENT == 4 )); then

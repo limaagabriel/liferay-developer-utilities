@@ -53,6 +53,9 @@ lp() {
         return 0
     fi
 
+    # Resolve namespace shorthand (e.g. w → worktree)
+    namespace=$(_lp_ns_alias "$namespace")
+
     # Validate namespace
     local ns_cmds
     ns_cmds=$(_lp_ns_cmds "$namespace")

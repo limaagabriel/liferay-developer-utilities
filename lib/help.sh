@@ -17,6 +17,41 @@
 # Space-separated list of all namespaces (defines display order)
 _LP_NAMESPACES="worktree bundle portal playwright mysql session config git self modules"
 
+# _lp_ns_alias <token> — resolve a namespace shorthand to its real name.
+# Returns the input unchanged if no alias matches.
+_lp_ns_alias() {
+    case "$1" in
+        w)  echo "worktree" ;;
+        b)  echo "bundle" ;;
+        p)  echo "portal" ;;
+        pw) echo "playwright" ;;
+        ms) echo "mysql" ;;
+        s)  echo "session" ;;
+        c)  echo "config" ;;
+        g)  echo "git" ;;
+        se) echo "self" ;;
+        m)  echo "modules" ;;
+        *)  echo "$1" ;;
+    esac
+}
+
+# _lp_ns_alias_for <ns> — reverse lookup: shorthand for a real namespace, or empty.
+_lp_ns_alias_for() {
+    case "$1" in
+        worktree)   echo "w" ;;
+        bundle)     echo "b" ;;
+        portal)     echo "p" ;;
+        playwright) echo "pw" ;;
+        mysql)      echo "ms" ;;
+        session)    echo "s" ;;
+        config)     echo "c" ;;
+        git)        echo "g" ;;
+        self)       echo "se" ;;
+        modules)    echo "m" ;;
+        *)          echo "" ;;
+    esac
+}
+
 # _lp_ns_desc <ns> — one-line description for a namespace
 _lp_ns_desc() {
     case "$1" in
@@ -612,9 +647,14 @@ lp_top_level_help() {
     echo "   or: lp gw [branch] [tasks...]"
     echo ""
     for ns in $_LP_NAMESPACES; do
-        local ns_desc
+        local ns_desc ns_alias
         ns_desc=$(_lp_ns_desc "$ns")
-        echo "$ns  —  $ns_desc"
+        ns_alias=$(_lp_ns_alias_for "$ns")
+        if [[ -n "$ns_alias" ]]; then
+            echo "$ns ($ns_alias)  —  $ns_desc"
+        else
+            echo "$ns  —  $ns_desc"
+        fi
         local cmds
         cmds=$(_lp_ns_cmds "$ns")
         for cmd in $cmds; do
