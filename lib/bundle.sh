@@ -2,6 +2,70 @@
 
 _LP_BUNDLE_CLONE_MODE_FILE="${BUNDLES_DIR}/.clone-mode"
 _LP_BUNDLE_META_FILE=".lp-bundle-meta"
+_LP_BUNDLE_OFFSET_FILE=".worktree-port-offset"
+
+_LP_PORT_KINDS="http https shutdown ajp osgi es-http es-transport arquillian dataguard glowroot"
+
+_lp_port_base() {
+    case "$1" in
+        http)         echo 8080 ;;
+        https)        echo 8443 ;;
+        shutdown)     echo 8005 ;;
+        ajp)          echo 8009 ;;
+        osgi)         echo 11311 ;;
+        es-http)      echo 9201 ;;
+        es-transport) echo 9301 ;;
+        arquillian)   echo 32763 ;;
+        dataguard)    echo 42763 ;;
+        glowroot)     echo 4000 ;;
+        *)            echo "" ;;
+    esac
+}
+
+# lp_port_offset_enabled — returns 0 if ENABLE_PORT_OFFSET is truthy.
+lp_port_offset_enabled() {
+    local val
+    val=$(printf '%s' "${ENABLE_PORT_OFFSET:-no}" | tr '[:upper:]' '[:lower:]')
+    case "$val" in
+        yes|true|1) return 0 ;;
+        *)          return 1 ;;
+    esac
+}
+
+# lp_bundle_offset <branch> — echo the offset for a bundle.
+# Returns 0 for master, contents of .worktree-port-offset otherwise, 0 if missing.
+lp_bundle_offset() {
+    local branch="$1"
+    [[ -z "$branch" ]] && { echo 0; return; }
+    [[ "$branch" == "master" ]] && { echo 0; return; }
+
+    local offset_file="$BUNDLES_DIR/$branch/$_LP_BUNDLE_OFFSET_FILE"
+    if [[ -f "$offset_file" ]]; then
+        cat "$offset_file"
+    else
+        echo 0
+    fi
+}
+
+# lp_bundle_port <kind> <branch> — echo computed port for a kind.
+lp_bundle_port() {
+    local kind="$1"
+    local branch="$2"
+    local base offset
+    base=$(_lp_port_base "$kind")
+    [[ -z "$base" ]] && return 1
+    offset=$(lp_bundle_offset "$branch")
+    echo $((base + offset))
+}
+
+# lp_bundle_port_table <branch> — print "kind\tport" lines for every known kind.
+lp_bundle_port_table() {
+    local branch="$1"
+    local kind
+    for kind in $_LP_PORT_KINDS; do
+        printf '%s\t%s\n' "$kind" "$(lp_bundle_port "$kind" "$branch")"
+    done
+}
 
 _lp_bundle_probe_clone_mode() {
     if [[ -f "$_LP_BUNDLE_CLONE_MODE_FILE" ]]; then

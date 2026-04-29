@@ -1,6 +1,7 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "bundle" "properties" "$@"
+source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
 
 BRANCH=""
 DB_TYPE="$DEFAULT_DATABASE"
@@ -69,5 +70,6 @@ if [[ "$DB_TYPE" == "mysql" ]]; then
         "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "$BRANCH"
 fi
 
-# Configure ports (disabled temporarily)
-# "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"
+if lp_port_offset_enabled; then
+    "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"
+fi

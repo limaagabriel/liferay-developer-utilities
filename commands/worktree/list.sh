@@ -1,6 +1,7 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "worktree" "list" "$@"
+source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
 
 parse_arguments() {
     while [[ $# -gt 0 ]]; do
@@ -23,16 +24,24 @@ get_bundle_dir() {
 
 print_worktree_list() {
     local repo_dir="$1"
-    local paths=() shas=() branches=() bundles=()
+    local paths=() shas=() branches=() bundles=() http_ports=()
     local path="" sha="" branch="" key value
-    local branch_w=0 sha_w=0 path_w=0
+    local branch_w=0 sha_w=0 path_w=0 bundle_w=0
 
     flush() {
         [[ -z "$path" ]] && return
+        local raw_branch="${branch:-detached}"
+        local bundle_dir
+        bundle_dir=$(get_bundle_dir "$path")
         paths+=("$path")
         shas+=("${sha:0:8}")
-        branches+=("[${branch:-detached}]")
-        bundles+=("$(get_bundle_dir "$path")")
+        branches+=("[$raw_branch]")
+        bundles+=("$bundle_dir")
+        if [[ -n "$bundle_dir" && -d "$bundle_dir" ]]; then
+            http_ports+=("$(lp_bundle_port http "$raw_branch")")
+        else
+            http_ports+=("")
+        fi
         path="" sha="" branch=""
     }
 
@@ -51,16 +60,21 @@ print_worktree_list() {
         (( ${#branches[$i]} > branch_w )) && branch_w=${#branches[$i]}
         (( ${#shas[$i]} > sha_w )) && sha_w=${#shas[$i]}
         (( ${#paths[$i]} > path_w )) && path_w=${#paths[$i]}
+        (( ${#bundles[$i]} > bundle_w )) && bundle_w=${#bundles[$i]}
     done
 
     for i in "${!paths[@]}"; do
         local bundle="${bundles[$i]}"
+        local http="${http_ports[$i]}"
         if [[ -n "$bundle" ]]; then
-            lp_info "$(printf '    %-*s  %-*s  %-*s  -> %s' \
+            local port_col=""
+            [[ -n "$http" ]] && port_col=":$http"
+            lp_info "$(printf '    %-*s  %-*s  %-*s  -> %-*s  %s' \
                 "$branch_w" "${branches[$i]}" \
                 "$sha_w" "${shas[$i]}" \
                 "$path_w" "${paths[$i]}" \
-                "$bundle")"
+                "$bundle_w" "$bundle" \
+                "$port_col")"
         else
             lp_info "$(printf '    %-*s  %-*s  %s' \
                 "$branch_w" "${branches[$i]}" \

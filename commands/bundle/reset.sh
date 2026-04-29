@@ -1,6 +1,7 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "bundle" "reset" "$@"
+source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
 
 parse_arguments() {
     ASSUME_YES=0
@@ -114,6 +115,11 @@ main() {
     clean_tomcat_caches
     clean_bundle_root_caches
     clean_hypersonic_data
+
+    if lp_port_offset_enabled; then
+        "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"
+    fi
+
     lp_success "Bundle database and caches reset successfully for branch '$BRANCH'."
 }
 

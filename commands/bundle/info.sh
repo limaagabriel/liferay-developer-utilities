@@ -52,6 +52,22 @@ main() {
     else
         lp_info "(no metadata — bundle was built before provenance tracking was added; rebuild to populate)"
     fi
+
+    print_port_table
+}
+
+print_port_table() {
+    local offset
+    offset=$(lp_bundle_offset "$BRANCH")
+
+    echo ""
+    lp_info "Port offset: $offset"
+
+    local prefix kind port
+    prefix=$(_lp_prefix)
+    while IFS=$'\t' read -r kind port; do
+        printf '%s%-13s %s\n' "$prefix" "$kind" "$port"
+    done < <(lp_bundle_port_table "$BRANCH")
 }
 
 main "$@"

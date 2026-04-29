@@ -76,7 +76,7 @@ _lp_ns_desc() {
 _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove get set unset root" ;;
-        bundle)   echo "build db properties ports start reset cd remove info" ;;
+        bundle)   echo "build db properties ports start kill reset cd remove info list env" ;;
         base)     echo "build list info refresh sync remove" ;;
         portal)   echo "buildLang cdm db gw sf sample setup" ;;
         playwright) echo "test trace" ;;
@@ -124,10 +124,13 @@ _lp_cmd_desc() {
         bundle/properties) echo "Copy portal-ext.properties and set database to branch name" ;;
         bundle/ports)     echo "Configure TCP port offsets for the bundle" ;;
         bundle/start)     echo "Start the Liferay server for a bundle" ;;
+        bundle/kill)      echo "Kill the running bundle process by port" ;;
         bundle/reset)     echo "Reset the bundle database and caches (work, temp, osgi/state)" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
         bundle/info)      echo "Show provenance metadata for a worktree's bundle" ;;
+        bundle/list)      echo "List all bundles with their offset and key ports" ;;
+        bundle/env)       echo "Print export statements for the bundle's ports (eval-able)" ;;
         base/build)       echo "Snapshot a worktree bundle into a named base" ;;
         base/list)        echo "List all base bundles with size, age, commit, and source branch" ;;
         base/info)        echo "Show provenance metadata for a base" ;;
@@ -193,10 +196,13 @@ _lp_cmd_usage() {
         bundle/properties) echo "lp bundle properties [options] [branch]" ;;
         bundle/ports)     echo "lp bundle ports [branch]" ;;
         bundle/start)     echo "lp bundle start [-v] [branch]" ;;
+        bundle/kill)      echo "lp bundle kill [-v] [branch]" ;;
         bundle/reset)     echo "lp bundle reset [-y|--yes] [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
         bundle/info)      echo "lp bundle info [<branch>]" ;;
+        bundle/list)      echo "lp bundle list [--names]" ;;
+        bundle/env)       echo "lp bundle env [<branch>]" ;;
         base/build)       echo "lp base build [-b <branch>] [-y] <name>" ;;
         base/list)        echo "lp base list [--names]" ;;
         base/info)        echo "lp base info <name>" ;;
@@ -354,6 +360,10 @@ _lp_cmd_opts() {
             echo "  -v, --verbose   Show full ant output (catalina log always shown)"
             echo "  -h, --help      Show this help"
             ;;
+        bundle/kill)
+            echo "  -v, --verbose   Show full output"
+            echo "  -h, --help      Show this help"
+            ;;
         bundle/reset)
             echo "  -y, --yes       Skip confirmation prompt"
             echo "  -v, --verbose   Show full output"
@@ -368,6 +378,14 @@ _lp_cmd_opts() {
             ;;
         bundle/info)
             echo "  -h, --help      Show this help"
+            ;;
+        bundle/list)
+            echo "  --names         Print only bundle names (one per line)"
+            echo "  -h, --help      Show this help"
+            ;;
+        bundle/env)
+            echo "  -h, --help      Show this help"
+            echo "  Note: intended for use with 'eval', e.g. eval \"\$(lp bundle env)\""
             ;;
         bundle/properties)
             echo "  -d, --db <database>     Database type (hypersonic|mysql)"
@@ -592,6 +610,10 @@ _lp_cmd_examples() {
             echo "  lp bundle start main"
             echo "  lp bundle start           # uses current directory"
             ;;
+        bundle/kill)
+            echo "  lp bundle kill"
+            echo "  lp bundle kill main"
+            ;;
         bundle/reset)
             echo "  lp bundle reset main"
             echo "  lp bundle reset -y"
@@ -606,6 +628,14 @@ _lp_cmd_examples() {
         bundle/info)
             echo "  lp bundle info"
             echo "  lp bundle info LPD-12345"
+            ;;
+        bundle/list)
+            echo "  lp bundle list"
+            echo "  lp bundle list --names"
+            ;;
+        bundle/env)
+            echo "  eval \"\$(lp bundle env)\""
+            echo "  eval \"\$(lp bundle env LPD-12345)\""
             ;;
         bundle/db)
             echo "  lp bundle db mysql"

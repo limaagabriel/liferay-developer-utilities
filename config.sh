@@ -40,12 +40,13 @@ ENABLE_ALIASES="${ENABLE_ALIASES:=yes}"
 WORKTREE_LIMIT="${WORKTREE_LIMIT:=8}"
 DEFAULT_DATABASE="${DEFAULT_DATABASE:=hypersonic}"
 SESSION_CUSTOM_WINDOWS="${SESSION_CUSTOM_WINDOWS:=}"
+ENABLE_PORT_OFFSET="${ENABLE_PORT_OFFSET:=no}"
 
 # ---------------------------------------------------------------------------
 # Warn for any expected variable that is still unset (task 2.6)
 # ---------------------------------------------------------------------------
 
-for _lp_var in BASE_PROJECT_DIR MAIN_REPO_NAME EE_REPO_NAME MAIN_REPO_DIR EE_REPO_DIR BUNDLES_DIR BASE_BUNDLES_DIR LIFERAY_USER ENABLE_AUTOCOMPLETE ENABLE_ALIASES WORKTREE_LIMIT DEFAULT_DATABASE; do
+for _lp_var in BASE_PROJECT_DIR MAIN_REPO_NAME EE_REPO_NAME MAIN_REPO_DIR EE_REPO_DIR BUNDLES_DIR BASE_BUNDLES_DIR LIFERAY_USER ENABLE_AUTOCOMPLETE ENABLE_ALIASES WORKTREE_LIMIT DEFAULT_DATABASE ENABLE_PORT_OFFSET; do
     eval "_lp_val=\"\${$_lp_var}\""
     if [[ -z "$_lp_val" ]]; then
         echo "lp: warning: '$_lp_var' is unset after loading config." >&2

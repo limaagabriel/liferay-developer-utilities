@@ -27,6 +27,7 @@ display_config_values() {
     lp_info "WORKTREE_LIMIT             = $WORKTREE_LIMIT"
     lp_info "DEFAULT_DATABASE           = $DEFAULT_DATABASE"
     lp_info "SESSION_CUSTOM_WINDOWS     = $SESSION_CUSTOM_WINDOWS"
+    lp_info "ENABLE_PORT_OFFSET         = $ENABLE_PORT_OFFSET"
 }
 
 main() {

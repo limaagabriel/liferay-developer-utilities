@@ -1,6 +1,7 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "playwright" "test" "$@"
+source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
 
 parse_arguments() {
     ITERATIONS=1
@@ -57,6 +58,19 @@ validate_environment() {
     fi
 }
 
+apply_port_offset() {
+    lp_port_offset_enabled || return 0
+
+    local offset
+    offset=$(lp_bundle_offset "$LP_DETECTED_BRANCH")
+    [[ -z "$offset" || "$offset" -eq 0 ]] && return 0
+
+    local http
+    http=$(lp_bundle_port http "$LP_DETECTED_BRANCH")
+    export PORTAL_URL="http://localhost:$http"
+    lp_info "Targeting $PORTAL_URL (offset $offset)"
+}
+
 run_test_iterations() {
     cd "$PLAYWRIGHT_DIR" || { return 1 2>/dev/null || exit 1; }
 
@@ -100,6 +114,7 @@ display_final_report() {
 main() {
     parse_arguments "$@"
     validate_environment
+    apply_port_offset
     run_test_iterations
     display_final_report
 
