@@ -116,7 +116,7 @@ _lp_cmd_desc() {
         portal/db)        echo "Switch between mysql (with optional db name) and hypersonic" ;;
         portal/gw)        echo "Run gradle tasks in the current directory" ;;
         portal/sf)        echo "Run source formatter for the current branch" ;;
-        portal/setup)     echo "Install portal worktree tooling (sdk, libs, sass, yarn)" ;;
+        portal/setup)     echo "Install portal worktree tooling and compile portal (ant setup-profile-dxp + ant compile)" ;;
         playwright/test)  echo "Run Playwright tests in the current worktree" ;;
         playwright/trace) echo "Open a Playwright trace file in the trace viewer" ;;
         bundle/build)     echo "Build the portal bundle from the worktree" ;;
@@ -188,7 +188,7 @@ _lp_cmd_usage() {
             echo "lp portal gw [options] [tasks...]" ;;
         portal/sf)
             echo "lp portal sf [options]" ;;
-        portal/setup)     echo "lp portal setup [-q|-v] [branch]" ;;
+        portal/setup)     echo "lp portal setup [-q|-v] [-s] [branch]" ;;
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
         bundle/build)     echo "lp bundle build [options] <branch>" ;;
@@ -303,9 +303,12 @@ _lp_cmd_opts() {
             echo "  -h, --help        Show this help"
             ;;
         portal/setup)
-            echo "  -q, --quiet     Hide ant output"
-            echo "  -v, --verbose   Show full ant output (default)"
-            echo "  -h, --help      Show this help"
+            echo "  -s, --snapshots-included  Also run 'ant install-portal-snapshots' to publish the full portal"
+            echo "                            SNAPSHOT set (impl, test, web, util-*) to local .m2."
+            echo "                            'ant compile' already installs the portal-kernel snapshot."
+            echo "  -q, --quiet               Hide ant output"
+            echo "  -v, --verbose             Show full ant output (default)"
+            echo "  -h, --help                Show this help"
             ;;
         portal/sample)
             echo "  -c, --client-extension [pattern]  Deploy matching client extensions (or list all if no pattern)"
@@ -563,6 +566,7 @@ _lp_cmd_examples() {
             echo "  lp portal setup"
             echo "  lp portal setup LPD-12345"
             echo "  lp portal setup -q master"
+            echo "  lp portal setup -s LPD-12345"
             ;;
         portal/sample)
             echo "  lp portal sample -c my-extension"

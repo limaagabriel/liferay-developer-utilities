@@ -157,7 +157,8 @@ build_from_base() {
     lp_info "INFO: Bundle built from base skips 'ant all', so portal tooling"
     lp_info "      (gradle wrapper, node, yarn, jest, etc.) was NOT installed"
     lp_info "      in '$WORKTREE_DIR'."
-    lp_info "      Run 'lp portal setup $BRANCH' to install missing tooling."
+    lp_info "      Run 'lp portal setup -s $BRANCH' to install missing tooling"
+    lp_info "      (use -s to also publish portal SNAPSHOT jars to local .m2)."
 }
 
 build_from_scratch() {
