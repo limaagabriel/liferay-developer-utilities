@@ -78,7 +78,7 @@ _lp_ns_cmds() {
         worktree) echo "add cd list remove get set unset root" ;;
         bundle)   echo "build db properties ports start reset cd remove info" ;;
         base)     echo "build list info refresh sync remove" ;;
-        portal)   echo "buildLang cdm db gw sf sample" ;;
+        portal)   echo "buildLang cdm db gw sf sample setup" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start stop drop status" ;;
         session)  echo "list start stop enter exit detach add rebuild restart describe status update" ;;
@@ -116,6 +116,7 @@ _lp_cmd_desc() {
         portal/db)        echo "Switch between mysql (with optional db name) and hypersonic" ;;
         portal/gw)        echo "Run gradle tasks in the current directory" ;;
         portal/sf)        echo "Run source formatter for the current branch" ;;
+        portal/setup)     echo "Install portal worktree tooling (sdk, libs, sass, yarn)" ;;
         playwright/test)  echo "Run Playwright tests in the current worktree" ;;
         playwright/trace) echo "Open a Playwright trace file in the trace viewer" ;;
         bundle/build)     echo "Build the portal bundle from the worktree" ;;
@@ -184,6 +185,7 @@ _lp_cmd_usage() {
             echo "lp portal gw [options] [tasks...]" ;;
         portal/sf)
             echo "lp portal sf [options]" ;;
+        portal/setup)     echo "lp portal setup [-q|-v] [branch]" ;;
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
         bundle/build)     echo "lp bundle build [options] <branch>" ;;
@@ -293,6 +295,11 @@ _lp_cmd_opts() {
             echo "  -q, --quiet       Hide ant output"
             echo "  -v, --verbose     Show full ant output (default)"
             echo "  -h, --help        Show this help"
+            ;;
+        portal/setup)
+            echo "  -q, --quiet     Hide ant output"
+            echo "  -v, --verbose   Show full ant output (default)"
+            echo "  -h, --help      Show this help"
             ;;
         portal/sample)
             echo "  -c, --client-extension [pattern]  Deploy matching client extensions (or list all if no pattern)"
@@ -532,6 +539,11 @@ _lp_cmd_examples() {
             echo "  lp portal sf --all"
             echo "  lp portal sf --extension java"
             echo "  lp portal sf --check JSONPackageJSONDependencyVersionCheck"
+            ;;
+        portal/setup)
+            echo "  lp portal setup"
+            echo "  lp portal setup LPD-12345"
+            echo "  lp portal setup -q master"
             ;;
         portal/sample)
             echo "  lp portal sample -c my-extension"
