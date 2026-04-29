@@ -62,7 +62,7 @@ resolve_modules() {
             changed_list=$("$_LP_SCRIPTS_DIR/commands/modules/changed.sh" --uncommitted)
         else
             lp_info "Identifying changed modules compared to '$BASE_BRANCH'..."
-            changed_list=$("$_LP_SCRIPTS_DIR/commands/modules/changed.sh" "$BASE_BRANCH")
+            changed_list=$("$_LP_SCRIPTS_DIR/commands/modules/changed.sh" -b "$BASE_BRANCH")
         fi
         
         if [[ -n "$changed_list" && "$changed_list" != "No changed modules found"* && "$changed_list" != "No changed files found"* ]]; then

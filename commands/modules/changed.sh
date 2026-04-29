@@ -12,9 +12,22 @@ parse_arguments() {
                 UNCOMMITTED=1
                 shift
                 ;;
-            *)
-                BASE_BRANCH="$1"
+            -b|--base)
+                BASE_BRANCH="$2"
+                shift 2
+                ;;
+            --verbose|-v)
                 shift
+                ;;
+            -*)
+                lp_error "Error: Unknown option $1"
+                echo "Usage: lp modules changed [options]"
+                return 1 2>/dev/null || exit 1
+                ;;
+            *)
+                lp_error "Error: Unexpected argument '$1'"
+                echo "Usage: lp modules changed [options]"
+                return 1 2>/dev/null || exit 1
                 ;;
         esac
     done

@@ -234,7 +234,7 @@ _lp_cmd_usage() {
         git/patch)        echo "lp git patch <url>" ;;
         git/bisect)       echo "lp git bisect -g <good> -b <bad> [branch]" ;;
         self/update)      echo "lp self update [-v]" ;;
-        modules/changed) echo "lp modules changed [options] [base_branch]" ;;
+        modules/changed) echo "lp modules changed [options]" ;;
         modules/deploy)   echo "lp modules deploy [options] [module_path...]" ;;
         *)                echo "" ;;
     esac
@@ -484,8 +484,9 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         modules/changed)
-            echo "  -u, --uncommitted  Include only modules with uncommitted work"
-            echo "  -h, --help         Show this help"
+            echo "  -u, --uncommitted   Include only modules with uncommitted work"
+            echo "  -b, --base <branch> Base branch to compare against (default: master)"
+            echo "  -h, --help          Show this help"
             ;;
         modules/deploy)
             echo "  -c, --changed      Deploy all modules changed in the current branch"
@@ -740,7 +741,7 @@ _lp_cmd_examples() {
             ;;
         modules/changed)
             echo "  lp modules changed"
-            echo "  lp modules changed ee"
+            echo "  lp modules changed -b ee"
             echo "  lp modules changed --uncommitted"
             ;;
         modules/deploy)
