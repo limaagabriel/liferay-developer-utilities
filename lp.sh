@@ -104,7 +104,7 @@ lp() {
     # or environment (e.g. session-scoped variables)
     local _lp_start_time=$(date +%s)
     case "$namespace/$real_command" in
-        worktree/cd|bundle/cd|worktree/set|worktree/unset|worktree/get|worktree/root|portal/cdm|portal/gw|worktree/add|modules/changed|modules/deploy)
+        worktree/cd|bundle/cd|reference/set|reference/reset|reference/get|worktree/root|portal/cdm|portal/gw|worktree/add|modules/changed|modules/deploy)
             local _cd_args=("${@:3}")
             set -- "${_cd_args[@]}"
             source "$script"

@@ -8,6 +8,7 @@ lp_init_command() {
 
     source "$_LP_SCRIPTS_DIR/lib/output.sh"
     source "$_LP_SCRIPTS_DIR/lib/help.sh"
+    source "$_LP_SCRIPTS_DIR/lib/reference.sh"
     source "$_LP_SCRIPTS_DIR/lib/worktree.sh"
 
     if [[ "$_lp_ns" == "config" ]]; then

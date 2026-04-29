@@ -15,8 +15,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
-BRANCH="${BRANCH:-master}"
+BRANCH="${BRANCH:-$(lp_get_reference_branch)}"
 
 prepare_environment() {
     cd "$_LP_SCRIPTS_DIR/commands/mysql" || { return 1 2>/dev/null || exit 1; }

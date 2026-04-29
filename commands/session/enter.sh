@@ -17,7 +17,7 @@ parse_arguments() {
         if lp_detect_worktree; then
             BRANCH="$LP_DETECTED_BRANCH"
         else
-            BRANCH="${LP_WORKTREE_REFERENCE_BRANCH:-master}"
+            BRANCH="$(lp_get_reference_branch)"
         fi
     fi
 

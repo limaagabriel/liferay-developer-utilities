@@ -18,7 +18,7 @@ change_directory() {
 }
 
 update_reference() {
-    export LP_WORKTREE_REFERENCE_BRANCH="$BRANCH"
+    lp_set_reference_branch "$BRANCH"
 }
 
 main() {
@@ -30,13 +30,20 @@ main() {
     # Check if we are being sourced
     if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         lp_error "Error: this command must be sourced to change your directory."
-        lp_error "Usage: lp worktree cd [branch]"
+        lp_error "Usage: lp worktree cd <branch>"
         return 1 2>/dev/null || exit 1
     fi
 
     parse_arguments "$@"
-    lp_resolve_branch --reference --default-master --vars
-    lp_validate_worktree
+
+    if [[ -z "$BRANCH" ]]; then
+        lp_error "Error: branch name is required."
+        lp_error "Usage: lp worktree cd <branch>"
+        return 1 2>/dev/null || exit 1
+    fi
+
+    lp_branch_vars "$BRANCH"
+    lp_validate_worktree || return $?
     change_directory
     update_reference
 }

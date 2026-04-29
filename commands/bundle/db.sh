@@ -77,8 +77,7 @@ main() {
 		shift
 	fi
 
-	branch="${branch:-$LP_WORKTREE_REFERENCE_BRANCH}"
-	branch="${branch:-master}"
+	branch="${branch:-$(lp_get_reference_branch)}"
 
 	lp_branch_vars "$branch"
 

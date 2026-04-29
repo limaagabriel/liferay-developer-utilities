@@ -55,7 +55,7 @@ lp_resolve_branch() {
     # 5. Fail if required
     if [[ "$require" -eq 1 ]]; then
         lp_error "Error: Not currently in a worktree. Please provide a branch name."
-        lp_error "Usage: lp worktree set [branch-name]"
+        lp_error "Usage: lp reference set [branch-name]"
         return 1 2>/dev/null || exit 1
     fi
 

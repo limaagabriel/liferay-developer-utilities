@@ -12,7 +12,7 @@ parse_arguments() {
         esac
     done
 
-    BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
+    BRANCH="${BRANCH:-$(lp_get_reference_branch)}"
 }
 
 check_sourced() {

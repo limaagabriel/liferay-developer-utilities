@@ -27,8 +27,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
-BRANCH="${BRANCH:-master}"
+BRANCH="${BRANCH:-$(lp_get_reference_branch)}"
 
 lp_branch_vars "$BRANCH"
 

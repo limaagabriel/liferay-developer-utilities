@@ -26,8 +26,7 @@ parse_arguments() {
         esac
     done
 
-    BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
-    BRANCH="${BRANCH:-master}"
+    BRANCH="${BRANCH:-$(lp_get_reference_branch)}"
 }
 
 main() {

@@ -21,7 +21,7 @@ parse_arguments() {
     done
 
     if [[ ${#BRANCHES[@]} -eq 0 ]]; then
-        local fallback="${LP_WORKTREE_REFERENCE_BRANCH:-master}"
+        local fallback="$(lp_get_reference_branch)"
         BRANCHES=("$fallback")
     fi
 }

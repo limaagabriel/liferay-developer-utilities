@@ -17,8 +17,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-BRANCH="${BRANCH:-$LP_WORKTREE_REFERENCE_BRANCH}"
-BRANCH="${BRANCH:-master}"
+BRANCH="${BRANCH:-$(lp_get_reference_branch)}"
 
 confirm_reset() {
     if [[ "$ASSUME_YES" -eq 1 ]]; then

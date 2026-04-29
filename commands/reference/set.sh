@@ -1,6 +1,6 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
-lp_init_command "worktree" "set" "$@"
+lp_init_command "reference" "set" "$@"
 
 parse_arguments() {
     BRANCH=""
@@ -14,20 +14,19 @@ parse_arguments() {
 }
 
 set_reference_branch() {
-    export LP_WORKTREE_REFERENCE_BRANCH="$BRANCH"
-    lp_info "Reference branch set to: $LP_WORKTREE_REFERENCE_BRANCH"
+    lp_set_reference_branch "$BRANCH"
+    lp_info "Reference branch set to: $(lp_get_reference_branch)"
 }
 
 main() {
-    lp_init_command "worktree" "set" "$@" || {
+    lp_init_command "reference" "set" "$@" || {
         local ec=$?
         [[ $ec -eq 255 ]] && return 0 || return $ec
     }
 
-    # Check if we are being sourced
     if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         lp_error "Error: this command must be sourced to update your session."
-        lp_error "Usage: lp worktree set [branch]"
+        lp_error "Usage: lp reference set [branch]"
         return 1 2>/dev/null || exit 1
     fi
 

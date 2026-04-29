@@ -15,24 +15,25 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree bundle base portal playwright mysql session config git self modules"
+_LP_NAMESPACES="worktree reference bundle base portal playwright mysql session config git self modules"
 
 # _lp_ns_alias <token> — resolve a namespace shorthand to its real name.
 # Returns the input unchanged if no alias matches.
 _lp_ns_alias() {
     case "$1" in
-        w)  echo "worktree" ;;
-        b)  echo "bundle" ;;
-        ba) echo "base" ;;
-        p)  echo "portal" ;;
-        pw) echo "playwright" ;;
-        ms) echo "mysql" ;;
-        s)  echo "session" ;;
-        c)  echo "config" ;;
-        g)  echo "git" ;;
-        se) echo "self" ;;
-        m)  echo "modules" ;;
-        *)  echo "$1" ;;
+        w)   echo "worktree" ;;
+        ref) echo "reference" ;;
+        b)   echo "bundle" ;;
+        ba)  echo "base" ;;
+        p)   echo "portal" ;;
+        pw)  echo "playwright" ;;
+        ms)  echo "mysql" ;;
+        s)   echo "session" ;;
+        c)   echo "config" ;;
+        g)   echo "git" ;;
+        se)  echo "self" ;;
+        m)   echo "modules" ;;
+        *)   echo "$1" ;;
     esac
 }
 
@@ -40,6 +41,7 @@ _lp_ns_alias() {
 _lp_ns_alias_for() {
     case "$1" in
         worktree)   echo "w" ;;
+        reference)  echo "ref" ;;
         bundle)     echo "b" ;;
         base)       echo "ba" ;;
         portal)     echo "p" ;;
@@ -58,6 +60,7 @@ _lp_ns_alias_for() {
 _lp_ns_desc() {
     case "$1" in
         worktree) echo "Manage git worktrees for portal branches" ;;
+        reference) echo "Manage the session's reference branch (used as default by other commands)" ;;
         bundle)   echo "Manage Liferay bundle directories" ;;
         base)     echo "Manage reusable base bundles for fast cloning into worktrees" ;;
         portal)   echo "Liferay Portal development utilities" ;;
@@ -75,7 +78,8 @@ _lp_ns_desc() {
 # _lp_ns_cmds <ns> — space-separated command list for a namespace (defines display order)
 _lp_ns_cmds() {
     case "$1" in
-        worktree) echo "add cd list remove get set unset root" ;;
+        worktree) echo "add cd list remove root" ;;
+        reference) echo "get set reset" ;;
         bundle)   echo "build db properties ports start kill reset cd remove info list env" ;;
         base)     echo "build list info refresh sync remove" ;;
         portal)   echo "buildLang cdm db gw sf sample setup" ;;
@@ -107,10 +111,10 @@ _lp_cmd_desc() {
         worktree/cd)      echo "Change the current directory to a worktree" ;;
         worktree/list)    echo "List all active worktrees and their bundles" ;;
         worktree/remove)  echo "Remove a worktree, its bundle directory, and any active session" ;;
-        worktree/get)     echo "Get the current session's reference branch" ;;
-        worktree/set)     echo "Set the reference branch for the session" ;;
-        worktree/unset)   echo "Reset the reference branch to master" ;;
         worktree/root)    echo "Change the current directory to the root of a worktree" ;;
+        reference/get)    echo "Get the current session's reference branch" ;;
+        reference/set)    echo "Set the reference branch for the session" ;;
+        reference/reset)  echo "Reset the reference branch to master" ;;
         portal/buildLang) echo "Run buildLang task in the portal-language-lang module" ;;
         portal/cdm)       echo "Fuzzy module search and cd in the current git repository" ;;
         portal/db)        echo "Switch between mysql (with optional db name) and hypersonic" ;;
@@ -177,10 +181,10 @@ _lp_cmd_usage() {
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
         worktree/remove)  echo "lp worktree remove [-b] [-y] [-v] <branch>..." ;;
-        worktree/get)     echo "lp worktree get" ;;
-        worktree/set)     echo "lp worktree set [branch-name]" ;;
-        worktree/unset)   echo "lp worktree unset" ;;
         worktree/root)    echo "lp worktree root" ;;
+        reference/get)    echo "lp reference get" ;;
+        reference/set)    echo "lp reference set [branch-name]" ;;
+        reference/reset)  echo "lp reference reset" ;;
         portal/buildLang) echo "lp portal buildLang [options]" ;;
         portal/cdm)       echo "lp portal cdm" ;;
         portal/db)        echo "lp portal db [mysql|hypersonic|database_name]" ;;
@@ -265,16 +269,16 @@ _lp_cmd_opts() {
             echo "  -v, --verbose   Show full git output"
             echo "  -h, --help      Show this help"
             ;;
-        worktree/get)
-            echo "  -h, --help      Show this help"
-            ;;
-        worktree/set)
-            echo "  -h, --help      Show this help"
-            ;;
-        worktree/unset)
-            echo "  -h, --help      Show this help"
-            ;;
         worktree/root)
+            echo "  -h, --help      Show this help"
+            ;;
+        reference/get)
+            echo "  -h, --help      Show this help"
+            ;;
+        reference/set)
+            echo "  -h, --help      Show this help"
+            ;;
+        reference/reset)
             echo "  -h, --help      Show this help"
             ;;
         portal/buildLang)
@@ -528,18 +532,18 @@ _lp_cmd_examples() {
             echo "  lp worktree remove -b feature-xyz"
             echo "  lp worktree remove -y feat-a feat-b feat-c"
             ;;
-        worktree/get)
-            echo "  lp worktree get"
-            ;;
-        worktree/set)
-            echo "  lp worktree set main"
-            echo "  lp worktree set             # uses current directory if in worktree"
-            ;;
-        worktree/unset)
-            echo "  lp worktree unset"
-            ;;
         worktree/root)
             echo "  lp worktree root"
+            ;;
+        reference/get)
+            echo "  lp reference get"
+            ;;
+        reference/set)
+            echo "  lp reference set main"
+            echo "  lp reference set             # uses current directory if in worktree"
+            ;;
+        reference/reset)
+            echo "  lp reference reset"
             ;;
         portal/buildLang)
             echo "  lp portal buildLang"
