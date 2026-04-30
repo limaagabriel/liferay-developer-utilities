@@ -10,7 +10,6 @@ parse_arguments() {
     BRANCH=""
     DB_TYPE=""
     FROM_BASE=""
-    NO_REFRESH=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -35,7 +34,6 @@ parse_arguments() {
             --quiet|-q)           VERBOSE=0; shift ;;
             --yes|-y)             ASSUME_YES=1; shift ;;
             --skip-if-exists|-s)  SKIP_IF_EXISTS=1; shift ;;
-            --no-refresh)         NO_REFRESH=1; shift ;;
             --verbose|-v)         shift ;;
             --help|-h)            shift ;;
             -*)
@@ -47,11 +45,6 @@ parse_arguments() {
     done
 
     BRANCH="${BRANCH:-$(lp_get_reference_branch)}"
-
-    if [[ $NO_REFRESH -eq 1 && -z "$FROM_BASE" ]]; then
-        lp_error "Option --no-refresh is only valid with --from-base."
-        return 1 2>/dev/null || exit 1
-    fi
 }
 
 prepare_bundle_directory() {
@@ -149,8 +142,8 @@ write_meta() {
 }
 
 build_from_base() {
-    TOTAL_STEPS=5
-    [[ -d "$BUNDLE_DIR" ]] && TOTAL_STEPS=$((TOTAL_STEPS + 1))
+    TOTAL_STEPS=4
+    [[ -d "$BUNDLE_DIR" ]] && TOTAL_STEPS=5
     STEP=1
 
     clone_from_base || return $?
@@ -158,27 +151,13 @@ build_from_base() {
     configure_properties || return $?
     write_meta "base:$FROM_BASE" || return $?
 
-    local setup_flag="-r"
-    local setup_label="Running portal setup + jar refresh (lp portal setup -r)"
-    if [[ $NO_REFRESH -eq 1 ]]; then
-        setup_flag="-s"
-        setup_label="Running portal setup + snapshots only (lp portal setup -s, --no-refresh)"
-    fi
-
-    lp_section "$STEP" "$TOTAL_STEPS" "$setup_label" \
-        "$_LP_SCRIPTS_DIR/commands/portal/setup.sh" "$setup_flag" "$BRANCH" || return $?
-    STEP=$((STEP + 1))
-
     lp_success "Bundle cloned from base '$FROM_BASE' at '$BUNDLE_DIR'."
-
-    if [[ $NO_REFRESH -eq 1 ]]; then
-        echo
-        lp_info "INFO: Skipped portal jar refresh in bundle (--no-refresh)."
-        lp_info "      Worktree tooling + .m2 SNAPSHOTs were installed, but"
-        lp_info "      branch-specific portal-impl/kernel/util changes (incl."
-        lp_info "      new feature flags) are NOT reflected in the bundle."
-        lp_info "      Run 'lp portal setup -r $BRANCH' to refresh."
-    fi
+    echo
+    lp_info "INFO: Bundle built from base skips 'ant all', so portal tooling"
+    lp_info "      (gradle wrapper, node, yarn, jest, etc.) was NOT installed"
+    lp_info "      in '$WORKTREE_DIR'."
+    lp_info "      Run 'lp portal setup -s $BRANCH' to install missing tooling"
+    lp_info "      (use -s to also publish portal SNAPSHOT jars to local .m2)."
 }
 
 build_from_scratch() {

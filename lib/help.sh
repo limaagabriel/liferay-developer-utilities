@@ -193,7 +193,7 @@ _lp_cmd_usage() {
             echo "lp portal gw [options] [tasks...]" ;;
         portal/sf)
             echo "lp portal sf [options]" ;;
-        portal/setup)     echo "lp portal setup [-q|-v] [-s|-r] [branch]" ;;
+        portal/setup)     echo "lp portal setup [-q|-v] [-s] [branch]" ;;
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
         bundle/build)     echo "lp bundle build [options] <branch>" ;;
@@ -312,10 +312,6 @@ _lp_cmd_opts() {
             echo "  -s, --snapshots-included  Also run 'ant install-portal-snapshots' to publish the full portal"
             echo "                            SNAPSHOT set (impl, test, web, util-*) to local .m2."
             echo "                            'ant compile' already installs the portal-kernel snapshot."
-            echo "  -r, --refresh             Rebuild and refresh portal jars in the bundle via 'ant deploy'"
-            echo "                            (deploys portal-kernel, util-*, portal-impl, portal-test, portal-web"
-            echo "                            into \$BUNDLE_DIR and installs the SNAPSHOT set to local .m2)."
-            echo "                            Mutually exclusive with -s."
             echo "  -q, --quiet               Hide ant output"
             echo "  -v, --verbose             Show full ant output (default)"
             echo "  -h, --help                Show this help"
@@ -336,11 +332,7 @@ _lp_cmd_opts() {
             ;;
         bundle/build)
             echo "  -d, --db <database>     Database type (hypersonic|mysql)"
-            echo "  -f, --from-base <name>  Clone from a base bundle instead of building from scratch."
-            echo "                          Triggers 'lp portal setup -r' to install worktree tooling and"
-            echo "                          refresh portal jars (incl. branch-specific feature flags) in the bundle."
-            echo "      --no-refresh        Skip portal jar refresh after clone; still runs 'lp portal setup -s'"
-            echo "                          (snapshots-only). Only valid with --from-base."
+            echo "  -f, --from-base <name>  Clone from a base bundle instead of building from scratch"
             echo "  -q, --quiet             Hide full ant/git output (unless error)"
             echo "  -y, --yes               Skip confirmation for deleting existing bundle"
             echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
@@ -587,7 +579,6 @@ _lp_cmd_examples() {
             echo "  lp portal setup LPD-12345"
             echo "  lp portal setup -q master"
             echo "  lp portal setup -s LPD-12345"
-            echo "  lp portal setup -r LPD-12345"
             ;;
         portal/sample)
             echo "  lp portal sample -c my-extension"
@@ -609,7 +600,6 @@ _lp_cmd_examples() {
             echo "  lp bundle build -y main"
             echo "  lp bundle build -s main"
             echo "  lp bundle build LPD-12345 --from-base master"
-            echo "  lp bundle build LPD-12345 --from-base master --no-refresh"
             ;;
         bundle/rebase)
             echo "  lp bundle rebase --from-base master-7.4"
