@@ -21,7 +21,7 @@ parse_arguments() {
         fi
     fi
 
-    SESSION_NAME="$BRANCH"
+    SESSION_NAME=$(_lp_session_name "$BRANCH")
 }
 
 validate_session() {

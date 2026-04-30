@@ -59,7 +59,7 @@ parse_arguments() {
 }
 
 handle_existing_session() {
-    SESSION_NAME="$BRANCH"
+    SESSION_NAME=$(_lp_session_name "$BRANCH")
     if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
         lp_info "Session '$SESSION_NAME' already exists. Attaching..."
         _lp_set_tmux_titles "$SESSION_NAME"
@@ -163,6 +163,8 @@ setup_tmux_session() {
     # Set base-index to 1 and move the first window from 0 to 1
     tmux set-option -t "$SESSION_NAME" base-index 1
     tmux move-window -t "$SESSION_NAME:0" -t "$SESSION_NAME:1" 2>/dev/null || true
+
+    tmux set-option -t "$SESSION_NAME" @lp-branch "$BRANCH"
 
     if [[ -n "$DESCRIPTION" ]]; then
         tmux set-option -t "$SESSION_NAME" @lp-description "$DESCRIPTION"

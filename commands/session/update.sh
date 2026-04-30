@@ -53,6 +53,8 @@ detect_session() {
             echo "Usage: lp session update [branch] [-d description] [-s status]"
             return 1 2>/dev/null || exit 1
         fi
+    else
+        BRANCH=$(_lp_session_name "$BRANCH")
     fi
 
     if ! tmux has-session -t "$BRANCH" 2>/dev/null; then

@@ -1,6 +1,16 @@
 #!/bin/bash
 # lib/session.sh — Session management helpers for lp.
 
+# _lp_session_name <branch> — translate a branch name into a tmux-safe session name.
+# tmux reserves '.' and ':' as target separators (session:window.pane), so any
+# branch containing them (e.g. release-7.4.13.149) breaks `tmux -t` lookups.
+_lp_session_name() {
+    local name="$1"
+    name="${name//./_}"
+    name="${name//:/_}"
+    echo "$name"
+}
+
 # _lp_status_emoji <status> — return emoji for a session status
 _lp_status_emoji() {
     case "$1" in
@@ -44,12 +54,13 @@ _lp_update_tmux_status_line() {
     emoji=$(_lp_status_emoji "$status_name")
     
     status_part="$emoji#($_LP_SCRIPTS_DIR/commands/session/icon.sh #S)"
-    
+
     if [[ -n "$description" ]]; then
         status_part="$status_part ($description)"
     fi
-    
-    tmux set-option -t "$session" status-left "  #S  $status_part"
+
+    local label='#{?#{@lp-branch},#{@lp-branch},#S}'
+    tmux set-option -t "$session" status-left "  $label  $status_part"
     tmux set-option -t "$session" status-left-length 100
     tmux set-option -t "$session" status-interval 5
 
@@ -67,7 +78,8 @@ _lp_set_tmux_titles() {
     emoji=$(_lp_status_emoji "$status_name")
     
     # Note: Terminal title also supports #(...) format
-    title_string="#S $emoji#($_LP_SCRIPTS_DIR/commands/session/icon.sh #S)"
+    local label='#{?#{@lp-branch},#{@lp-branch},#S}'
+    title_string="$label $emoji#($_LP_SCRIPTS_DIR/commands/session/icon.sh #S)"
     
     if [[ -n "$description" ]]; then
         title_string="$title_string - $description"

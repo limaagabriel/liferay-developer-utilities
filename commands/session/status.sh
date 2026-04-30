@@ -20,8 +20,10 @@ parse_arguments() {
     BRANCH=""
     STATUS_NAME=""
 
-    if tmux has-session -t "$1" 2>/dev/null; then
-        BRANCH="$1"
+    local maybe_session
+    maybe_session=$(_lp_session_name "$1")
+    if tmux has-session -t "$maybe_session" 2>/dev/null; then
+        BRANCH="$maybe_session"
         shift
         STATUS_NAME="$1"
     else

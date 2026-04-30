@@ -65,7 +65,9 @@ add_window() {
     session_name=$(tmux display-message -p '#S')
     local user_shell="${SHELL:-bash}"
     
-    local branch="$session_name"
+    local branch
+    branch=$(tmux show-option -t "$session_name" -qv @lp-branch)
+    [[ -z "$branch" ]] && branch="$session_name"
     local init_cmd="source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$branch\" > /dev/null 2>&1;"
 
     local tmp_cmd
