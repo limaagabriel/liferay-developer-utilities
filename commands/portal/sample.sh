@@ -11,17 +11,22 @@ parse_arguments() {
         case "$1" in
             --list|-l) LIST_ONLY=1; shift ;;
             --verbose|-v) shift ;;
+            --client-extension|-c)
+                if [[ -n "$2" && "$2" != -* ]]; then
+                    CET_PATTERN="$2"
+                    shift 2
+                else
+                    LIST_ONLY=1
+                    shift
+                fi
+                ;;
             -*)
                 lp_error "Unknown option: $1"
                 return 1 2>/dev/null || exit 1
                 ;;
             *)
-                if [[ "$1" == *"*"* || -z "$BRANCH" ]]; then
-                    if [[ "$1" == *"*"* ]]; then
-                         CET_PATTERN="$1"
-                    else
-                         BRANCH="$1"
-                    fi
+                if [[ -z "$BRANCH" ]]; then
+                    BRANCH="$1"
                 fi
                 shift
                 ;;
@@ -84,6 +89,7 @@ configure_liferay_workspace() {
     if [[ "$HAD_GRADLE_PROPERTIES" -eq 1 ]]; then
         sed -i "/^[[:space:]]*#[[:space:]]*liferay.workspace.home.dir[[:space:]]*=/d" "$gradle_properties"
         sed -i "/^[[:space:]]*liferay.workspace.home.dir[[:space:]]*=/d" "$gradle_properties"
+        [[ -s "$gradle_properties" && -n "$(tail -c1 "$gradle_properties")" ]] && echo "" >> "$gradle_properties"
     fi
 
     echo "liferay.workspace.home.dir=$BUNDLE_DIR" >> "$gradle_properties"
@@ -102,9 +108,11 @@ cleanup() {
 deploy_extensions() {
     local total=${#MATCHES[@]}
     local i=0
-    
+
     IFS=$'\n' local sorted_matches=($(sort <<<"${MATCHES[*]}"))
     unset IFS
+
+    lp_info "Target bundle: $BUNDLE_DIR"
 
     for cet_dir in "${sorted_matches[@]}"; do
         ((i++))
@@ -113,7 +121,7 @@ deploy_extensions() {
         (cd "$cet_dir" && lp_run zsh -ic "gw deploy")
     done
 
-    lp_success "Successfully deployed $total client extension(s)."
+    lp_success "Successfully deployed $total client extension(s) to $BUNDLE_DIR."
 }
 
 main() {
