@@ -202,7 +202,7 @@ _lp_cmd_usage() {
         bundle/properties) echo "lp bundle properties [options] [branch]" ;;
         bundle/ports)     echo "lp bundle ports [branch]" ;;
         bundle/start)     echo "lp bundle start [-v] [branch]" ;;
-        bundle/kill)      echo "lp bundle kill [-v] [branch]" ;;
+        bundle/kill)      echo "lp bundle kill [-y|--yes] [-v] [branch]" ;;
         bundle/reset)     echo "lp bundle reset [-y|--yes] [-v] [branch]" ;;
         bundle/cd)        echo "lp bundle cd <branch>" ;;
         bundle/remove)    echo "lp bundle remove [-v] <branch>" ;;
@@ -376,6 +376,7 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         bundle/kill)
+            echo "  -y, --yes       Skip confirmation prompt"
             echo "  -v, --verbose   Show full output"
             echo "  -h, --help      Show this help"
             ;;
