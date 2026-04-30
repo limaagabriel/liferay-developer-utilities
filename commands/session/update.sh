@@ -64,12 +64,21 @@ detect_session() {
 }
 
 apply_updates() {
+    local total=0
+    [[ -n "$DESCRIPTION" ]] && ((total++))
+    [[ -n "$STATUS_NAME" ]] && ((total++))
+
+    local step=1
     if [[ -n "$DESCRIPTION" ]]; then
-        "$_LP_SCRIPTS_DIR/commands/session/describe.sh" "$BRANCH" "$DESCRIPTION"
+        lp_section "$step" "$total" "Updating description for '$BRANCH'" \
+            "$_LP_SCRIPTS_DIR/commands/session/describe.sh" "$BRANCH" "$DESCRIPTION"
+        ((step++))
     fi
 
     if [[ -n "$STATUS_NAME" ]]; then
-        "$_LP_SCRIPTS_DIR/commands/session/status.sh" "$BRANCH" "$STATUS_NAME"
+        lp_section "$step" "$total" "Updating status for '$BRANCH'" \
+            "$_LP_SCRIPTS_DIR/commands/session/status.sh" "$BRANCH" "$STATUS_NAME"
+        ((step++))
     fi
 }
 
