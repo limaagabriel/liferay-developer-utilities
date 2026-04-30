@@ -6,12 +6,14 @@ parse_arguments() {
     VERBOSE=1
     BRANCH=""
     SNAPSHOTS_INCLUDED=0
+    REFRESH=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --quiet|-q)              VERBOSE=0; shift ;;
             --verbose|-v)            shift ;;
             --snapshots-included|-s) SNAPSHOTS_INCLUDED=1; shift ;;
+            --refresh|-r)            REFRESH=1; shift ;;
             --help|-h)               shift ;;
             -*)
                 lp_error "Unknown option: $1"
@@ -22,17 +24,31 @@ parse_arguments() {
     done
 
     BRANCH="${BRANCH:-$(lp_get_reference_branch)}"
+
+    if [[ $REFRESH -eq 1 && $SNAPSHOTS_INCLUDED -eq 1 ]]; then
+        lp_error "Options -r/--refresh and -s/--snapshots-included are mutually exclusive ('ant deploy' already installs snapshots)."
+        return 1 2>/dev/null || exit 1
+    fi
 }
 
 main() {
-    parse_arguments "$@"
+    parse_arguments "$@" || return $?
     lp_branch_vars "$BRANCH"
     lp_validate_worktree || return $?
+
+    if [[ $REFRESH -eq 1 ]]; then
+        lp_load_bundle_dir || return $?
+        [[ -d "$BUNDLE_DIR" ]] || {
+            lp_error "Cannot refresh: bundle directory not found at '$BUNDLE_DIR'."
+            return 1
+        }
+    fi
 
     cd "$WORKTREE_DIR" || return 1
 
     local total_steps=2
     [[ $SNAPSHOTS_INCLUDED -eq 1 ]] && total_steps=3
+    [[ $REFRESH -eq 1 ]]            && total_steps=3
     local step=1
 
     lp_step "$step" "$total_steps" "Running ant setup-profile-dxp"
@@ -43,7 +59,10 @@ main() {
     lp_run ant compile || return $?
     step=$((step + 1))
 
-    if [[ $SNAPSHOTS_INCLUDED -eq 1 ]]; then
+    if [[ $REFRESH -eq 1 ]]; then
+        lp_step "$step" "$total_steps" "Refreshing portal jars in bundle '$BUNDLE_DIR' (ant deploy)"
+        lp_run ant deploy || return $?
+    elif [[ $SNAPSHOTS_INCLUDED -eq 1 ]]; then
         lp_step "$step" "$total_steps" "Installing full portal SNAPSHOT set to local .m2 (impl, test, web, util-*)"
         lp_run ant install-portal-snapshots || return $?
     fi
