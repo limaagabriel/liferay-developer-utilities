@@ -28,7 +28,7 @@ confirm_reset() {
     read -p " Reset the database '$BRANCH'? This will drop and recreate it. [y/N] " confirm
     if [[ "$confirm" != "y" ]]; then
         lp_info "Aborted."
-        return 0 2>/dev/null || exit 0
+        return 1
     fi
 }
 
@@ -43,7 +43,7 @@ create_database() {
 }
 
 main() {
-    confirm_reset
+    confirm_reset || return 0
     drop_database
     create_database
     lp_success "Database reset complete."

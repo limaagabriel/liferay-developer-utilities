@@ -31,7 +31,7 @@ confirm_reset() {
     read -p " Reset the bundle and database for '$BRANCH'? [y/N] " confirm
     if [[ "$confirm" != "y" ]]; then
         lp_info "Aborted."
-        return 0 2>/dev/null || exit 0
+        return 1
     fi
 }
 
@@ -95,7 +95,7 @@ main() {
     parse_arguments "$@"
     lp_branch_vars "$BRANCH"
     validate_bundle
-    confirm_reset
+    confirm_reset || return 0
     lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
 
     local mysql_active=0

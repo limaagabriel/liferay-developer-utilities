@@ -7,7 +7,7 @@ confirm_stop() {
     read -p "Stop the shared MySQL container? This will affect all running bundles using it. [y/N] " confirm
     if [[ "$confirm" != "y" ]]; then
         lp_info "Aborted."
-        return 0 2>/dev/null || exit 0
+        return 1
     fi
 }
 
@@ -19,7 +19,7 @@ stop_mysql_container() {
 }
 
 main() {
-    confirm_stop
+    confirm_stop || return 0
     stop_mysql_container
     lp_success "MySQL has been stopped."
 }

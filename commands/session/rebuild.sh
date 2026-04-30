@@ -28,7 +28,7 @@ confirm_action() {
         [yY]|[yY][eE][sS]) ;;
         *)
             lp_info "Aborted."
-            return 0 2>/dev/null || exit 0
+            return 1
             ;;
     esac
 }
@@ -82,7 +82,7 @@ send_rebuild_command() {
 main() {
     check_tmux_session
     validate_lp_session
-    confirm_action
+    confirm_action || return 0
 
     TOTAL_STEPS=3
     CURRENT_STEP=1

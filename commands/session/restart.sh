@@ -28,7 +28,7 @@ confirm_restart() {
         [yY]|[yY][eE][sS]) ;;
         *)
             lp_info "Aborted."
-            return 0 2>/dev/null || exit 0
+            return 1
             ;;
     esac
 }
@@ -78,7 +78,7 @@ restart_portal() {
 main() {
     check_tmux_context
     verify_lp_session
-    confirm_restart
+    confirm_restart || return 0
 
     TOTAL_STEPS=3
     CURRENT_STEP=1

@@ -24,7 +24,7 @@ confirm_removal() {
     read -p " Remove bundle '$BUNDLE_DIR'? [y/N] " confirm
     if [[ "$confirm" != "y" ]]; then
         lp_info "Aborted."
-        return 0 2>/dev/null || exit 0
+        return 1
     fi
 }
 
@@ -36,7 +36,7 @@ remove_bundle() {
 main() {
     parse_arguments "$@"
     lp_branch_vars "$BRANCH"
-    confirm_removal
+    confirm_removal || return 0
     remove_bundle
     lp_success "Done!"
 }
