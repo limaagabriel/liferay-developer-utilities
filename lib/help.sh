@@ -80,7 +80,7 @@ _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove root" ;;
         reference) echo "get set reset" ;;
-        bundle)   echo "build db properties ports start kill reset cd remove info list env" ;;
+        bundle)   echo "build rebase db properties ports start kill reset cd remove info list env" ;;
         base)     echo "build list info refresh sync remove" ;;
         portal)   echo "buildLang cdm db gw sf sample setup" ;;
         playwright) echo "test trace" ;;
@@ -124,6 +124,7 @@ _lp_cmd_desc() {
         playwright/test)  echo "Run Playwright tests in the current worktree" ;;
         playwright/trace) echo "Open a Playwright trace file in the trace viewer" ;;
         bundle/build)     echo "Build the portal bundle from the worktree" ;;
+        bundle/rebase)    echo "Rebuild a bundle from a different base bundle (destructive)" ;;
         bundle/db)        echo "Control the database backend inside a bundle (hypersonic/mysql)" ;;
         bundle/properties) echo "Copy portal-ext.properties and set database to branch name" ;;
         bundle/ports)     echo "Configure TCP port offsets for the bundle" ;;
@@ -196,6 +197,7 @@ _lp_cmd_usage() {
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
         bundle/build)     echo "lp bundle build [options] <branch>" ;;
+        bundle/rebase)    echo "lp bundle rebase [<branch>] --from-base <name> [-y]" ;;
         bundle/db)        echo "lp bundle db [mysql|hypersonic] [branch]" ;;
         bundle/properties) echo "lp bundle properties [options] [branch]" ;;
         bundle/ports)     echo "lp bundle ports [branch]" ;;
@@ -334,6 +336,12 @@ _lp_cmd_opts() {
             echo "  -q, --quiet             Hide full ant/git output (unless error)"
             echo "  -y, --yes               Skip confirmation for deleting existing bundle"
             echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
+            echo "  -h, --help              Show this help"
+            ;;
+        bundle/rebase)
+            echo "  -f, --from-base <name>  Target base bundle to rebuild from (required)"
+            echo "  -y, --yes               Skip confirmation prompt"
+            echo "  -v, --verbose           Show full output"
             echo "  -h, --help              Show this help"
             ;;
         base/build)
@@ -592,6 +600,11 @@ _lp_cmd_examples() {
             echo "  lp bundle build -y main"
             echo "  lp bundle build -s main"
             echo "  lp bundle build LPD-12345 --from-base master"
+            ;;
+        bundle/rebase)
+            echo "  lp bundle rebase --from-base master-7.4"
+            echo "  lp bundle rebase LPD-12345 --from-base master"
+            echo "  lp bundle rebase LPD-12345 --from-base master -y"
             ;;
         base/build)
             echo "  lp base build master"
