@@ -10,6 +10,7 @@ parse_arguments() {
     BRANCH=""
     DB_TYPE=""
     FROM_BASE=""
+    AUTO_BASE_BUILD=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -31,6 +32,7 @@ parse_arguments() {
                     return 1 2>/dev/null || exit 1
                 fi
                 ;;
+            --auto-base-build|-a) AUTO_BASE_BUILD=1; shift ;;
             --quiet|-q)           VERBOSE=0; shift ;;
             --yes|-y)             ASSUME_YES=1; shift ;;
             --skip-if-exists|-s)  SKIP_IF_EXISTS=1; shift ;;
@@ -176,6 +178,19 @@ build_from_scratch() {
     lp_success "Bundle built at '$BUNDLE_DIR'."
 }
 
+run_auto_base_build() {
+    [[ $AUTO_BASE_BUILD -eq 1 ]] || return 0
+    [[ $BUILD_SKIPPED -eq 1 ]] && return 0
+
+    local timestamp base_name
+    timestamp=$(date +%Y%m%d%H%M)
+    base_name="${BRANCH}-${timestamp}"
+
+    echo
+    lp_info "Auto base build: creating '$base_name'"
+    "$_LP_SCRIPTS_DIR/commands/base/build.sh" -y -b "$BRANCH" "$base_name"
+}
+
 main() {
     parse_arguments "$@"
     lp_branch_vars "$BRANCH"
@@ -183,10 +198,12 @@ main() {
     lp_load_bundle_dir || return $?
 
     if [[ -n "$FROM_BASE" ]]; then
-        build_from_base
+        build_from_base || return $?
     else
-        build_from_scratch
+        build_from_scratch || return $?
     fi
+
+    run_auto_base_build
 }
 
 main "$@"
