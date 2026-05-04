@@ -64,7 +64,7 @@ get_changed_files() {
         fi
     fi
 
-    CHANGED_FILES=$(echo "$RAW_CHANGED_FILES" | grep "^modules/")
+    CHANGED_FILES=$(echo "$RAW_CHANGED_FILES" | grep "^modules/" | grep -v "^modules/test/")
 }
 
 find_module_root() {
