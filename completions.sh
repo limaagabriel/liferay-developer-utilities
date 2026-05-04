@@ -80,6 +80,7 @@ _lp_get_db_completions() {
 # Main completion function for the lp command.
 _lp_complete() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
+    local prev="${COMP_WORDS[COMP_CWORD-1]:-}"
     local ns="${COMP_WORDS[1]:-}"
     local cmd="${COMP_WORDS[2]:-}"
 
@@ -89,6 +90,15 @@ _lp_complete() {
     fi
 
     COMPREPLY=()
+
+    # Complete base bundle names after --from-base / -f.
+    if [[ "$prev" == "--from-base" || "$prev" == "-f" ]]; then
+        local names
+        names=$(_lp_get_base_names)
+        # shellcheck disable=SC2207
+        COMPREPLY=( $(compgen -W "$names" -- "$cur") )
+        return 0
+    fi
 
     # Offer branch completions when past `lp <ns> <cmd>` and the current word is
     # not a flag, for subcommands that accept a branch name argument.
@@ -123,10 +133,19 @@ if [[ -n "${ZSH_VERSION:-}" ]]; then
     _lp_complete_zsh() {
         local ns="${words[2]:-}"
         local cmd="${words[3]:-}"
+        local prev="${words[CURRENT-1]:-}"
 
         # Resolve namespace shorthand (e.g. w → worktree)
         if (( $+functions[_lp_ns_alias] )); then
             ns=$(_lp_ns_alias "$ns")
+        fi
+
+        # Complete base bundle names after --from-base / -f.
+        if [[ "$prev" == "--from-base" || "$prev" == "-f" ]]; then
+            local -a names
+            names=( $(_lp_get_base_names) )
+            compadd -- "${names[@]}"
+            return
         fi
 
         # Offer completions at position 4 (lp <ns> <cmd> <branch/db>)
