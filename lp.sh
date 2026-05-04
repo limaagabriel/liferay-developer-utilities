@@ -15,6 +15,7 @@ fi
 
 source "$_LP_SCRIPTS_DIR/lib/help.sh"
 source "$_LP_SCRIPTS_DIR/lib/output.sh"
+source "$_LP_SCRIPTS_DIR/lib/reference.sh"
 
 # Enable tab completion if configured (or if no user config exists yet, default yes)
 _LP_USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
@@ -89,6 +90,7 @@ lp() {
     # Print preamble banner
     echo ""
     echo "Liferay Portal Developer CLI"
+    echo "Reference worktree: $(lp_get_reference_branch)"
     echo "Running lp $namespace $command..."
     echo ""
 
