@@ -80,7 +80,7 @@ _lp_ns_cmds() {
     case "$1" in
         worktree) echo "add cd list remove root" ;;
         reference) echo "get set reset" ;;
-        bundle)   echo "build rebase db properties ports start kill reset cd remove info list env" ;;
+        bundle)   echo "build refresh rebase db properties ports start kill reset cd remove info list env" ;;
         base)     echo "build list info refresh sync remove" ;;
         portal)   echo "buildLang cdm db gw sf sample setup" ;;
         playwright) echo "test trace" ;;
@@ -124,6 +124,7 @@ _lp_cmd_desc() {
         playwright/test)  echo "Run Playwright tests in the current worktree" ;;
         playwright/trace) echo "Open a Playwright trace file in the trace viewer" ;;
         bundle/build)     echo "Build the portal bundle from the worktree" ;;
+        bundle/refresh)   echo "Refresh portal jars in the active bundle" ;;
         bundle/rebase)    echo "Rebuild a bundle from a different base bundle (destructive)" ;;
         bundle/db)        echo "Control the database backend inside a bundle (hypersonic/mysql)" ;;
         bundle/properties) echo "Copy portal-ext.properties and set database to branch name" ;;
@@ -197,6 +198,7 @@ _lp_cmd_usage() {
         playwright/test)  echo "lp playwright test [options] <test-name>" ;;
         playwright/trace) echo "lp playwright trace <trace-file>" ;;
         bundle/build)     echo "lp bundle build [options] <branch>" ;;
+        bundle/refresh)   echo "lp bundle refresh [-q|-v] [branch]" ;;
         bundle/rebase)    echo "lp bundle rebase [<branch>] --from-base <name> [-y]" ;;
         bundle/db)        echo "lp bundle db [mysql|hypersonic] [branch]" ;;
         bundle/properties) echo "lp bundle properties [options] [branch]" ;;
@@ -333,10 +335,17 @@ _lp_cmd_opts() {
         bundle/build)
             echo "  -d, --db <database>     Database type (hypersonic|mysql)"
             echo "  -f, --from-base <name>  Clone from a base bundle instead of building from scratch"
+            echo "  -n, --no-refresh        Skip the auto-refresh after a --from-base build (requires --from-base)"
+            echo "  -a, --auto-base-build   After build, snapshot the bundle as a new base bundle"
             echo "  -q, --quiet             Hide full ant/git output (unless error)"
             echo "  -y, --yes               Skip confirmation for deleting existing bundle"
             echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"
             echo "  -h, --help              Show this help"
+            ;;
+        bundle/refresh)
+            echo "  -q, --quiet     Hide ant output"
+            echo "  -v, --verbose   Show full ant output (default)"
+            echo "  -h, --help      Show this help"
             ;;
         bundle/rebase)
             echo "  -f, --from-base <name>  Target base bundle to rebuild from (required)"
@@ -601,6 +610,11 @@ _lp_cmd_examples() {
             echo "  lp bundle build -y main"
             echo "  lp bundle build -s main"
             echo "  lp bundle build LPD-12345 --from-base master"
+            echo "  lp bundle build LPD-12345 --from-base master --no-refresh"
+            ;;
+        bundle/refresh)
+            echo "  lp bundle refresh"
+            echo "  lp bundle refresh LPD-12345"
             ;;
         bundle/rebase)
             echo "  lp bundle rebase --from-base master-7.4"

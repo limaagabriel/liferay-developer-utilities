@@ -11,6 +11,7 @@ parse_arguments() {
     DB_TYPE=""
     FROM_BASE=""
     AUTO_BASE_BUILD=0
+    NO_REFRESH=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -33,6 +34,7 @@ parse_arguments() {
                 fi
                 ;;
             --auto-base-build|-a) AUTO_BASE_BUILD=1; shift ;;
+            --no-refresh|-n)      NO_REFRESH=1; shift ;;
             --quiet|-q)           VERBOSE=0; shift ;;
             --yes|-y)             ASSUME_YES=1; shift ;;
             --skip-if-exists|-s)  SKIP_IF_EXISTS=1; shift ;;
@@ -47,6 +49,11 @@ parse_arguments() {
     done
 
     BRANCH="${BRANCH:-$(lp_get_reference_branch)}"
+
+    if [[ $NO_REFRESH -eq 1 && -z "$FROM_BASE" ]]; then
+        lp_error "--no-refresh requires --from-base."
+        return 1 2>/dev/null || exit 1
+    fi
 }
 
 prepare_bundle_directory() {
@@ -143,9 +150,16 @@ write_meta() {
     STEP=$((STEP + 1))
 }
 
+run_refresh() {
+    lp_section "$STEP" "$TOTAL_STEPS" "Refreshing bundle (portal setup + ant deploy)" \
+        "$_LP_SCRIPTS_DIR/commands/bundle/refresh.sh" "$BRANCH"
+    STEP=$((STEP + 1))
+}
+
 build_from_base() {
     TOTAL_STEPS=4
-    [[ -d "$BUNDLE_DIR" ]] && TOTAL_STEPS=5
+    [[ -d "$BUNDLE_DIR" ]] && TOTAL_STEPS=$((TOTAL_STEPS + 1))
+    [[ $NO_REFRESH -eq 0 ]] && TOTAL_STEPS=$((TOTAL_STEPS + 1))
     STEP=1
 
     clone_from_base || return $?
@@ -153,13 +167,20 @@ build_from_base() {
     configure_properties || return $?
     write_meta "base:$FROM_BASE" || return $?
 
+    if [[ $NO_REFRESH -eq 0 ]]; then
+        run_refresh || return $?
+        lp_success "Bundle cloned from base '$FROM_BASE' and refreshed at '$BUNDLE_DIR'."
+        return 0
+    fi
+
     lp_success "Bundle cloned from base '$FROM_BASE' at '$BUNDLE_DIR'."
     echo
-    lp_info "INFO: Bundle built from base skips 'ant all', so portal tooling"
-    lp_info "      (gradle wrapper, node, yarn, jest, etc.) was NOT installed"
-    lp_info "      in '$WORKTREE_DIR'."
-    lp_info "      Run 'lp portal setup -s $BRANCH' to install missing tooling"
-    lp_info "      (use -s to also publish portal SNAPSHOT jars to local .m2)."
+    lp_info "INFO: --no-refresh skipped portal setup and 'ant deploy', so the"
+    lp_info "      bundle's portal jars still match base '$FROM_BASE' and"
+    lp_info "      worktree tooling (gradle wrapper, node, yarn, jest, etc.)"
+    lp_info "      is NOT installed in '$WORKTREE_DIR'."
+    lp_info "      Run 'lp bundle refresh $BRANCH' when you need the bundle to"
+    lp_info "      reflect the worktree's portal source."
 }
 
 build_from_scratch() {
@@ -192,7 +213,7 @@ run_auto_base_build() {
 }
 
 main() {
-    parse_arguments "$@"
+    parse_arguments "$@" || return $?
     lp_branch_vars "$BRANCH"
     lp_validate_worktree || return $?
     lp_load_bundle_dir || return $?

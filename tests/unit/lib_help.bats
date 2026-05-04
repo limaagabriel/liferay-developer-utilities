@@ -57,3 +57,24 @@ setup() {
     [[ "$output" == *"add         Add a new git worktree for a branch"* ]]
     [[ "$output" == *"Usage:   lp worktree add [options] <branch>"* ]]
 }
+
+@test "lp_print_command_help bundle refresh prints description, usage, options, and examples" {
+    run lp_print_command_help "bundle" "refresh"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Refresh portal jars in the active bundle"* ]]
+    [[ "$output" == *"Usage: lp bundle refresh"* ]]
+    [[ "$output" == *"-q, --quiet"* ]]
+    [[ "$output" == *"lp bundle refresh"* ]]
+}
+
+@test "_lp_ns_cmds bundle includes refresh" {
+    cmds=$(_lp_ns_cmds bundle)
+    [[ " $cmds " == *" refresh "* ]]
+}
+
+@test "lp_print_command_help bundle build documents --no-refresh" {
+    run lp_print_command_help "bundle" "build"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"-n, --no-refresh"* ]]
+    [[ "$output" == *"requires --from-base"* ]]
+}
