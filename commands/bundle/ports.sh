@@ -21,7 +21,7 @@ parse_arguments() {
 
 ports_in_use() {
     local offset=$1
-    local ports=($((8080 + offset)) $((8005 + offset)) $((11311 + offset)) $((9201 + offset)) $((9301 + offset)) $((4000 + offset)))
+    local ports=($((8080 + offset)) $((8005 + offset)) $((11311 + offset)) $((9201 + offset)) $((9301 + offset)) $((4000 + offset)) $((8000 + offset)))
     for port in "${ports[@]}"; do
         nc -z localhost "$port" 2>/dev/null && return 0
     done
@@ -100,6 +100,23 @@ configure_arquillian_dataguard() {
     echo "port=\"$((42763 + OFFSET))\"" > "$OSGI_CONFIGS_DIR/com.liferay.portal.dataguard.configuration.DataGuardConnector.config"
 }
 
+configure_jpda() {
+    local tomcat_dir
+    tomcat_dir=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" | head -n 1)
+    [[ -n "$tomcat_dir" ]] || return 0
+
+    local setenv="$tomcat_dir/bin/setenv.sh"
+    lp_info "Updating Tomcat setenv.sh JPDA_ADDRESS"
+
+    if [[ -f "$setenv" ]]; then
+        sed -i '/^export JPDA_ADDRESS=/d' "$setenv"
+    else
+        echo "#!/bin/bash" > "$setenv"
+        chmod +x "$setenv"
+    fi
+    echo "export JPDA_ADDRESS=localhost:$((8000 + OFFSET))" >> "$setenv"
+}
+
 configure_glowroot() {
     local glowroot_admin="$BUNDLE_DIR/glowroot/admin.json"
     [[ -f "$glowroot_admin" ]] || return 0
@@ -132,6 +149,7 @@ apply_ports() {
     configure_elasticsearch
     configure_arquillian_dataguard
     configure_glowroot
+    configure_jpda
 
     lp_success "Ports configured with offset $OFFSET."
 }

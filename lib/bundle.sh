@@ -4,7 +4,7 @@ _LP_BUNDLE_CLONE_MODE_FILE="${BUNDLES_DIR}/.clone-mode"
 _LP_BUNDLE_META_FILE=".lp-bundle-meta"
 _LP_BUNDLE_OFFSET_FILE=".worktree-port-offset"
 
-_LP_PORT_KINDS="http https shutdown ajp osgi es-http es-transport arquillian dataguard glowroot"
+_LP_PORT_KINDS="http https shutdown ajp osgi es-http es-transport arquillian dataguard glowroot jpda"
 
 _lp_port_base() {
     case "$1" in
@@ -18,6 +18,7 @@ _lp_port_base() {
         arquillian)   echo 32763 ;;
         dataguard)    echo 42763 ;;
         glowroot)     echo 4000 ;;
+        jpda)         echo 8000 ;;
         *)            echo "" ;;
     esac
 }
