@@ -70,7 +70,7 @@ list_extensions() {
     IFS=$'\n' local sorted_matches=($(sort <<<"${MATCHES[*]}"))
     unset IFS
     for cet_dir in "${sorted_matches[@]}"; do
-        echo "  - $(basename "$cet_dir")"
+        lp_info "  - $(basename "$cet_dir")"
     done
 }
 

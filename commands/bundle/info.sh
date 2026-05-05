@@ -47,7 +47,7 @@ main() {
     lp_info "Path:   $BUNDLE_DIR"
 
     if [[ -f "$meta_file" ]]; then
-        echo ""
+        lp_info ""
         cat "$meta_file"
     else
         lp_info "(no metadata — bundle was built before provenance tracking was added; rebuild to populate)"
@@ -60,7 +60,7 @@ print_port_table() {
     local offset
     offset=$(lp_bundle_offset "$BRANCH")
 
-    echo ""
+    lp_info ""
     lp_info "Port offset: $offset"
 
     local prefix kind port

@@ -9,6 +9,7 @@ parse_arguments() {
     RAW_MODULES=()
     WORKERS=1
     RESTART=0
+    YES=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -22,6 +23,8 @@ parse_arguments() {
                 WORKERS="$2"; shift 2 ;;
             -r|--restart)
                 RESTART=1; shift ;;
+            -y|--yes)
+                YES=1; shift ;;
             --verbose|-v)
                 shift ;;
             -*)
@@ -59,10 +62,10 @@ resolve_modules() {
         local changed_list
         if [[ $UNCOMMITTED -eq 1 ]]; then
             lp_info "Identifying modules with uncommitted changes..."
-            changed_list=$("$_LP_SCRIPTS_DIR/commands/modules/changed.sh" --uncommitted)
+            changed_list=$(_LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$_LP_SCRIPTS_DIR/commands/modules/changed.sh" --uncommitted)
         else
             lp_info "Identifying changed modules compared to '$BASE_BRANCH'..."
-            changed_list=$("$_LP_SCRIPTS_DIR/commands/modules/changed.sh" -b "$BASE_BRANCH")
+            changed_list=$(_LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$_LP_SCRIPTS_DIR/commands/modules/changed.sh" -b "$BASE_BRANCH")
         fi
         
         if [[ -n "$changed_list" && "$changed_list" != "No changed modules found"* && "$changed_list" != "No changed files found"* ]]; then
@@ -82,7 +85,10 @@ resolve_modules() {
 
     FINAL_MODULES=()
     for module in "${modules[@]}"; do
-        if [[ "$module" == *"-theme" ]]; then
+        if [[ "$module" == *"-theme" || "$module" == *"-test" ]]; then
+            continue
+        fi
+        if [[ "$module" == *"/modules/test/"* || "$module" == "modules/test/"* ]]; then
             continue
         fi
         FINAL_MODULES+=("$module")
@@ -126,8 +132,27 @@ deploy_module() {
 
     (
         cd "$module" || { return 1 2>/dev/null || exit 1; }
-        LP_OUTPUT_DEPTH=$((${LP_OUTPUT_DEPTH:-0} + 1)) "$_LP_SCRIPTS_DIR/commands/portal/gw.sh" $tasks
+        LP_OUTPUT_DEPTH=$((${LP_OUTPUT_DEPTH:-0} + 1)) _LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$_LP_SCRIPTS_DIR/commands/portal/gw.sh" $tasks
     )
+}
+
+confirm_deployment() {
+    if [[ $YES -eq 1 ]]; then
+        return 0
+    fi
+
+    lp_info "Modules to deploy:"
+    for module in "${FINAL_MODULES[@]}"; do
+        lp_info "  - $(get_display_name "$module")"
+    done
+    lp_info ""
+
+    printf "%sDeploy %d module(s)? [y/N] " "$(_lp_prefix)" "${#FINAL_MODULES[@]}"
+    read -r answer
+    case "$answer" in
+        [yY][eE][sS]|[yY]) return 0 ;;
+        *) lp_info "Deployment cancelled."; return 1 2>/dev/null || exit 1 ;;
+    esac
 }
 
 run_sequential_deployment() {
@@ -214,6 +239,8 @@ main() {
         lp_info "No modules to deploy."
         return 0
     fi
+
+    confirm_deployment || return $?
 
     if [[ $WORKERS -le 1 ]]; then
         run_sequential_deployment

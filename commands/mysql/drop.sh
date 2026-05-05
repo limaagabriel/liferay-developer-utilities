@@ -29,7 +29,8 @@ confirm_drop() {
 
     if [[ ${#BRANCHES[@]} -eq 1 ]]; then
         local confirm
-        read -p " Drop the database '${BRANCHES[0]}'? [y/N] " confirm
+        printf "%sDrop the database '%s'? [y/N] " "$(_lp_prefix)" "${BRANCHES[0]}"
+        read -r confirm
         if [[ "$confirm" != "y" ]]; then
             lp_info "Aborted."
             exit 0
@@ -39,11 +40,12 @@ confirm_drop() {
 
     lp_info "The following databases will be dropped:"
     for branch in "${BRANCHES[@]}"; do
-        echo "  - $branch"
+        lp_info "  - $branch"
     done
 
     local confirm
-    read -p " Proceed? [y/N] " confirm
+    printf "%sProceed? [y/N] " "$(_lp_prefix)"
+    read -r confirm
     if [[ "$confirm" != "y" ]]; then
         lp_info "Aborted."
         exit 0
