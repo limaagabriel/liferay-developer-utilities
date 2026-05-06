@@ -2,6 +2,7 @@
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "bundle" "reset" "$@"
 source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
+source "$_LP_SCRIPTS_DIR/lib/database.sh"
 
 parse_arguments() {
     ASSUME_YES=0
@@ -40,17 +41,6 @@ validate_bundle() {
         lp_error "Bundle directory '$BUNDLE_DIR' does not exist."
         return 1 2>/dev/null || exit 1
     fi
-}
-
-is_mysql_active() {
-    local properties_file="$1"
-
-    if [[ ! -f "$properties_file" ]]; then
-        return 1
-    fi
-
-    # Check if the properties are not commented out
-    grep -q "^jdbc.default.driverClassName" "$properties_file"
 }
 
 get_total_steps() {
@@ -99,7 +89,7 @@ main() {
     lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
 
     local mysql_active=0
-    is_mysql_active "$BUNDLE_DIR/portal-ext.properties" && mysql_active=1
+    [[ "$(lp_database_backend "$BRANCH")" == "mysql" ]] && mysql_active=1
 
     TOTAL_STEPS=$(get_total_steps)
     [[ $mysql_active -eq 1 ]] && TOTAL_STEPS=$((TOTAL_STEPS + 1))
