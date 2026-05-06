@@ -56,7 +56,7 @@ teardown() {
     
     # It should call lp_print_command_help from our mock lib/help.sh
     run lp_init_command "worktree" "add" "--help"
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 255 ]
     [[ "$output" == *"mock help for worktree add"* ]]
 }
 

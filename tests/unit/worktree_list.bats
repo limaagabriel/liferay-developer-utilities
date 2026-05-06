@@ -26,7 +26,10 @@ EOF
     cat > "$HOME/bin/git" <<EOF
 #!/bin/bash
 if [[ "\$*" == *"worktree list"* ]]; then
-    echo "/path/to/worktree1 abc1234 [branch1]"
+    echo "worktree /path/to/worktree1"
+    echo "HEAD abc1234abc1234abc1234abc1234abc1234abcd"
+    echo "branch refs/heads/branch1"
+    echo ""
 else
     command git "\$@"
 fi
@@ -46,5 +49,7 @@ teardown() {
     
     [ "$status" -eq 0 ]
     [[ "$output" == *"Active Liferay Portal (Master) worktrees:"* ]]
-    [[ "$output" == *"/path/to/worktree1 abc1234 [branch1]"* ]]
+    [[ "$output" == *"[branch1]"* ]]
+    [[ "$output" == *"abc1234a"* ]]
+    [[ "$output" == *"/path/to/worktree1"* ]]
 }
