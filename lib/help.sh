@@ -195,7 +195,7 @@ _lp_cmd_usage() {
         worktree/remove)  echo "lp worktree remove [-b] [-y] [-v] <branch>..." ;;
         worktree/root)    echo "lp worktree root" ;;
         reference/get)    echo "lp reference get" ;;
-        reference/set)    echo "lp reference set [branch-name]" ;;
+        reference/set)    echo "lp reference set [-t|--this] [branch-name]" ;;
         reference/reset)  echo "lp reference reset" ;;
         portal/buildLang) echo "lp portal buildLang [options]" ;;
         portal/cdm)       echo "lp portal cdm" ;;
@@ -296,6 +296,7 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         reference/set)
+            echo "  -t, --this      Use the current worktree's branch as the reference"
             echo "  -h, --help      Show this help"
             ;;
         reference/reset)
@@ -598,6 +599,7 @@ _lp_cmd_examples() {
         reference/set)
             echo "  lp reference set main"
             echo "  lp reference set             # uses current directory if in worktree"
+            echo "  lp reference set -t          # explicitly use current worktree's branch"
             ;;
         reference/reset)
             echo "  lp reference reset"
