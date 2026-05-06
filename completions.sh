@@ -114,7 +114,7 @@ _lp_complete() {
             names=$(_lp_get_base_names)
             # shellcheck disable=SC2207
             COMPREPLY=( $(compgen -W "$names" -- "$cur") )
-        elif [[ ( "$ns/$cmd" == "portal/db" || "$ns/$cmd" == "database/switch" ) && $COMP_CWORD -eq 3 ]]; then
+        elif [[ "$ns/$cmd" == "database/switch" && $COMP_CWORD -eq 3 ]]; then
             local dbs
             dbs=$(_lp_get_db_completions)
             # shellcheck disable=SC2207
@@ -159,7 +159,7 @@ if [[ -n "${ZSH_VERSION:-}" ]]; then
                 local -a names
                 names=( $(_lp_get_base_names) )
                 compadd -- "${names[@]}"
-            elif [[ "$ns/$cmd" == "portal/db" || "$ns/$cmd" == "database/switch" ]]; then
+            elif [[ "$ns/$cmd" == "database/switch" ]]; then
                 local -a dbs
                 dbs=( $(_lp_get_db_completions) )
                 compadd -- "${dbs[@]}"

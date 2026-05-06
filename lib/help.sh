@@ -85,7 +85,7 @@ _lp_ns_cmds() {
         reference) echo "get set reset" ;;
         bundle)   echo "build refresh rebase db properties ports start kill reset cd remove info list env" ;;
         base)     echo "build list info refresh sync remove" ;;
-        portal)   echo "buildLang cdm db gw sf sample setup" ;;
+        portal)   echo "buildLang cdm gw sf sample setup" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start stop drop status" ;;
         database) echo "status reset drop switch start stop remove" ;;
@@ -121,7 +121,6 @@ _lp_cmd_desc() {
         reference/reset)  echo "Reset the reference branch to master" ;;
         portal/buildLang) echo "Run buildLang task in the portal-language-lang module" ;;
         portal/cdm)       echo "Fuzzy module search and cd in the current git repository" ;;
-        portal/db)        echo "Switch between mysql (with optional db name) and hypersonic" ;;
         portal/gw)        echo "Run gradle tasks in the current directory" ;;
         portal/sf)        echo "Run source formatter for the current branch" ;;
         portal/setup)     echo "Install portal worktree tooling and compile portal (ant setup-profile-dxp + ant compile)" ;;
@@ -200,7 +199,6 @@ _lp_cmd_usage() {
         reference/reset)  echo "lp reference reset" ;;
         portal/buildLang) echo "lp portal buildLang [options]" ;;
         portal/cdm)       echo "lp portal cdm" ;;
-        portal/db)        echo "lp portal db [mysql|hypersonic|database_name]" ;;
         portal/gw)
             echo "lp portal gw [options] [tasks...]" ;;
         portal/sf)
@@ -311,9 +309,6 @@ _lp_cmd_opts() {
         portal/cdm)
             echo "  -h, --help      Show this help"
             echo "  Note: Requires 'fzf' to be installed"
-            ;;
-        portal/db)
-            echo "  -h, --help      Show this help"
             ;;
         portal/gw)
             echo "  -q, --quiet     Hide gradle output"
@@ -612,11 +607,6 @@ _lp_cmd_examples() {
             ;;
         portal/cdm)
             echo "  lp portal cdm"
-            ;;
-        portal/db)
-            echo "  lp portal db mysql"
-            echo "  lp portal db hypersonic"
-            echo "  lp portal db lportal_test"
             ;;
         portal/gw)
             echo "  lp portal gw clean deploy"
