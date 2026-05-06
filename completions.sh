@@ -53,7 +53,8 @@ _lp_has_branch_arg() {
         worktree/build|worktree/clean|reference/set|bundle/cd|bundle/remove|bundle/info|bundle/kill|bundle/rebase|\
         portal/sample|portal/setup|modules/changed|mysql/reset|mysql/start|hypersonic/clean|session/start|session/stop|\
         session/enter|session/describe|session/status|session/update|git/bisect|\
-        base/sync)
+        base/sync|\
+        database/status|database/reset|database/drop|database/start|database/stop|database/remove)
             return 0 ;;
         *)
             return 1 ;;
@@ -113,7 +114,7 @@ _lp_complete() {
             names=$(_lp_get_base_names)
             # shellcheck disable=SC2207
             COMPREPLY=( $(compgen -W "$names" -- "$cur") )
-        elif [[ "$ns/$cmd" == "portal/db" && $COMP_CWORD -eq 3 ]]; then
+        elif [[ ( "$ns/$cmd" == "portal/db" || "$ns/$cmd" == "database/switch" ) && $COMP_CWORD -eq 3 ]]; then
             local dbs
             dbs=$(_lp_get_db_completions)
             # shellcheck disable=SC2207
@@ -158,7 +159,7 @@ if [[ -n "${ZSH_VERSION:-}" ]]; then
                 local -a names
                 names=( $(_lp_get_base_names) )
                 compadd -- "${names[@]}"
-            elif [[ "$ns/$cmd" == "portal/db" ]]; then
+            elif [[ "$ns/$cmd" == "portal/db" || "$ns/$cmd" == "database/switch" ]]; then
                 local -a dbs
                 dbs=( $(_lp_get_db_completions) )
                 compadd -- "${dbs[@]}"
