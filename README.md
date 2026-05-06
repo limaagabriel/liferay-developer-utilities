@@ -65,7 +65,7 @@ Manage Liferay server bundles independently.
 ```bash
 lp bundle cd my-feature       # Jump to the tomcat/bin directory
 lp bundle remove my-feature   # Delete a specific bundle
-lp bundle reset my-feature    # Reset the bundle database and caches
+lp bundle reset my-feature    # Reset the bundle caches
 ```
 
 ### Local Environment

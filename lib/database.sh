@@ -23,6 +23,12 @@ lp_database_unsupported() {
     lp_info "Switch to MySQL with: lp database switch mysql"
 }
 
+lp_database_log_backend() {
+    local branch="$1"
+    lp_branch_vars "$branch" || return 1
+    lp_database_status_line "$BUNDLE_DIR/portal-ext.properties"
+}
+
 lp_database_status_line() {
     local properties_file="$1"
     if grep -q "^jdbc.default.driverClassName" "$properties_file"; then

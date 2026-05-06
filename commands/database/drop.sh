@@ -24,6 +24,7 @@ main() {
 
     local backend
     backend=$(lp_database_backend "$BRANCH") || return $?
+    lp_database_log_backend "$BRANCH"
 
     case "$backend" in
         mysql)
