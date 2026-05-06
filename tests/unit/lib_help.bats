@@ -106,3 +106,24 @@ setup() {
     [[ " $cmds " == *" stop "* ]]
     [[ " $cmds " == *" remove "* ]]
 }
+
+@test "lp_print_command_help database reset prints description, usage, options, and examples" {
+    run lp_print_command_help "database" "reset"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Reset the database for a branch"* ]]
+    [[ "$output" == *"Usage: lp database reset"* ]]
+    [[ "$output" == *"Examples:"* ]]
+}
+
+@test "lp_print_command_help database status notes mysql-only support" {
+    run lp_print_command_help "database" "status"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"(mysql only)"* ]]
+}
+
+@test "lp_print_command_help database switch documents hypersonic|mysql positional" {
+    run lp_print_command_help "database" "switch"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"hypersonic"* ]]
+    [[ "$output" == *"mysql"* ]]
+}

@@ -174,6 +174,13 @@ _lp_cmd_desc() {
         self/update)      echo "Update the lp tool from its git repository" ;;
         modules/changed) echo "List all changed modules in the current branch comparing to a base branch" ;;
         modules/deploy)   echo "Run gw deploy in a module or all changed modules" ;;
+        database/status)  echo "Show current database backend status (mysql only)" ;;
+        database/reset)   echo "Reset the database for a branch (routes by backend)" ;;
+        database/drop)    echo "Drop the database for a branch (routes by backend)" ;;
+        database/switch)  echo "Switch backend (hypersonic|mysql) for a branch" ;;
+        database/start)   echo "Start the database backend runtime (mysql only)" ;;
+        database/stop)    echo "Stop the database backend runtime (mysql only)" ;;
+        database/remove)  echo "Remove the database backend runtime + all DBs (mysql only)" ;;
         *)                echo "" ;;
     esac
 }
@@ -248,6 +255,13 @@ _lp_cmd_usage() {
         self/update)      echo "lp self update [-v]" ;;
         modules/changed) echo "lp modules changed [options]" ;;
         modules/deploy)   echo "lp modules deploy [options] [module_path...]" ;;
+        database/status)  echo "lp database status [branch]" ;;
+        database/reset)   echo "lp database reset [-y|--yes] [-v] [branch]" ;;
+        database/drop)    echo "lp database drop [-y|--yes] [-v] [branch]" ;;
+        database/switch)  echo "lp database switch [mysql|hypersonic] [branch]" ;;
+        database/start)   echo "lp database start [-v] [branch]" ;;
+        database/stop)    echo "lp database stop [branch]" ;;
+        database/remove)  echo "lp database remove [branch]" ;;
         *)                echo "" ;;
     esac
 }
@@ -526,6 +540,32 @@ _lp_cmd_opts() {
             echo "  -v, --verbose      Show full gradle output"
             echo "  -h, --help         Show this help"
             ;;
+        database/status)
+            echo "  -h, --help      Show this help"
+            ;;
+        database/reset)
+            echo "  -y, --yes       Skip confirmation prompt"
+            echo "  -v, --verbose   Show full output"
+            echo "  -h, --help      Show this help"
+            ;;
+        database/drop)
+            echo "  -y, --yes       Skip confirmation prompt"
+            echo "  -v, --verbose   Show full output"
+            echo "  -h, --help      Show this help"
+            ;;
+        database/switch)
+            echo "  -h, --help      Show this help"
+            ;;
+        database/start)
+            echo "  -v, --verbose   Show full output"
+            echo "  -h, --help      Show this help"
+            ;;
+        database/stop)
+            echo "  -h, --help      Show this help"
+            ;;
+        database/remove)
+            echo "  -h, --help      Show this help"
+            ;;
         *)                echo "" ;;
     esac
 }
@@ -792,6 +832,31 @@ _lp_cmd_examples() {
             echo "  lp modules deploy -n 4 -c"
             echo "  lp modules deploy -r"
             echo "  lp modules deploy -c -b ee"
+            ;;
+        database/status)
+            echo "  lp database status"
+            echo "  lp database status feature-xyz"
+            ;;
+        database/reset)
+            echo "  lp database reset"
+            echo "  lp database reset -y feature-xyz"
+            ;;
+        database/drop)
+            echo "  lp database drop feature-xyz"
+            ;;
+        database/switch)
+            echo "  lp database switch mysql"
+            echo "  lp database switch hypersonic feature-xyz"
+            ;;
+        database/start)
+            echo "  lp database start"
+            echo "  lp database start feature-xyz"
+            ;;
+        database/stop)
+            echo "  lp database stop"
+            ;;
+        database/remove)
+            echo "  lp database remove"
             ;;
         *)
             echo "  (none)"
