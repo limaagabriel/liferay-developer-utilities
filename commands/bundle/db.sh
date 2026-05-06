@@ -1,64 +1,40 @@
 #!/bin/bash
 
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
-
-is_mysql_active() {
-	local properties_file="$1"
-
-	if [[ ! -f "$properties_file" ]]; then
-		return 1
-	fi
-
-	# Check if the properties are not commented out
-	grep -q "^jdbc.default.driverClassName" "$properties_file"
-}
-
-show_current_status() {
-	local properties_file="$1"
-
-	if is_mysql_active "$properties_file"; then
-		local db_name=$(grep "^jdbc.default.url" "$properties_file" | sed "s|.*localhost:3307/||;s|?.*||")
-
-		if [[ -n "$db_name" ]]; then
-			lp_info "Current database: MySQL ($db_name)"
-		else
-			lp_info "Current database: MySQL"
-		fi
-	else
-		lp_info "Current database: Hypersonic"
-	fi
-}
+source "$_LP_SCRIPTS_DIR/lib/database.sh"
 
 switch_to_hypersonic() {
 	local properties_file="$1"
 
-	if ! is_mysql_active "$properties_file"; then
+	if ! grep -q "^jdbc.default.driverClassName" "$properties_file"; then
 		lp_info "Database is already Hypersonic."
-	else
-		sed -i "s/^[[:space:]]*jdbc.default.driverClassName=/# jdbc.default.driverClassName=/" "$properties_file"
-		sed -i "s/^[[:space:]]*jdbc.default.url=/# jdbc.default.url=/" "$properties_file"
-		sed -i "s/^[[:space:]]*jdbc.default.username=/# jdbc.default.username=/" "$properties_file"
-		sed -i "s/^[[:space:]]*jdbc.default.password=/# jdbc.default.password=/" "$properties_file"
-
-		lp_success "Switched to Hypersonic."
-		lp_info "Note: This won't switch the database for a running bundle, only for new bundle executions."
+		return 0
 	fi
+
+	sed -i "s/^[[:space:]]*jdbc.default.driverClassName=/# jdbc.default.driverClassName=/" "$properties_file"
+	sed -i "s/^[[:space:]]*jdbc.default.url=/# jdbc.default.url=/" "$properties_file"
+	sed -i "s/^[[:space:]]*jdbc.default.username=/# jdbc.default.username=/" "$properties_file"
+	sed -i "s/^[[:space:]]*jdbc.default.password=/# jdbc.default.password=/" "$properties_file"
+
+	lp_success "Switched to Hypersonic."
+	lp_info "Note: This won't switch the database for a running bundle, only for new bundle executions."
 }
 
 switch_to_mysql() {
 	local properties_file="$1"
 
-	if is_mysql_active "$properties_file"; then
+	if grep -q "^jdbc.default.driverClassName" "$properties_file"; then
 		lp_info "Database is already MySQL."
-	else
-		sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.driverClassName=/jdbc.default.driverClassName=/" "$properties_file"
-		sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.url=/jdbc.default.url=/" "$properties_file"
-		sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.username=/jdbc.default.username=/" "$properties_file"
-		sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.password=/jdbc.default.password=/" "$properties_file"
-
-		lp_success "Switched to MySQL."
-		lp_info "Note: This won't switch the database for a running bundle, only for new bundle executions."
+		return 0
 	fi
+
+	sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.driverClassName=/jdbc.default.driverClassName=/" "$properties_file"
+	sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.url=/jdbc.default.url=/" "$properties_file"
+	sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.username=/jdbc.default.username=/" "$properties_file"
+	sed -i "s/^[[:space:]]*#[[:space:]]*jdbc.default.password=/jdbc.default.password=/" "$properties_file"
+
+	lp_success "Switched to MySQL."
+	lp_info "Note: This won't switch the database for a running bundle, only for new bundle executions."
 }
 
 main() {
@@ -89,7 +65,7 @@ main() {
 	fi
 
 	if [[ -z "$db_type" ]]; then
-		show_current_status "$properties_file"
+		lp_database_status_line "$properties_file"
 		return 0 2>/dev/null || exit 0
 	fi
 
