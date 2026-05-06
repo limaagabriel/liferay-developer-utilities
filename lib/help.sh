@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree reference bundle base portal playwright mysql session config git self modules"
+_LP_NAMESPACES="worktree reference bundle base portal playwright mysql database session config git self modules"
 
 # _lp_ns_alias <token> — resolve a namespace shorthand to its real name.
 # Returns the input unchanged if no alias matches.
@@ -28,6 +28,7 @@ _lp_ns_alias() {
         p)   echo "portal" ;;
         pw)  echo "playwright" ;;
         ms)  echo "mysql" ;;
+        db)  echo "database" ;;
         s)   echo "session" ;;
         c)   echo "config" ;;
         g)   echo "git" ;;
@@ -47,6 +48,7 @@ _lp_ns_alias_for() {
         portal)     echo "p" ;;
         playwright) echo "pw" ;;
         mysql)      echo "ms" ;;
+        database)   echo "db" ;;
         session)    echo "s" ;;
         config)     echo "c" ;;
         git)        echo "g" ;;
@@ -66,6 +68,7 @@ _lp_ns_desc() {
         portal)   echo "Liferay Portal development utilities" ;;
         playwright) echo "Playwright test utilities" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
+        database) echo "Backend-aware database operations (routes to mysql or hypersonic)" ;;
         session)  echo "Manage tmux-based development sessions" ;;
         config)   echo "Manage per-user lp configuration" ;;
         git)      echo "Git utilities" ;;
@@ -85,6 +88,7 @@ _lp_ns_cmds() {
         portal)   echo "buildLang cdm db gw sf sample setup" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start stop drop status" ;;
+        database) echo "status reset drop switch start stop remove" ;;
         session)  echo "list start stop enter exit detach add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
         git)      echo "add-remote remove-remote update-master update-ee patch bisect" ;;

@@ -78,3 +78,31 @@ setup() {
     [[ "$output" == *"-n, --no-refresh"* ]]
     [[ "$output" == *"requires --from-base"* ]]
 }
+
+@test "_LP_NAMESPACES includes database" {
+    [[ " $_LP_NAMESPACES " == *" database "* ]]
+}
+
+@test "_lp_ns_alias resolves db to database" {
+    [ "$(_lp_ns_alias db)" = "database" ]
+}
+
+@test "_lp_ns_alias_for returns db for database" {
+    [ "$(_lp_ns_alias_for database)" = "db" ]
+}
+
+@test "_lp_ns_desc returns description for database" {
+    desc=$(_lp_ns_desc database)
+    [ -n "$desc" ]
+}
+
+@test "_lp_ns_cmds database lists all 7 commands" {
+    cmds=$(_lp_ns_cmds database)
+    [[ " $cmds " == *" status "* ]]
+    [[ " $cmds " == *" reset "* ]]
+    [[ " $cmds " == *" drop "* ]]
+    [[ " $cmds " == *" switch "* ]]
+    [[ " $cmds " == *" start "* ]]
+    [[ " $cmds " == *" stop "* ]]
+    [[ " $cmds " == *" remove "* ]]
+}
