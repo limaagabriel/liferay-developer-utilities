@@ -2,6 +2,7 @@
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "bundle" "reset" "$@"
 source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
+source "$_LP_SCRIPTS_DIR/lib/database.sh"
 
 parse_arguments() {
     ASSUME_YES=0
@@ -27,9 +28,7 @@ confirm_reset() {
         return 0
     fi
 
-    local confirm
-    read -p " Reset the bundle caches for '$BRANCH'? [y/N] " confirm
-    if [[ "$confirm" != "y" ]]; then
+    if ! lp_confirm "Reset the bundle and database for '$BRANCH'?"; then
         lp_info "Aborted."
         return 1
     fi
@@ -85,10 +84,20 @@ main() {
     lp_branch_vars "$BRANCH"
     validate_bundle
     confirm_reset || return 0
-    lp_info "Resetting bundle caches for branch '$BRANCH'..."
+    lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
+
+    local mysql_active=0
+    [[ "$(lp_database_backend "$BRANCH")" == "mysql" ]] && mysql_active=1
 
     TOTAL_STEPS=$(get_total_steps)
+    [[ $mysql_active -eq 1 ]] && TOTAL_STEPS=$((TOTAL_STEPS + 1))
     CURRENT_STEP=1
+
+    if [[ $mysql_active -eq 1 ]]; then
+        lp_section "$CURRENT_STEP" "$TOTAL_STEPS" "Resetting MySQL database '$BRANCH'" \
+            "$_LP_SCRIPTS_DIR/commands/mysql/reset.sh" --yes "$BRANCH"
+        ((CURRENT_STEP++))
+    fi
 
     clean_tomcat_caches
     clean_bundle_root_caches
@@ -98,7 +107,7 @@ main() {
         "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"
     fi
 
-    lp_success "Bundle caches reset successfully for branch '$BRANCH'."
+    lp_success "Bundle database and caches reset successfully for branch '$BRANCH'."
 }
 
 main "$@"

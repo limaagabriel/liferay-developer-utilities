@@ -73,8 +73,7 @@ confirm_rebase() {
 
     [[ $ASSUME_YES -eq 1 ]] && return 0
 
-    read -p " Wipes data, dev-deployed modules, config, OSGi state. Continue? [y/N] " confirm
-    [[ "$confirm" == "y" ]]
+    lp_confirm "Wipes data, dev-deployed modules, config, OSGi state. Continue?"
 }
 
 main() {

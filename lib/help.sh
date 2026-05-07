@@ -134,7 +134,7 @@ _lp_cmd_desc() {
         bundle/ports)     echo "Configure TCP port offsets for the bundle" ;;
         bundle/start)     echo "Start the Liferay server for a bundle" ;;
         bundle/kill)      echo "Kill the running bundle process by port" ;;
-        bundle/reset)     echo "Reset the bundle caches (work, temp, osgi/state, hypersonic data)" ;;
+        bundle/reset)     echo "Reset the bundle database and caches (work, temp, osgi/state)" ;;
         bundle/cd)        echo "Change the current directory to a bundle" ;;
         bundle/remove)    echo "Remove a bundle directory" ;;
         bundle/info)      echo "Show provenance metadata for a worktree's bundle" ;;

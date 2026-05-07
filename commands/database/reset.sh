@@ -27,11 +27,7 @@ main() {
     lp_database_log_backend "$BRANCH"
 
     case "$backend" in
-        mysql)
-            "$_LP_SCRIPTS_DIR/commands/mysql/reset.sh" "${FORWARD_ARGS[@]}" "$BRANCH" || return $?
-            exec "$_LP_SCRIPTS_DIR/commands/bundle/reset.sh" "${FORWARD_ARGS[@]}" "$BRANCH"
-            ;;
-        hypersonic)
+        mysql|hypersonic)
             exec "$_LP_SCRIPTS_DIR/commands/bundle/reset.sh" "${FORWARD_ARGS[@]}" "$BRANCH"
             ;;
         *)

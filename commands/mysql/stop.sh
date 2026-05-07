@@ -3,9 +3,7 @@ source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "mysql" "stop" "$@"
 
 confirm_stop() {
-    local confirm
-    read -p "Stop the shared MySQL container? This will affect all running bundles using it. [y/N] " confirm
-    if [[ "$confirm" != "y" ]]; then
+    if ! lp_confirm "Stop the shared MySQL container? This will affect all running bundles using it."; then
         lp_info "Aborted."
         return 1
     fi

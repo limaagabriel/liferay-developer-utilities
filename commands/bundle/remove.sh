@@ -20,9 +20,7 @@ parse_arguments() {
 }
 
 confirm_removal() {
-    local confirm
-    read -p " Remove bundle '$BUNDLE_DIR'? [y/N] " confirm
-    if [[ "$confirm" != "y" ]]; then
+    if ! lp_confirm "Remove bundle '$BUNDLE_DIR'?"; then
         lp_info "Aborted."
         return 1
     fi

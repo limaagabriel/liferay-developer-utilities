@@ -24,9 +24,7 @@ confirm_reset() {
         return 0
     fi
 
-    local confirm
-    read -p " Reset the database '$BRANCH'? This will drop and recreate it. [y/N] " confirm
-    if [[ "$confirm" != "y" ]]; then
+    if ! lp_confirm "Reset the database '$BRANCH'? This will drop and recreate it."; then
         lp_info "Aborted."
         return 1
     fi

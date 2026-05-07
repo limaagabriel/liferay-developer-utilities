@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+bats_require_minimum_version 1.5.0
+
 setup() {
     load '../test_helper'
     source "$_LP_SCRIPTS_DIR/lib/output.sh"
@@ -53,4 +55,32 @@ setup() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"line 1"* ]]
     [[ "$output" == *"line 2"* ]]
+}
+
+@test "lp_confirm returns 0 on yes" {
+    run bash -c 'source "$_LP_SCRIPTS_DIR/lib/output.sh"; echo y | lp_confirm "Proceed?"'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Proceed? [y/N]"* ]]
+}
+
+@test "lp_confirm returns 1 on no" {
+    run bash -c 'source "$_LP_SCRIPTS_DIR/lib/output.sh"; echo n | lp_confirm "Proceed?"'
+    [ "$status" -eq 1 ]
+}
+
+@test "lp_confirm returns 1 on empty input" {
+    run bash -c 'source "$_LP_SCRIPTS_DIR/lib/output.sh"; echo "" | lp_confirm "Proceed?"'
+    [ "$status" -eq 1 ]
+}
+
+@test "lp_confirm pads prompt with leading blank line" {
+    run --keep-empty-lines bash -c 'echo BEFORE; source "$_LP_SCRIPTS_DIR/lib/output.sh"; echo y | lp_confirm "Proceed?"'
+    [ "${lines[0]}" = "BEFORE" ]
+    [ "${lines[1]}" = "" ]
+    [[ "${lines[2]}" == *"Proceed? [y/N]"* ]]
+}
+
+@test "lp_confirm prompt indents with LP_OUTPUT_DEPTH" {
+    run bash -c 'LP_OUTPUT_DEPTH=2 bash -c "source \"$_LP_SCRIPTS_DIR/lib/output.sh\"; echo y | lp_confirm \"Proceed?\""'
+    [[ "$output" == *"      Proceed? [y/N]"* ]]
 }

@@ -36,9 +36,7 @@ confirm_kill() {
         return 0
     fi
 
-    local confirm
-    read -p " Kill bundle for '$BRANCH' (pid $1, port $2)? [y/N] " confirm
-    if [[ "$confirm" != "y" ]]; then
+    if ! lp_confirm "Kill bundle for '$BRANCH' (pid $1, port $2)?"; then
         lp_info "Aborted."
         return 1
     fi

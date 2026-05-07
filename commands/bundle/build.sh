@@ -71,8 +71,7 @@ prepare_bundle_directory() {
     fi
 
     if [[ $ASSUME_YES -eq 0 ]]; then
-        read -p " Bundle directory '$BUNDLE_DIR' already exists. Delete and rebuild? [y/N] " confirm
-        if [[ "$confirm" != "y" ]]; then
+        if ! lp_confirm "Bundle directory '$BUNDLE_DIR' already exists. Delete and rebuild?"; then
             lp_info "Aborted."
             BUILD_SKIPPED=1
             return 0
@@ -110,8 +109,7 @@ clone_from_base() {
             return 0
         fi
         if [[ $ASSUME_YES -eq 0 ]]; then
-            read -p " Bundle directory '$BUNDLE_DIR' already exists. Delete and rebuild from base '$FROM_BASE'? [y/N] " confirm
-            if [[ "$confirm" != "y" ]]; then
+            if ! lp_confirm "Bundle directory '$BUNDLE_DIR' already exists. Delete and rebuild from base '$FROM_BASE'?"; then
                 lp_info "Aborted."
                 BUILD_SKIPPED=1
                 return 0

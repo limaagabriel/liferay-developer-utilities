@@ -66,9 +66,7 @@ confirm_removal() {
         [[ "$DELETE_BRANCH" -eq 1 ]] && echo "    - branch:   $branch"
     done
 
-    local confirm
-    read -p " Proceed? [y/N] " confirm
-    if [[ "$confirm" != "y" ]]; then
+    if ! lp_confirm "Proceed?"; then
         lp_info "Aborted."
         exit 0
     fi

@@ -68,8 +68,7 @@ main() {
 
     if [[ -d "$target" ]]; then
         if [[ $ASSUME_YES -eq 0 ]]; then
-            read -p " Base bundle '$NAME' already exists at $target. Delete and rebuild? [y/N] " confirm
-            if [[ "$confirm" != "y" ]]; then
+            if ! lp_confirm "Base bundle '$NAME' already exists at $target. Delete and rebuild?"; then
                 lp_info "Aborted."
                 return 0
             fi

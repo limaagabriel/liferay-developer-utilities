@@ -62,8 +62,7 @@ read_bundle_base_meta() {
 
 confirm_reclone() {
     [[ $ASSUME_YES -eq 1 ]] && return 0
-    read -p " Re-clone '$BRANCH' from updated base '$BASE_NAME'? This wipes the bundle (data, OSGi state, deploys). [y/N] " confirm
-    [[ "$confirm" == "y" ]]
+    lp_confirm "Re-clone '$BRANCH' from updated base '$BASE_NAME'? This wipes the bundle (data, OSGi state, deploys)."
 }
 
 main() {

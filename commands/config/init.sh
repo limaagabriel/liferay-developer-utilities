@@ -8,15 +8,11 @@ check_existing_config() {
     [[ -f "$config_file" ]] || return 0
 
     lp_info "A config file already exists at '$config_file'."
-    printf "Overwrite it? [y/N] "
-    read -r confirm
-    case "$confirm" in
-        [yY]|[yY][eE][sS]) return 0 ;;
-        *)
-            lp_info "Aborted. Existing config left unchanged."
-            return 1
-            ;;
-    esac
+    if lp_confirm "Overwrite it?"; then
+        return 0
+    fi
+    lp_info "Aborted. Existing config left unchanged."
+    return 1
 }
 
 prompt_for_value() {

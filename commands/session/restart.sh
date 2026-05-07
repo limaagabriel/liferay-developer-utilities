@@ -22,15 +22,10 @@ verify_lp_session() {
 
 confirm_restart() {
     lp_info "This will stop the portal and restart it."
-    printf " Are you sure? [y/N] "
-    read -r confirm
-    case "$confirm" in
-        [yY]|[yY][eE][sS]) ;;
-        *)
-            lp_info "Aborted."
-            return 1
-            ;;
-    esac
+    if ! lp_confirm "Are you sure?"; then
+        lp_info "Aborted."
+        return 1
+    fi
 }
 
 stop_portal() {

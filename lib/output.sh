@@ -41,6 +41,21 @@ lp_error() {
     echo "$(_lp_prefix)$1" >&2
 }
 
+# lp_confirm "message" — print an indented yes/no prompt with blank-line padding.
+# Returns 0 on yes, 1 otherwise.
+lp_confirm() {
+    local prompt="$1"
+    local confirm
+    echo ""
+    printf '%s%s [y/N] ' "$(_lp_prefix)" "$prompt"
+    read -r confirm
+    echo ""
+    case "$confirm" in
+        [yY]|[yY][eE][sS]) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # lp_run <cmd> [args...] — run a command, suppressing stdout+stderr unless VERBOSE=1.
 # If the command fails in non-verbose mode, the last 100 lines of output are shown.
 lp_run() {

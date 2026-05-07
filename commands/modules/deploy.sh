@@ -145,14 +145,11 @@ confirm_deployment() {
     for module in "${FINAL_MODULES[@]}"; do
         lp_info "  - $(get_display_name "$module")"
     done
-    lp_info ""
 
-    printf "%sDeploy %d module(s)? [y/N] " "$(_lp_prefix)" "${#FINAL_MODULES[@]}"
-    read -r answer
-    case "$answer" in
-        [yY][eE][sS]|[yY]) return 0 ;;
-        *) lp_info "Deployment cancelled."; return 1 2>/dev/null || exit 1 ;;
-    esac
+    if ! lp_confirm "Deploy ${#FINAL_MODULES[@]} module(s)?"; then
+        lp_info "Deployment cancelled."
+        return 1 2>/dev/null || exit 1
+    fi
 }
 
 run_sequential_deployment() {
