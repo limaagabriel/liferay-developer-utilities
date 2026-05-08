@@ -93,7 +93,12 @@ run_build() {
     STEP=$((STEP + 1))
 
     lp_step "$STEP" "$TOTAL_STEPS" "Running ant all"
-    lp_run ant all || return $?
+
+    local cores threads
+    cores=$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+    threads=$(( cores/2 < 4 ? 4 : cores/2 ))
+    lp_run ant -Dparallel.thread.count="$threads" -Dorg.gradle.workers.max="$threads" all || return $?
+
     STEP=$((STEP + 1))
 }
 
