@@ -5,6 +5,7 @@ lp_init_command "modules" "changed" "$@"
 parse_arguments() {
     UNCOMMITTED=0
     BASE_BRANCH="master"
+    BASE_COMMIT=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -14,6 +15,10 @@ parse_arguments() {
                 ;;
             -b|--base)
                 BASE_BRANCH="$2"
+                shift 2
+                ;;
+            --base-commit)
+                BASE_COMMIT="$2"
                 shift 2
                 ;;
             --verbose|-v)
@@ -49,18 +54,25 @@ get_changed_files() {
             RAW_CHANGED_FILES=$( { git diff --name-only HEAD; git diff --name-only --cached; git ls-files --others --exclude-standard; } 2>/dev/null | sort -u )
         fi
     else
-        if ! git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
-            lp_error "Error: Branch '$BASE_BRANCH' not found. Make sure it exists."
-            return 1 2>/dev/null || exit 1
+        local base_ref
+        if [[ -n "$BASE_COMMIT" ]]; then
+            if ! git rev-parse --verify "$BASE_COMMIT^{commit}" >/dev/null 2>&1; then
+                lp_error "Error: Commit '$BASE_COMMIT' not found."
+                return 1 2>/dev/null || exit 1
+            fi
+            base_ref=$(git rev-parse --verify "$BASE_COMMIT^{commit}")
+        else
+            if ! git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
+                lp_error "Error: Branch '$BASE_BRANCH' not found. Make sure it exists."
+                return 1 2>/dev/null || exit 1
+            fi
+            base_ref=$(git merge-base "$BASE_BRANCH" HEAD 2>/dev/null || echo "$BASE_BRANCH")
         fi
 
-        local merge_base
-        merge_base=$(git merge-base "$BASE_BRANCH" HEAD 2>/dev/null || echo "$BASE_BRANCH")
-
         if [[ "${VERBOSE:-0}" -eq 1 ]]; then
-            RAW_CHANGED_FILES=$( { git diff --name-only "$merge_base"; git ls-files --others --exclude-standard; } | sort -u )
+            RAW_CHANGED_FILES=$( { git diff --name-only "$base_ref"; git ls-files --others --exclude-standard; } | sort -u )
         else
-            RAW_CHANGED_FILES=$( { git diff --name-only "$merge_base"; git ls-files --others --exclude-standard; } 2>/dev/null | sort -u )
+            RAW_CHANGED_FILES=$( { git diff --name-only "$base_ref"; git ls-files --others --exclude-standard; } 2>/dev/null | sort -u )
         fi
     fi
 
@@ -118,7 +130,13 @@ main() {
         changed_modules=$(get_changed_modules)
 
         if [[ -z "$changed_modules" ]]; then
-            lp_info "No changed modules found compared to '$BASE_BRANCH'."
+            local base_label
+            if [[ -n "$BASE_COMMIT" ]]; then
+                base_label="$BASE_COMMIT"
+            else
+                base_label="$BASE_BRANCH"
+            fi
+            lp_info "No changed modules found compared to '$base_label'."
         else
             echo "$changed_modules"
         fi

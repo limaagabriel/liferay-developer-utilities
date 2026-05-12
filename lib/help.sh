@@ -523,18 +523,20 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         modules/changed)
-            echo "  -u, --uncommitted   Include only modules with uncommitted work"
-            echo "  -b, --base <branch> Base branch to compare against (default: master)"
-            echo "  -h, --help          Show this help"
+            echo "  -u, --uncommitted        Include only modules with uncommitted work"
+            echo "  -b, --base <branch>      Base branch to compare against (default: master)"
+            echo "      --base-commit <ref>  Exclusive base commit; overrides --base (no merge-base)"
+            echo "  -h, --help               Show this help"
             ;;
         modules/deploy)
-            echo "  -c, --changed      Deploy all modules changed in the current branch"
-            echo "  -u, --uncommitted  Deploy only modules with uncommitted work"
-            echo "  -b, --base <branch> Base branch to compare against for --changed (default: master)"
-            echo "  -n, --workers <n>  Number of parallel workers (default: 1)"
-            echo "  -r, --restart      Run 'gw clean deploy' instead of just 'gw deploy'"
-            echo "  -v, --verbose      Show full gradle output"
-            echo "  -h, --help         Show this help"
+            echo "  -c, --changed            Deploy all modules changed in the current branch"
+            echo "  -u, --uncommitted        Deploy only modules with uncommitted work"
+            echo "  -b, --base <branch>      Base branch to compare against for --changed (default: master)"
+            echo "      --base-commit <ref>  Exclusive base commit; implies --changed, overrides --base"
+            echo "  -n, --workers <n>        Number of parallel workers (default: 1)"
+            echo "  -r, --restart            Run 'gw clean deploy' instead of just 'gw deploy'"
+            echo "  -v, --verbose            Show full gradle output"
+            echo "  -h, --help               Show this help"
             ;;
         database/status)
             echo "  -h, --help      Show this help"

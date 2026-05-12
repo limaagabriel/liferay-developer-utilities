@@ -6,6 +6,7 @@ parse_arguments() {
     CHANGED=0
     UNCOMMITTED=0
     BASE_BRANCH="master"
+    BASE_COMMIT=""
     RAW_MODULES=()
     WORKERS=1
     RESTART=0
@@ -19,6 +20,8 @@ parse_arguments() {
                 UNCOMMITTED=1; shift ;;
             -b|--base)
                 BASE_BRANCH="$2"; shift 2 ;;
+            --base-commit)
+                BASE_COMMIT="$2"; shift 2 ;;
             -n|--workers)
                 WORKERS="$2"; shift 2 ;;
             -r|--restart)
@@ -45,6 +48,13 @@ validate_arguments() {
         lp_error "Error: Options --changed and --uncommitted are mutually exclusive."
         return 1 2>/dev/null || exit 1
     fi
+    if [[ -n "$BASE_COMMIT" && $UNCOMMITTED -eq 1 ]]; then
+        lp_error "Error: Options --base-commit and --uncommitted are mutually exclusive."
+        return 1 2>/dev/null || exit 1
+    fi
+    if [[ -n "$BASE_COMMIT" ]]; then
+        CHANGED=1
+    fi
 }
 
 get_gradle_tasks() {
@@ -63,6 +73,9 @@ resolve_modules() {
         if [[ $UNCOMMITTED -eq 1 ]]; then
             lp_info "Identifying modules with uncommitted changes..."
             changed_list=$(_LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$_LP_SCRIPTS_DIR/commands/modules/changed.sh" --uncommitted)
+        elif [[ -n "$BASE_COMMIT" ]]; then
+            lp_info "Identifying changed modules since commit '$BASE_COMMIT'..."
+            changed_list=$(_LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$_LP_SCRIPTS_DIR/commands/modules/changed.sh" --base-commit "$BASE_COMMIT")
         else
             lp_info "Identifying changed modules compared to '$BASE_BRANCH'..."
             changed_list=$(_LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$_LP_SCRIPTS_DIR/commands/modules/changed.sh" -b "$BASE_BRANCH")

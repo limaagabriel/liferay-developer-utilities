@@ -95,7 +95,7 @@ handle_post_add_actions() {
 
     if [[ $AUTO_SESSION -eq 1 ]]; then
         lp_info "Automatically starting session for $BRANCH (skipping build)..."
-        "$_LP_SCRIPTS_DIR/commands/session/start.sh" --no-build "$BRANCH"
+        _LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$_LP_SCRIPTS_DIR/commands/session/start.sh" --no-build "$BRANCH"
     fi
 
     if [[ $AUTO_CD -eq 1 ]]; then
