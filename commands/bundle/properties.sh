@@ -50,13 +50,16 @@ if [[ ! -f "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" ]]; then
     return 1 2>/dev/null || exit 1
 fi
 
-remove_web_xml_session_timeout() {
+set_web_xml_session_timeout() {
     local web_xml
     while IFS= read -r web_xml; do
         [[ -f "$web_xml" ]] || continue
-        grep -q "<session-timeout>" "$web_xml" || continue
-        sed -i '/<session-timeout>/d' "$web_xml"
-    done < <(find "$BUNDLE_DIR" -maxdepth 6 -path '*/tomcat-*/*' -name web.xml 2>/dev/null)
+        if grep -q "<session-timeout>" "$web_xml"; then
+            sed -i 's|<session-timeout>[0-9]*</session-timeout>|<session-timeout>480</session-timeout>|' "$web_xml"
+        else
+            sed -i 's|<session-config>|<session-config>\n\t\t<session-timeout>480</session-timeout>|' "$web_xml"
+        fi
+    done < <(find "$BUNDLE_DIR" -maxdepth 6 -path '*/tomcat-*/webapps/ROOT/WEB-INF/web.xml' 2>/dev/null)
 }
 
 TOTAL_STEPS=3
@@ -69,8 +72,8 @@ cp "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" "$properties_file"
 sed -i "s|localhost:3307/lportal|localhost:3307/$BRANCH|" "$properties_file"
 STEP=$((STEP + 1))
 
-lp_step "$STEP" "$TOTAL_STEPS" "Removing session-timeout from web.xml"
-remove_web_xml_session_timeout
+lp_step "$STEP" "$TOTAL_STEPS" "Setting session-timeout to 480 in web.xml"
+set_web_xml_session_timeout
 STEP=$((STEP + 1))
 
 lp_section "$STEP" "$TOTAL_STEPS" "Configuring database ($DB_TYPE)" \
