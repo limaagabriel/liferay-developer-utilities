@@ -14,8 +14,11 @@ get_tmux_info() {
     tmux list-sessions -F '#{session_name}|#{session_windows}|#{session_attached}' 2>/dev/null
 }
 
-get_worktree_branches() {
-    git -C "$MAIN_REPO_DIR" worktree list | grep -o '\[.*\]' | tr -d '[]'
+is_lp_session() {
+    local session="$1"
+    local branch
+    branch=$(tmux show-option -t "$session" -qv @lp-branch)
+    [[ -n "$branch" ]]
 }
 
 print_session_details() {
@@ -66,16 +69,13 @@ list_sessions() {
         return 0
     fi
 
-    local worktree_branches
-    worktree_branches=$(get_worktree_branches)
-
     lp_info "Active Liferay Portal sessions:"
     lp_info "-------------------------------"
 
     local found_any=false
     while IFS='|' read -r session windows attached; do
         [[ -z "$session" ]] && continue
-        if echo "$worktree_branches" | grep -qxw "$session"; then
+        if is_lp_session "$session"; then
             print_session_details "$session" "$windows" "$attached"
             found_any=true
         fi
