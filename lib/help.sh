@@ -351,6 +351,7 @@ _lp_cmd_opts() {
             echo "  -f, --from-base <name>  Clone from a base bundle instead of building from scratch"
             echo "  -n, --no-refresh        Skip the auto-refresh after a --from-base build (requires --from-base)"
             echo "  -a, --auto-base-build   After build, snapshot the bundle as a new base bundle"
+            echo "  -c, --clean             Run 'worktree clean' twice before the build (scratch builds only)"
             echo "  -q, --quiet             Hide full ant/git output (unless error)"
             echo "  -y, --yes               Skip confirmation for deleting existing bundle"
             echo "  -s, --skip-if-exists    Skip build if bundle directory already exists"

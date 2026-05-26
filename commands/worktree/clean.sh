@@ -4,11 +4,13 @@ lp_init_command "worktree" "clean" "$@"
 
 parse_arguments() {
     BRANCH=""
+    ASSUME_YES=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --verbose|-v) shift ;;
-            *) BRANCH="$1"; shift ;;
+            --yes|-y)     ASSUME_YES=1; shift ;;
+            *)            BRANCH="$1"; shift ;;
         esac
     done
 }
@@ -52,6 +54,13 @@ main() {
     parse_arguments "$@"
     lp_resolve_branch --reference --default-master --vars
     lp_validate_worktree
+
+    if [[ $ASSUME_YES -eq 0 ]]; then
+        if ! lp_confirm "Clean worktree '$WORKTREE_DIR' (ant clean + git clean -fdX)?"; then
+            lp_info "Aborted."
+            exit 0
+        fi
+    fi
 
     TOTAL_STEPS=2
     CURRENT_STEP=1

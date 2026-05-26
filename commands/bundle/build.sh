@@ -12,6 +12,7 @@ parse_arguments() {
     FROM_BASE=""
     AUTO_BASE_BUILD=0
     NO_REFRESH=0
+    CLEAN=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -35,6 +36,7 @@ parse_arguments() {
                 ;;
             --auto-base-build|-a) AUTO_BASE_BUILD=1; shift ;;
             --no-refresh|-n)      NO_REFRESH=1; shift ;;
+            --clean|-c)           CLEAN=1; shift ;;
             --quiet|-q)           VERBOSE=0; shift ;;
             --yes|-y)             ASSUME_YES=1; shift ;;
             --skip-if-exists|-s)  SKIP_IF_EXISTS=1; shift ;;
@@ -52,6 +54,11 @@ parse_arguments() {
 
     if [[ $NO_REFRESH -eq 1 && -z "$FROM_BASE" ]]; then
         lp_error "--no-refresh requires --from-base."
+        return 1 2>/dev/null || exit 1
+    fi
+
+    if [[ $CLEAN -eq 1 && -n "$FROM_BASE" ]]; then
+        lp_error "--clean is not compatible with --from-base (no build step)."
         return 1 2>/dev/null || exit 1
     fi
 }
@@ -83,6 +90,17 @@ prepare_bundle_directory() {
     mkdir -p "$BUNDLE_DIR"
     BUNDLE_REMOVED=1
     STEP=$((STEP + 1))
+}
+
+clean_worktree() {
+    [[ $CLEAN -eq 1 ]] || return 0
+
+    local pass
+    for pass in 1 2; do
+        lp_section "$STEP" "$TOTAL_STEPS" "Cleaning worktree (pass $pass)" \
+            "$_LP_SCRIPTS_DIR/commands/worktree/clean.sh" -y "$BRANCH" || return $?
+        STEP=$((STEP + 1))
+    done
 }
 
 run_build() {
@@ -189,12 +207,16 @@ build_from_base() {
 build_from_scratch() {
     TOTAL_STEPS=4
     if [[ -d "$BUNDLE_DIR" ]]; then
-        TOTAL_STEPS=5
+        TOTAL_STEPS=$((TOTAL_STEPS + 1))
+    fi
+    if [[ $CLEAN -eq 1 ]]; then
+        TOTAL_STEPS=$((TOTAL_STEPS + 2))
     fi
     STEP=1
 
     prepare_bundle_directory || return $?
     [[ $BUILD_SKIPPED -eq 1 ]] && return 0
+    clean_worktree || return $?
     run_build || return $?
     configure_properties || return $?
     write_meta "scratch" || return $?
