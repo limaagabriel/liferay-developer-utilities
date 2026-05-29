@@ -69,7 +69,7 @@ handle_existing_session() {
 }
 
 get_bundle_command() {
-    local build_cmd="lp bundle build -s"
+    local build_cmd="lp bundle build -s -c"
     [[ -n "$FROM_BASE" ]] && build_cmd+=" --from-base \"$FROM_BASE\""
 
     if [[ "$SKIP_BUNDLE" == "true" ]]; then
