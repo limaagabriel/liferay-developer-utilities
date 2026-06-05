@@ -27,7 +27,7 @@ main() {
     lp_database_log_backend "$BRANCH"
 
     case "$backend" in
-        mysql|hypersonic)
+        mysql|postgresql|hypersonic)
             exec "$_LP_SCRIPTS_DIR/commands/bundle/reset.sh" "${FORWARD_ARGS[@]}" "$BRANCH"
             ;;
         *)

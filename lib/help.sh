@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------
 
 # Space-separated list of all namespaces (defines display order)
-_LP_NAMESPACES="worktree reference bundle base portal playwright mysql database session config git self modules"
+_LP_NAMESPACES="worktree reference bundle base portal playwright mysql postgresql database session config git self modules"
 
 # _lp_ns_alias <token> — resolve a namespace shorthand to its real name.
 # Returns the input unchanged if no alias matches.
@@ -28,6 +28,7 @@ _lp_ns_alias() {
         p)   echo "portal" ;;
         pw)  echo "playwright" ;;
         ms)  echo "mysql" ;;
+        pg)  echo "postgresql" ;;
         db)  echo "database" ;;
         s)   echo "session" ;;
         c)   echo "config" ;;
@@ -48,6 +49,7 @@ _lp_ns_alias_for() {
         portal)     echo "p" ;;
         playwright) echo "pw" ;;
         mysql)      echo "ms" ;;
+        postgresql) echo "pg" ;;
         database)   echo "db" ;;
         session)    echo "s" ;;
         config)     echo "c" ;;
@@ -68,7 +70,8 @@ _lp_ns_desc() {
         portal)   echo "Liferay Portal development utilities" ;;
         playwright) echo "Playwright test utilities" ;;
         mysql)    echo "Manage the MySQL Docker container" ;;
-        database) echo "Backend-aware database operations (routes to mysql or hypersonic)" ;;
+        postgresql) echo "Manage the PostgreSQL Docker container" ;;
+        database) echo "Backend-aware database operations (routes to mysql, postgresql, or hypersonic)" ;;
         session)  echo "Manage tmux-based development sessions" ;;
         config)   echo "Manage per-user lp configuration" ;;
         git)      echo "Git utilities" ;;
@@ -88,6 +91,7 @@ _lp_ns_cmds() {
         portal)   echo "buildLang cdm gw sf sample setup" ;;
         playwright) echo "test trace" ;;
         mysql)    echo "reset start stop drop status" ;;
+        postgresql) echo "reset start stop drop status" ;;
         database) echo "status reset drop switch start stop remove" ;;
         session)  echo "list start stop enter exit detach add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
@@ -129,7 +133,7 @@ _lp_cmd_desc() {
         bundle/build)     echo "Build the portal bundle from the worktree" ;;
         bundle/refresh)   echo "Refresh portal jars in the active bundle" ;;
         bundle/rebase)    echo "Rebuild a bundle from a different base bundle (destructive)" ;;
-        bundle/db)        echo "Control the database backend inside a bundle (hypersonic/mysql)" ;;
+        bundle/db)        echo "Control the database backend inside a bundle (hypersonic/mysql/postgresql)" ;;
         bundle/properties) echo "Copy portal-ext.properties and set database to branch name" ;;
         bundle/ports)     echo "Configure TCP port offsets for the bundle" ;;
         bundle/start)     echo "Start the Liferay server for a bundle" ;;
@@ -151,6 +155,11 @@ _lp_cmd_desc() {
         mysql/stop)       echo "Stop the MySQL container (preserving data)" ;;
         mysql/drop)       echo "Drop a specific branch's database" ;;
         mysql/status)     echo "Check MySQL container status and list databases" ;;
+        postgresql/reset) echo "Reset a specific database (drop and recreate)" ;;
+        postgresql/start) echo "Start PostgreSQL container and ensure a branch-specific database exists" ;;
+        postgresql/stop)  echo "Stop the PostgreSQL container (preserving data)" ;;
+        postgresql/drop)  echo "Drop a specific branch's database" ;;
+        postgresql/status) echo "Check PostgreSQL container status and list databases" ;;
         session/list)     echo "List all active development sessions (tmux)" ;;
         session/start)    echo "Start a new development session using tmux" ;;
         session/stop)     echo "Stop a development session and kill tmux" ;;
@@ -173,13 +182,13 @@ _lp_cmd_desc() {
         self/update)      echo "Update the lp tool from its git repository" ;;
         modules/changed) echo "List all changed modules in the current branch comparing to a base branch" ;;
         modules/deploy)   echo "Run gw deploy in a module or all changed modules" ;;
-        database/status)  echo "Show current database backend status (mysql only)" ;;
+        database/status)  echo "Show current database backend status (mysql|postgresql only)" ;;
         database/reset)   echo "Reset the database for a branch (routes by backend)" ;;
         database/drop)    echo "Drop the database for a branch (routes by backend)" ;;
-        database/switch)  echo "Switch backend (hypersonic|mysql) for a branch" ;;
-        database/start)   echo "Start the database backend runtime (mysql only)" ;;
-        database/stop)    echo "Stop the database backend runtime (mysql only)" ;;
-        database/remove)  echo "Remove the database backend runtime + all DBs (mysql only)" ;;
+        database/switch)  echo "Switch backend (hypersonic|mysql|postgresql) for a branch" ;;
+        database/start)   echo "Start the database backend runtime (mysql|postgresql only)" ;;
+        database/stop)    echo "Stop the database backend runtime (mysql|postgresql only)" ;;
+        database/remove)  echo "Remove the database backend runtime + all DBs (mysql|postgresql only)" ;;
         *)                echo "" ;;
     esac
 }
@@ -209,7 +218,7 @@ _lp_cmd_usage() {
         bundle/build)     echo "lp bundle build [options] <branch>" ;;
         bundle/refresh)   echo "lp bundle refresh [-q|-v] [branch]" ;;
         bundle/rebase)    echo "lp bundle rebase [<branch>] --from-base <name> [-y]" ;;
-        bundle/db)        echo "lp bundle db [mysql|hypersonic] [branch]" ;;
+        bundle/db)        echo "lp bundle db [mysql|hypersonic|postgresql] [branch]" ;;
         bundle/properties) echo "lp bundle properties [options] [branch]" ;;
         bundle/ports)     echo "lp bundle ports [branch]" ;;
         bundle/start)     echo "lp bundle start [-v] [branch]" ;;
@@ -231,6 +240,11 @@ _lp_cmd_usage() {
         mysql/stop)       echo "lp mysql stop" ;;
         mysql/drop)       echo "lp mysql drop [-y|--yes] [branch]" ;;
         mysql/status)     echo "lp mysql status" ;;
+        postgresql/reset) echo "lp postgresql reset [-y|--yes] [branch]" ;;
+        postgresql/start) echo "lp postgresql start [branch]" ;;
+        postgresql/stop)  echo "lp postgresql stop" ;;
+        postgresql/drop)  echo "lp postgresql drop [-y|--yes] [branch]" ;;
+        postgresql/status) echo "lp postgresql status" ;;
         session/list)     echo "lp session list" ;;
         session/start)    echo "lp session start [options] [branch]" ;;
         session/stop)     echo "lp session stop [branch]" ;;
@@ -256,7 +270,7 @@ _lp_cmd_usage() {
         database/status)  echo "lp database status [branch]" ;;
         database/reset)   echo "lp database reset [-y|--yes] [-v] [branch]" ;;
         database/drop)    echo "lp database drop [-y|--yes] [-v] [branch]" ;;
-        database/switch)  echo "lp database switch [mysql|hypersonic] [branch]" ;;
+        database/switch)  echo "lp database switch [mysql|hypersonic|postgresql] [branch]" ;;
         database/start)   echo "lp database start [-v] [branch]" ;;
         database/stop)    echo "lp database stop [branch]" ;;
         database/remove)  echo "lp database remove [branch]" ;;
@@ -347,7 +361,7 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         bundle/build)
-            echo "  -d, --db <database>     Database type (hypersonic|mysql)"
+            echo "  -d, --db <database>     Database type (hypersonic|mysql|postgresql)"
             echo "  -f, --from-base <name>  Clone from a base bundle instead of building from scratch"
             echo "  -n, --no-refresh        Skip the auto-refresh after a --from-base build (requires --from-base)"
             echo "  -a, --auto-base-build   After build, snapshot the bundle as a new base bundle"
@@ -428,7 +442,7 @@ _lp_cmd_opts() {
             echo "  Note: intended for use with 'eval', e.g. eval \"\$(lp bundle env)\""
             ;;
         bundle/properties)
-            echo "  -d, --db <database>     Database type (hypersonic|mysql)"
+            echo "  -d, --db <database>     Database type (hypersonic|mysql|postgresql)"
             echo "  -v, --verbose           Show full output"
             echo "  -h, --help              Show this help"
             ;;
@@ -441,6 +455,14 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         mysql/start)
+            echo "  -v, --verbose   Show full docker output"
+            echo "  -h, --help      Show this help"
+            ;;
+        postgresql/reset)
+            echo "  -v, --verbose   Show full docker output"
+            echo "  -h, --help      Show this help"
+            ;;
+        postgresql/start)
             echo "  -v, --verbose   Show full docker output"
             echo "  -h, --help      Show this help"
             ;;
@@ -715,6 +737,7 @@ _lp_cmd_examples() {
             ;;
         bundle/db)
             echo "  lp bundle db mysql"
+            echo "  lp bundle db postgresql"
             echo "  lp bundle db hypersonic feature-abc"
             ;;
         bundle/properties)
@@ -742,6 +765,24 @@ _lp_cmd_examples() {
             ;;
         mysql/status)
             echo "  lp mysql status"
+            ;;
+        postgresql/reset)
+            echo "  lp postgresql reset"
+            echo "  lp postgresql reset -y"
+            echo "  lp postgresql reset feature-xyz"
+            ;;
+        postgresql/start)
+            echo "  lp postgresql start"
+            echo "  lp postgresql start feature-xyz"
+            ;;
+        postgresql/stop)
+            echo "  lp postgresql stop"
+            ;;
+        postgresql/drop)
+            echo "  lp postgresql drop feature-xyz"
+            ;;
+        postgresql/status)
+            echo "  lp postgresql status"
             ;;
         session/list)
             echo "  lp session list"
@@ -841,6 +882,7 @@ _lp_cmd_examples() {
             ;;
         database/switch)
             echo "  lp database switch mysql"
+            echo "  lp database switch postgresql"
             echo "  lp database switch hypersonic feature-xyz"
             ;;
         database/start)

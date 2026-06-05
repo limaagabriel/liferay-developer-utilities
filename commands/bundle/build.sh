@@ -21,7 +21,7 @@ parse_arguments() {
                     DB_TYPE="$2"
                     shift 2
                 else
-                    lp_error "Option $1 requires a value (hypersonic|mysql)."
+                    lp_error "Option $1 requires a value (hypersonic|mysql|postgresql)."
                     return 1 2>/dev/null || exit 1
                 fi
                 ;;

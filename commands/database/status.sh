@@ -30,6 +30,9 @@ main() {
         mysql)
             exec "$_LP_SCRIPTS_DIR/commands/mysql/status.sh" "${FORWARD_ARGS[@]}"
             ;;
+        postgresql)
+            exec "$_LP_SCRIPTS_DIR/commands/postgresql/status.sh" "${FORWARD_ARGS[@]}"
+            ;;
         hypersonic)
             lp_database_unsupported "status"
             return 0

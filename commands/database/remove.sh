@@ -30,6 +30,9 @@ main() {
         mysql)
             exec "$_LP_SCRIPTS_DIR/commands/mysql/remove.sh" "${FORWARD_ARGS[@]}"
             ;;
+        postgresql)
+            exec "$_LP_SCRIPTS_DIR/commands/postgresql/remove.sh" "${FORWARD_ARGS[@]}"
+            ;;
         hypersonic)
             lp_database_unsupported "remove"
             return 0

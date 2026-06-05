@@ -45,7 +45,7 @@ prompt_for_all_values() {
     prompt_for_value ENABLE_AUTOCOMPLETE_VAL "Enable tab completion (yes/no)" "${ENABLE_AUTOCOMPLETE:-yes}"
     prompt_for_value ENABLE_ALIASES_VAL "Enable simplified aliases (yes/no)" "${ENABLE_ALIASES:-yes}"
     prompt_for_value WORKTREE_LIMIT_VAL "Worktree limit" "${WORKTREE_LIMIT:-8}"
-    prompt_for_value DEFAULT_DATABASE_VAL "Default database (hypersonic|mysql)" "${DEFAULT_DATABASE:-hypersonic}"
+    prompt_for_value DEFAULT_DATABASE_VAL "Default database (hypersonic|mysql|postgresql)" "${DEFAULT_DATABASE:-hypersonic}"
     prompt_for_value SESSION_CUSTOM_WINDOWS_VAL "Custom tmux windows (name1:cmd1,name2:cmd2)" "${SESSION_CUSTOM_WINDOWS:-}"
     prompt_for_value ENABLE_PORT_OFFSET_VAL "Enable per-bundle port offsets for parallel servers (yes/no)" "${ENABLE_PORT_OFFSET:-no}"
 }

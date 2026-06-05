@@ -86,16 +86,22 @@ main() {
     confirm_reset || return 0
     lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
 
-    local mysql_active=0
-    [[ "$(lp_database_backend "$BRANCH")" == "mysql" ]] && mysql_active=1
+    local backend
+    backend=$(lp_database_backend "$BRANCH")
+    local db_active=0
+    [[ "$backend" == "mysql" || "$backend" == "postgresql" ]] && db_active=1
 
     TOTAL_STEPS=$(get_total_steps)
-    [[ $mysql_active -eq 1 ]] && TOTAL_STEPS=$((TOTAL_STEPS + 1))
+    [[ $db_active -eq 1 ]] && TOTAL_STEPS=$((TOTAL_STEPS + 1))
     CURRENT_STEP=1
 
-    if [[ $mysql_active -eq 1 ]]; then
+    if [[ "$backend" == "mysql" ]]; then
         lp_section "$CURRENT_STEP" "$TOTAL_STEPS" "Resetting MySQL database '$BRANCH'" \
             "$_LP_SCRIPTS_DIR/commands/mysql/reset.sh" --yes "$BRANCH"
+        ((CURRENT_STEP++))
+    elif [[ "$backend" == "postgresql" ]]; then
+        lp_section "$CURRENT_STEP" "$TOTAL_STEPS" "Resetting PostgreSQL database '$BRANCH'" \
+            "$_LP_SCRIPTS_DIR/commands/postgresql/reset.sh" --yes "$BRANCH"
         ((CURRENT_STEP++))
     fi
 

@@ -30,6 +30,9 @@ main() {
         mysql)
             exec "$_LP_SCRIPTS_DIR/commands/mysql/stop.sh" "${FORWARD_ARGS[@]}"
             ;;
+        postgresql)
+            exec "$_LP_SCRIPTS_DIR/commands/postgresql/stop.sh" "${FORWARD_ARGS[@]}"
+            ;;
         hypersonic)
             lp_database_unsupported "stop"
             return 0

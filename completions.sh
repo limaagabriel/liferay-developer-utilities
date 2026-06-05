@@ -51,7 +51,7 @@ _lp_has_branch_arg() {
     case "$1/$2" in
         worktree/cd|worktree/start|worktree/remove|\
         worktree/build|worktree/clean|reference/set|bundle/cd|bundle/remove|bundle/info|bundle/kill|bundle/rebase|\
-        portal/sample|portal/setup|modules/changed|mysql/reset|mysql/start|hypersonic/clean|session/start|session/stop|\
+        portal/sample|portal/setup|modules/changed|mysql/reset|mysql/start|postgresql/reset|postgresql/start|hypersonic/clean|session/start|session/stop|\
         session/enter|session/describe|session/status|session/update|git/bisect|\
         base/sync|\
         database/status|database/reset|database/drop|database/start|database/stop|database/remove)
@@ -75,7 +75,7 @@ _lp_get_base_names() {
 
 # _lp_get_db_completions
 _lp_get_db_completions() {
-    echo "mysql hypersonic"
+    echo "mysql hypersonic postgresql"
 }
 
 # Main completion function for the lp command.

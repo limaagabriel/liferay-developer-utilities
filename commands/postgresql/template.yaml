@@ -1,0 +1,14 @@
+services:
+  postgresql:
+    image: postgres:16-alpine
+    container_name: postgresql
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - db:/opt/me/data
+
+volumes:
+  db:
+    driver: local

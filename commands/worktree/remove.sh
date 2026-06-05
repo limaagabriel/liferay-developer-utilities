@@ -1,6 +1,7 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "worktree" "remove" "$@"
+source "$_LP_SCRIPTS_DIR/lib/database.sh"
 
 parse_arguments() {
     DELETE_BRANCH=0
@@ -35,19 +36,6 @@ validate_arguments() {
     done
 }
 
-mysql_running() {
-    docker ps --format '{{.Names}}' | grep -q '^mysql$'
-}
-
-database_exists() {
-    local branch="$1"
-    mysql_running || return 1
-    local result
-    result=$(docker exec -e MYSQL_PWD=root mysql mysql -uroot -N -e \
-        "show databases like '$branch';" 2>/dev/null)
-    [[ -n "$result" ]]
-}
-
 session_exists() {
     tmux has-session -t "$1" 2>/dev/null
 }
@@ -62,7 +50,7 @@ confirm_removal() {
         echo "    - worktree: $WORKTREE_DIR"
         echo "    - bundle:   $BUNDLE_DIR"
         session_exists "$branch" && echo "    - session:  $branch"
-        database_exists "$branch" && echo "    - database: $branch"
+        lp_database_exists "$branch" && echo "    - database: $branch"
         [[ "$DELETE_BRANCH" -eq 1 ]] && echo "    - branch:   $branch"
     done
 
@@ -76,7 +64,7 @@ count_branch_steps() {
     local branch="$1"
     local total=2
     session_exists "$branch" && ((total++))
-    database_exists "$branch" && ((total++))
+    lp_database_exists "$branch" && ((total++))
     [[ "$DELETE_BRANCH" -eq 1 ]] && ((total++))
     echo "$total"
 }
@@ -103,10 +91,9 @@ process_branch() {
     lp_run rm -rf "$BUNDLE_DIR"
     ((step++))
 
-    if database_exists "$branch"; then
+    if lp_database_exists "$branch"; then
         lp_step $step $total "Dropping database '$branch'"
-        lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e \
-            "drop database if exists \`$branch\`;"
+        lp_run lp_database_drop "$branch"
         ((step++))
     fi
 

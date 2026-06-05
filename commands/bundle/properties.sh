@@ -13,7 +13,7 @@ while [[ $# -gt 0 ]]; do
                 DB_TYPE="$2"
                 shift 2
             else
-                lp_error "Option $1 requires a value (hypersonic|mysql)."
+                lp_error "Option $1 requires a value (hypersonic|mysql|postgresql)."
                 return 1 2>/dev/null || exit 1
             fi
             ;;
@@ -63,13 +63,14 @@ set_web_xml_session_timeout() {
 }
 
 TOTAL_STEPS=3
-[[ "$DB_TYPE" == "mysql" ]] && TOTAL_STEPS=4
+[[ "$DB_TYPE" == "mysql" || "$DB_TYPE" == "postgresql" ]] && TOTAL_STEPS=4
 STEP=1
 
 lp_step "$STEP" "$TOTAL_STEPS" "Copying portal-ext.properties to $BUNDLE_DIR"
 mkdir -p "$BUNDLE_DIR"
 cp "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" "$properties_file"
 sed -i "s|localhost:3307/lportal|localhost:3307/$BRANCH|" "$properties_file"
+sed -i "s|localhost:5433/lportal|localhost:5433/$BRANCH|" "$properties_file"
 STEP=$((STEP + 1))
 
 lp_step "$STEP" "$TOTAL_STEPS" "Setting session-timeout to 480 in web.xml"
@@ -83,6 +84,9 @@ STEP=$((STEP + 1))
 if [[ "$DB_TYPE" == "mysql" ]]; then
     lp_section "$STEP" "$TOTAL_STEPS" "Starting MySQL" \
         "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "$BRANCH"
+elif [[ "$DB_TYPE" == "postgresql" ]]; then
+    lp_section "$STEP" "$TOTAL_STEPS" "Starting PostgreSQL" \
+        "$_LP_SCRIPTS_DIR/commands/postgresql/start.sh" "$BRANCH"
 fi
 
 if lp_port_offset_enabled; then

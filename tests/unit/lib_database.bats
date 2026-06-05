@@ -26,6 +26,48 @@ EOF
     [ "$output" = "mysql" ]
 }
 
+@test "lp_database_backend returns postgresql when jdbc.default.driverClassName is org.postgresql.Driver" {
+    cat > "$PROPERTIES_FILE" <<EOF
+jdbc.default.driverClassName=org.postgresql.Driver
+jdbc.default.url=jdbc:postgresql://localhost:5433/test
+EOF
+    run lp_database_backend "test-branch"
+    [ "$status" -eq 0 ]
+    [ "$output" = "postgresql" ]
+}
+
+@test "lp_database_backend returns postgresql when mysql is commented but postgresql is not" {
+    cat > "$PROPERTIES_FILE" <<EOF
+# jdbc.default.driverClassName=com.mysql.cj.jdbc.Driver
+# jdbc.default.url=jdbc:mysql://localhost:3307/lportal
+# jdbc.default.username=root
+# jdbc.default.password=root
+jdbc.default.driverClassName=org.postgresql.Driver
+jdbc.default.url=jdbc:postgresql://localhost:5433/feature_xyz
+jdbc.default.username=postgres
+jdbc.default.password=postgres
+EOF
+    run lp_database_backend "test-branch"
+    [ "$status" -eq 0 ]
+    [ "$output" = "postgresql" ]
+}
+
+@test "lp_database_backend returns hypersonic when both blocks are commented (multi-block file)" {
+    cat > "$PROPERTIES_FILE" <<EOF
+# jdbc.default.driverClassName=com.mysql.cj.jdbc.Driver
+# jdbc.default.url=jdbc:mysql://localhost:3307/lportal
+# jdbc.default.username=root
+# jdbc.default.password=root
+# jdbc.default.driverClassName=org.postgresql.Driver
+# jdbc.default.url=jdbc:postgresql://localhost:5433/lportal
+# jdbc.default.username=postgres
+# jdbc.default.password=postgres
+EOF
+    run lp_database_backend "test-branch"
+    [ "$status" -eq 0 ]
+    [ "$output" = "hypersonic" ]
+}
+
 @test "lp_database_backend returns hypersonic when jdbc.default.driverClassName is commented" {
     cat > "$PROPERTIES_FILE" <<EOF
 # jdbc.default.driverClassName=com.mysql.cj.jdbc.Driver
@@ -79,6 +121,34 @@ EOF
 @test "lp_database_status_line prints Hypersonic when driverClassName commented" {
     cat > "$PROPERTIES_FILE" <<EOF
 # jdbc.default.driverClassName=com.mysql.cj.jdbc.Driver
+EOF
+    run lp_database_status_line "$PROPERTIES_FILE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Current database: Hypersonic"* ]]
+}
+
+@test "lp_database_status_line prints PostgreSQL with schema name when jdbc.default.url has database" {
+    cat > "$PROPERTIES_FILE" <<EOF
+jdbc.default.driverClassName=org.postgresql.Driver
+jdbc.default.url=jdbc:postgresql://localhost:5433/feature_xyz
+EOF
+    run lp_database_status_line "$PROPERTIES_FILE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Current database: PostgreSQL (feature_xyz)"* ]]
+}
+
+@test "lp_database_status_line prints PostgreSQL without name when jdbc.default.url missing" {
+    cat > "$PROPERTIES_FILE" <<EOF
+jdbc.default.driverClassName=org.postgresql.Driver
+EOF
+    run lp_database_status_line "$PROPERTIES_FILE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Current database: PostgreSQL"* ]]
+}
+
+@test "lp_database_status_line prints Hypersonic when only the org.postgresql.Driver is commented" {
+    cat > "$PROPERTIES_FILE" <<EOF
+# jdbc.default.driverClassName=org.postgresql.Driver
 EOF
     run lp_database_status_line "$PROPERTIES_FILE"
     [ "$status" -eq 0 ]

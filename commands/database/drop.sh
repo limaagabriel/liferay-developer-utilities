@@ -30,6 +30,9 @@ main() {
         mysql)
             exec "$_LP_SCRIPTS_DIR/commands/mysql/drop.sh" "${FORWARD_ARGS[@]}" "$BRANCH"
             ;;
+        postgresql)
+            exec "$_LP_SCRIPTS_DIR/commands/postgresql/drop.sh" "${FORWARD_ARGS[@]}" "$BRANCH"
+            ;;
         hypersonic)
             exec "$_LP_SCRIPTS_DIR/commands/bundle/reset.sh" "${FORWARD_ARGS[@]}" "$BRANCH"
             ;;

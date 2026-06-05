@@ -115,15 +115,16 @@ setup() {
     [[ "$output" == *"Examples:"* ]]
 }
 
-@test "lp_print_command_help database status notes mysql-only support" {
+@test "lp_print_command_help database status notes mysql|postgresql-only support" {
     run lp_print_command_help "database" "status"
     [ "$status" -eq 0 ]
-    [[ "$output" == *"(mysql only)"* ]]
+    [[ "$output" == *"(mysql|postgresql only)"* ]]
 }
 
-@test "lp_print_command_help database switch documents hypersonic|mysql positional" {
+@test "lp_print_command_help database switch documents hypersonic|mysql|postgresql positional" {
     run lp_print_command_help "database" "switch"
     [ "$status" -eq 0 ]
     [[ "$output" == *"hypersonic"* ]]
     [[ "$output" == *"mysql"* ]]
+    [[ "$output" == *"postgresql"* ]]
 }
