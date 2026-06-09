@@ -9,7 +9,7 @@ parse_arguments() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --verbose|-v) shift ;;
-            -t|--this) USE_THIS=1; shift ;;
+            -t|--this|this) USE_THIS=1; shift ;;
             *) BRANCH="$1"; shift ;;
         esac
     done
