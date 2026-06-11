@@ -3,9 +3,11 @@ source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "postgresql" "start" "$@"
 
 BRANCH=""
+RESET_DB=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --reset-db|-r) RESET_DB=1; shift ;;
         --verbose|-v) shift ;;
         -*)
             lp_error "Unknown option: $1"
@@ -43,8 +45,19 @@ wait_for_postgresql_ready() {
 initialize_database() {
     lp_step 3 3 "Creating database '$BRANCH'"
 
+    local exists=0
     if docker exec postgresql psql -U postgres -tAc \
             "select 1 from pg_database where datname='$BRANCH'" 2>/dev/null | grep -q 1; then
+        exists=1
+    fi
+
+    if [[ $exists -eq 1 && $RESET_DB -eq 1 ]]; then
+        lp_info "Resetting database '$BRANCH'."
+        lp_run docker exec postgresql psql -U postgres -c "drop database if exists \"$BRANCH\";" || return $?
+        exists=0
+    fi
+
+    if [[ $exists -eq 1 ]]; then
         lp_info "Database '$BRANCH' already exists, skipping creation."
     else
         lp_run docker exec postgresql psql -U postgres -c "create database \"$BRANCH\";" || return $?

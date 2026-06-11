@@ -443,6 +443,7 @@ _lp_cmd_opts() {
             ;;
         bundle/properties)
             echo "  -d, --db <database>     Database type (hypersonic|mysql|postgresql)"
+            echo "  -r, --reset-db          Drop and recreate the branch database if it already exists"
             echo "  -v, --verbose           Show full output"
             echo "  -h, --help              Show this help"
             ;;
@@ -455,6 +456,7 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         mysql/start)
+            echo "  -r, --reset-db  Drop and recreate the database if it already exists"
             echo "  -v, --verbose   Show full docker output"
             echo "  -h, --help      Show this help"
             ;;
@@ -463,6 +465,7 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         postgresql/start)
+            echo "  -r, --reset-db  Drop and recreate the database if it already exists"
             echo "  -v, --verbose   Show full docker output"
             echo "  -h, --help      Show this help"
             ;;
@@ -756,6 +759,7 @@ _lp_cmd_examples() {
         mysql/start)
             echo "  lp mysql start"
             echo "  lp mysql start feature-xyz"
+            echo "  lp mysql start -r feature-xyz"
             ;;
         mysql/stop)
             echo "  lp mysql stop"
@@ -774,6 +778,7 @@ _lp_cmd_examples() {
         postgresql/start)
             echo "  lp postgresql start"
             echo "  lp postgresql start feature-xyz"
+            echo "  lp postgresql start -r feature-xyz"
             ;;
         postgresql/stop)
             echo "  lp postgresql stop"

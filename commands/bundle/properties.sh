@@ -5,6 +5,7 @@ source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
 
 BRANCH=""
 DB_TYPE="$DEFAULT_DATABASE"
+RESET_DB=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -17,6 +18,7 @@ while [[ $# -gt 0 ]]; do
                 return 1 2>/dev/null || exit 1
             fi
             ;;
+        --reset-db|-r) RESET_DB=1; shift ;;
         --verbose|-v) shift ;;
         --help|-h) shift ;;
         -*)
@@ -81,12 +83,16 @@ lp_section "$STEP" "$TOTAL_STEPS" "Configuring database ($DB_TYPE)" \
     "$_LP_SCRIPTS_DIR/commands/bundle/db.sh" "$DB_TYPE" "$BRANCH"
 STEP=$((STEP + 1))
 
+db_start_args=()
+[[ $RESET_DB -eq 1 ]] && db_start_args+=("-r")
+db_start_args+=("$BRANCH")
+
 if [[ "$DB_TYPE" == "mysql" ]]; then
     lp_section "$STEP" "$TOTAL_STEPS" "Starting MySQL" \
-        "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "$BRANCH"
+        "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "${db_start_args[@]}"
 elif [[ "$DB_TYPE" == "postgresql" ]]; then
     lp_section "$STEP" "$TOTAL_STEPS" "Starting PostgreSQL" \
-        "$_LP_SCRIPTS_DIR/commands/postgresql/start.sh" "$BRANCH"
+        "$_LP_SCRIPTS_DIR/commands/postgresql/start.sh" "${db_start_args[@]}"
 fi
 
 if lp_port_offset_enabled; then

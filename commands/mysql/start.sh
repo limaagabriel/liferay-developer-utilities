@@ -3,9 +3,11 @@ source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "mysql" "start" "$@"
 
 BRANCH=""
+RESET_DB=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --reset-db|-r) RESET_DB=1; shift ;;
         --verbose|-v) shift ;;
         -*)
             lp_error "Unknown option: $1"
@@ -43,7 +45,18 @@ wait_for_mysql_ready() {
 initialize_database() {
     lp_step 3 3 "Creating database '$BRANCH'"
     
+    local exists=0
     if docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "show databases;" | grep -q "^$BRANCH$"; then
+        exists=1
+    fi
+
+    if [[ $exists -eq 1 && $RESET_DB -eq 1 ]]; then
+        lp_info "Resetting database '$BRANCH'."
+        lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "drop database if exists \`$BRANCH\`;" || return $?
+        exists=0
+    fi
+
+    if [[ $exists -eq 1 ]]; then
         lp_info "Database '$BRANCH' already exists, skipping creation."
     else
         lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "create schema \`$BRANCH\` default character set utf8;" || return $?

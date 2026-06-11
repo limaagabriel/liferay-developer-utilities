@@ -122,6 +122,7 @@ run_build() {
 
 clone_from_base() {
     BUILD_SKIPPED=0
+    BUNDLE_REMOVED=0
     local base_path
     base_path=$(_lp_bundle_resolve_base "$FROM_BASE") || return $?
 
@@ -140,6 +141,7 @@ clone_from_base() {
         fi
         lp_step "$STEP" "$TOTAL_STEPS" "Removing existing bundle '$BUNDLE_DIR'"
         lp_run rm -rf "$BUNDLE_DIR" || return $?
+        BUNDLE_REMOVED=1
         STEP=$((STEP + 1))
     fi
 
@@ -157,6 +159,7 @@ clone_from_base() {
 configure_properties() {
     local properties_args=()
     [[ -n "$DB_TYPE" ]] && properties_args+=("-d" "$DB_TYPE")
+    [[ $BUNDLE_REMOVED -eq 1 ]] && properties_args+=("-r")
     properties_args+=("$BRANCH")
 
     lp_section "$STEP" "$TOTAL_STEPS" "Configuring portal properties" \
