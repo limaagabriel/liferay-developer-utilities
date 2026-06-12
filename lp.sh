@@ -123,6 +123,7 @@ lp() {
     echo -n "Time spent: "
     lp_format_duration $_lp_duration
     echo ""
+    echo "Finished at: $(date '+%Y-%m-%d %H:%M:%S')"
     echo ""
 
     return $_lp_exit_code
