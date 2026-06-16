@@ -169,7 +169,7 @@ _lp_cmd_desc() {
         session/rebuild)  echo "Rebuild the bundle and restart the server in a session" ;;
         session/restart)  echo "Restart the server in a session" ;;
         session/describe) echo "Set or update the description of a development session" ;;
-        session/status)   echo "Set or update the status of a development session (pending, in-progress, etc.)" ;;
+        session/status)   echo "Set or update the status of a development session (pending, progress, etc.)" ;;
         session/update)   echo "Update the description and/or status of a development session" ;;
         config/show)      echo "Show the currently resolved lp configuration" ;;
         config/init)      echo "Interactively create the per-user config file" ;;
@@ -476,7 +476,7 @@ _lp_cmd_opts() {
             echo "  -n, --no-build           Create the bundle window but don't start the build automatically"
             echo "  -b, --build-only         Build the bundle but don't start the server automatically"
             echo "  -d, --description        Add a brief description to the session"
-            echo "  -s, --status             Set a status (pending, in-progress, important, ready)"
+            echo "  -s, --status             Set a status (pending, progress, review, important, ready)"
             echo "  -f, --from-base <name>   Clone from a base bundle instead of building from scratch"
             echo "  -h, --help               Show this help"
             echo "  Note: Requires 'tmux' to be installed. 'lazygit' is recommended for the git window."
@@ -505,7 +505,7 @@ _lp_cmd_opts() {
             ;;
         session/status)
             echo "  -h, --help      Show this help"
-            echo "  Valid statuses: pending, in-progress, important, ready"
+            echo "  Valid statuses: pending, progress, review, important, ready"
             ;;
         session/update)
             echo "  -d, --describe <description>  Set or update the session description"
@@ -824,10 +824,10 @@ _lp_cmd_examples() {
             ;;
         session/status)
             echo "  lp session status ready"
-            echo "  lp session status main in-progress"
+            echo "  lp session status main progress"
             ;;
         session/update)
-            echo "  lp session update -d 'Fixing LPS-123' -s 'in-progress'"
+            echo "  lp session update -d 'Fixing LPS-123' -s 'progress'"
             echo "  lp session update main -s 'ready'"
             ;;
         config/show)

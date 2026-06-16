@@ -15,7 +15,8 @@ _lp_session_name() {
 _lp_status_emoji() {
     case "$1" in
         pending)     echo "⏳" ;;
-        in-progress) echo "🚧" ;;
+        progress)    echo "🚧" ;;
+        review)      echo "👀" ;;
         important)   echo "🚨" ;;
         ready)       echo "✅" ;;
         *)           echo "" ;;

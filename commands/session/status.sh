@@ -48,7 +48,7 @@ validate_status() {
     EMOJI=$(_lp_status_emoji "$STATUS_NAME")
     if [[ -z "$EMOJI" ]]; then
         lp_error "Invalid status: $STATUS_NAME"
-        echo "Valid statuses: pending, in-progress, important, ready"
+        echo "Valid statuses: pending, progress, review, important, ready"
         return 1 2>/dev/null || exit 1
     fi
 }
