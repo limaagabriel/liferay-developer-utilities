@@ -114,7 +114,7 @@ run_build() {
 
     local cores threads
     cores=$(nproc 2>/dev/null || sysctl -n hw.ncpu)
-    threads=$(( cores/2 < 4 ? 4 : cores/2 ))
+    threads=$(( cores ))
     lp_run ant -Dparallel.thread.count="$threads" -Dorg.gradle.workers.max="$threads" all || return $?
 
     STEP=$((STEP + 1))
