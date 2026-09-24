@@ -68,7 +68,7 @@ confirm_reclone() {
 main() {
     parse_arguments "$@" || return $?
 
-    lp_branch_vars "$BRANCH"
+    lp_branch_vars "$BRANCH" || return $?
     lp_validate_worktree || return $?
     lp_load_bundle_dir || return $?
 

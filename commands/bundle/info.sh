@@ -32,7 +32,7 @@ parse_arguments() {
 main() {
     parse_arguments "$@" || return $?
 
-    lp_branch_vars "$BRANCH"
+    lp_branch_vars "$BRANCH" || return $?
     lp_validate_worktree || return $?
     lp_load_bundle_dir || return $?
 
@@ -48,7 +48,7 @@ main() {
 
     if [[ -f "$meta_file" ]]; then
         lp_info ""
-        cat "$meta_file"
+        cat "$meta_file" || return $?
     else
         lp_info "(no metadata — bundle was built before provenance tracking was added; rebuild to populate)"
     fi

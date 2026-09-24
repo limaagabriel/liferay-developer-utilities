@@ -79,7 +79,7 @@ confirm_rebase() {
 main() {
     parse_arguments "$@" || return $?
 
-    lp_branch_vars "$BRANCH"
+    lp_branch_vars "$BRANCH" || return $?
     lp_validate_worktree || return $?
     lp_load_bundle_dir || return $?
 
@@ -89,7 +89,7 @@ main() {
         return 1
     }
 
-    read_current_source
+    read_current_source || return $?
     resolve_new_base || return $?
     confirm_rebase || { lp_info "Aborted."; return 0; }
 

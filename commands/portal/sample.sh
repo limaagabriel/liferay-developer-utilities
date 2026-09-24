@@ -138,7 +138,7 @@ main() {
     find_matching_extensions || return $?
 
     if [[ "$LIST_ONLY" -eq 1 ]]; then
-        list_extensions
+        list_extensions || return $?
         return 0
     fi
 

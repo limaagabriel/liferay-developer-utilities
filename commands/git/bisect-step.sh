@@ -118,9 +118,9 @@ main() {
 	TOTAL_STEPS=$(get_total_steps "$session_name" "$BUNDLE_DIR")
 	CURRENT_STEP=1
 
-	clean_up_existing_session "$session_name"
-	remove_existing_bundle "$BUNDLE_DIR"
-	start_build_in_tmux "$session_name" "$WORKTREE_DIR"
+	clean_up_existing_session "$session_name" || return $?
+	remove_existing_bundle "$BUNDLE_DIR" || return $?
+	start_build_in_tmux "$session_name" "$WORKTREE_DIR" || return $?
 	get_user_verdict "$current_commit"
 }
 

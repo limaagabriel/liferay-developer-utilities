@@ -48,7 +48,7 @@ main() {
 
     lp_branch_vars "$BRANCH" || return $?
     lp_validate_worktree || return $?
-    change_directory
+    change_directory || return $?
     update_reference
 }
 

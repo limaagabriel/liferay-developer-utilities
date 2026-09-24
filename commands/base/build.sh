@@ -78,18 +78,18 @@ main() {
         step=$((step + 1))
     fi
 
-    mkdir -p "$BASE_BUNDLES_DIR"
+    mkdir -p "$BASE_BUNDLES_DIR" || return $?
 
     lp_step $step $total "Cloning $SOURCE_BUNDLE -> $target"
     _lp_bundle_clone "$SOURCE_BUNDLE" "$target" || return $?
     step=$((step + 1))
 
     lp_step $step $total "Resetting mutable state in base"
-    _lp_bundle_init_mutable_state "$target"
+    _lp_bundle_init_mutable_state "$target" || return $?
     step=$((step + 1))
 
     lp_step $step $total "Writing provenance metadata"
-    _lp_bundle_write_meta "$target" "scratch" "$NAME" "$WORKTREE_DIR"
+    _lp_bundle_write_meta "$target" "scratch" "$NAME" "$WORKTREE_DIR" || return $?
 
     local mode
     mode=$(cat "$_LP_BUNDLE_CLONE_MODE_FILE" 2>/dev/null || echo "?")

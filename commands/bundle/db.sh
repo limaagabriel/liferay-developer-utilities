@@ -79,7 +79,7 @@ main() {
 
 	branch="${branch:-$(lp_get_reference_branch)}"
 
-	lp_branch_vars "$branch"
+	lp_branch_vars "$branch" || return $?
 
 	local properties_file="$BUNDLE_DIR/portal-ext.properties"
 
@@ -89,7 +89,7 @@ main() {
 	fi
 
 	if [[ -z "$db_type" ]]; then
-		lp_database_status_line "$properties_file"
+		lp_database_status_line "$properties_file" || return $?
 		return 0 2>/dev/null || exit 0
 	fi
 
