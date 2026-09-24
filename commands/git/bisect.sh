@@ -14,7 +14,7 @@ run_bisect() {
 
 	lp_step 2 3 "Initializing git bisect from $good_commit to $bad_commit"
 
-	lp_run git bisect start "$bad_commit" "$good_commit"
+	lp_run git bisect start "$bad_commit" "$good_commit" || return $?
 
 	lp_step 3 3 "Starting git bisect run"
 
@@ -23,7 +23,7 @@ run_bisect() {
 
 	export _LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR"
 
-	lp_run git bisect run "$_LP_SCRIPTS_DIR/commands/git/bisect-step.sh" "$branch"
+	lp_run git bisect run "$_LP_SCRIPTS_DIR/commands/git/bisect-step.sh" "$branch" || return $?
 
 	lp_success "Git bisect complete."
 
@@ -77,8 +77,8 @@ main() {
 	fi
 
 	BRANCH="$branch"
-	lp_resolve_branch --reference --default-master --vars
-	lp_validate_worktree
+	lp_resolve_branch --reference --default-master --vars || return $?
+	lp_validate_worktree || return $?
 
 	run_bisect "$good_commit" "$bad_commit" "$BRANCH" "$WORKTREE_DIR"
 }

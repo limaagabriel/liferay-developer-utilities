@@ -2,6 +2,12 @@
 
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 
+abort_bisect() {
+	lp_error "$1"
+
+	exit 128
+}
+
 get_total_steps() {
 	local session_name="$1"
 	local bundle_dir="$2"
@@ -18,7 +24,7 @@ clean_up_existing_session() {
 	if tmux has-session -t "$session_name" 2>/dev/null; then
 		lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Cleaning up existing tmux session '$session_name'"
 
-		tmux kill-session -t "$session_name"
+		tmux kill-session -t "$session_name" || abort_bisect "Failed to clean up existing tmux session '$session_name'."
 		((CURRENT_STEP++))
 	fi
 }
@@ -29,7 +35,7 @@ remove_existing_bundle() {
 	if [[ -d "$bundle_dir" ]]; then
 		lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Removing existing bundle directory '$bundle_dir'"
 
-		rm -rf "$bundle_dir"
+		rm -rf "$bundle_dir" || abort_bisect "Failed to remove existing bundle directory '$bundle_dir'."
 		((CURRENT_STEP++))
 	fi
 }
@@ -43,12 +49,11 @@ start_build_in_tmux() {
 	lp_info "Command: lp bundle build -y && lp bundle start"
 
 	local tmp_bisect
-	tmp_bisect=$(mktemp)
-	echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp bundle build -y && lp bundle start" > "$tmp_bisect"
-	echo "rm -f \"$tmp_bisect\"" >> "$tmp_bisect"
+	tmp_bisect=$(mktemp) || abort_bisect "Failed to create temporary build script."
+	echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp bundle build -y && lp bundle start" > "$tmp_bisect" || abort_bisect "Failed to write temporary build script."
+	echo "rm -f \"$tmp_bisect\"" >> "$tmp_bisect" || abort_bisect "Failed to write temporary build script."
 
-	# Create session with the build command
-	tmux new-session -d -s "$session_name" -c "$worktree_dir" "$user_shell -ic \"source $tmp_bisect; exec $user_shell\""
+	tmux new-session -d -s "$session_name" -c "$worktree_dir" "$user_shell -ic \"source $tmp_bisect; exec $user_shell\"" || abort_bisect "Failed to start tmux session '$session_name'."
 
 	lp_info "Monitoring the build:"
 	lp_info "  tmux attach -t $session_name"
@@ -93,21 +98,21 @@ main() {
 	local branch="$1"
 
 	if [[ -z "$branch" ]]; then
-		lp_error "Error: Branch name is required for bisect-step."
-
-		return 1 2>/dev/null || exit 1
+		abort_bisect "Error: Branch name is required for bisect-step."
 	fi
 
-	lp_branch_vars "$branch"
+	lp_branch_vars "$branch" || abort_bisect "Failed to resolve branch vars for '$branch'."
 
 	local session_name="lp-bisect-$branch"
-	local current_commit=$(git rev-parse --short HEAD)
+	local current_commit
+	current_commit=$(git rev-parse --short HEAD) || abort_bisect "Failed to resolve current commit."
 
 	echo ""
 	lp_info "------------------------------------------------------------"
 	lp_info "Bisection Step: Testing commit $current_commit"
 
 	git bisect log | grep -v "^#" | head -n 1
+	[[ "${PIPESTATUS[0]}" -eq 0 ]] || abort_bisect "Failed to read git bisect log."
 	echo ""
 
 	TOTAL_STEPS=$(get_total_steps "$session_name" "$BUNDLE_DIR")

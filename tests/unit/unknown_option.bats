@@ -36,6 +36,8 @@ COMMANDS=(
     "session/add"
     "session/update"
     "session/start"
+    "git/patch"
+    "git/bisect"
 )
 
 @test "every registered command rejects an unknown option without running a step" {
