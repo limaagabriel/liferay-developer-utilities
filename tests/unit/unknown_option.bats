@@ -14,6 +14,12 @@ teardown() {
 # "<namespace>/<command>:sourced" for scripts that must be sourced (run
 # under bash, and under zsh too when it's installed).
 COMMANDS=(
+    "worktree/remove"
+    "worktree/add:sourced"
+    "worktree/clean"
+    "worktree/cd:sourced"
+    "worktree/root:sourced"
+    "worktree/list"
 )
 
 @test "every registered command rejects an unknown option without running a step" {
