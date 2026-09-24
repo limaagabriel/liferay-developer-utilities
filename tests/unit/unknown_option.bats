@@ -20,6 +20,12 @@ COMMANDS=(
     "worktree/cd:sourced"
     "worktree/root:sourced"
     "worktree/list"
+    "mysql/start"
+    "mysql/reset"
+    "mysql/drop"
+    "postgresql/start"
+    "postgresql/reset"
+    "postgresql/drop"
 )
 
 @test "every registered command rejects an unknown option without running a step" {

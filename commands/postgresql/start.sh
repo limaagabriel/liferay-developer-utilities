@@ -35,11 +35,17 @@ start_postgresql_container() {
     fi
 }
 
+probe_postgresql_ready() {
+    docker exec postgresql psql -U postgres -c "select 1" &> /dev/null
+}
+
 wait_for_postgresql_ready() {
     lp_step 2 3 "Waiting for PostgreSQL to be ready"
-    until docker exec postgresql psql -U postgres -c "select 1" &> /dev/null; do
-        sleep 1
-    done
+    if ! lp_wait_until 120 probe_postgresql_ready; then
+        lp_error "PostgreSQL did not become ready in time."
+        lp_error "Check 'docker logs postgresql'."
+        return 1
+    fi
 }
 
 initialize_database() {
@@ -65,10 +71,10 @@ initialize_database() {
 }
 
 main() {
-    prepare_environment
-    start_postgresql_container
-    wait_for_postgresql_ready
-    initialize_database
+    prepare_environment || return $?
+    start_postgresql_container || return $?
+    wait_for_postgresql_ready || return $?
+    initialize_database || return $?
     lp_success "PostgreSQL is ready."
 }
 

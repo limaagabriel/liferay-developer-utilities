@@ -13,12 +13,12 @@ stop_postgresql_container() {
     cd "$_LP_SCRIPTS_DIR/commands/postgresql" || { return 1 2>/dev/null || exit 1; }
 
     lp_step 1 1 "Stopping PostgreSQL container"
-    lp_run docker compose stop
+    lp_run docker compose stop || return $?
 }
 
 main() {
     confirm_stop || return 0
-    stop_postgresql_container
+    stop_postgresql_container || return $?
     lp_success "PostgreSQL has been stopped."
 }
 

@@ -13,12 +13,12 @@ stop_mysql_container() {
     cd "$_LP_SCRIPTS_DIR/commands/mysql" || { return 1 2>/dev/null || exit 1; }
 
     lp_step 1 1 "Stopping MySQL container"
-    lp_run docker compose stop
+    lp_run docker compose stop || return $?
 }
 
 main() {
     confirm_stop || return 0
-    stop_mysql_container
+    stop_mysql_container || return $?
     lp_success "MySQL has been stopped."
 }
 
