@@ -10,6 +10,10 @@ parse_arguments() {
         case "$1" in
             --verbose|-v) shift ;;
             -t|--this|this) USE_THIS=1; shift ;;
+            -*)
+                lp_error "Unknown option: $1"
+                return 1 2>/dev/null || exit 1
+                ;;
             *) BRANCH="$1"; shift ;;
         esac
     done
@@ -41,7 +45,7 @@ main() {
         return 1 2>/dev/null || exit 1
     fi
 
-    parse_arguments "$@"
+    parse_arguments "$@" || return $?
 
     if [[ "$USE_THIS" -eq 1 ]]; then
         if [[ -n "$BRANCH" ]]; then
@@ -50,7 +54,7 @@ main() {
         fi
         resolve_this_worktree || return $?
     else
-        lp_resolve_branch --require
+        lp_resolve_branch --require || return $?
     fi
 
     set_reference_branch

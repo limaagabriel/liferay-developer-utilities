@@ -38,6 +38,15 @@ COMMANDS=(
     "session/start"
     "git/patch"
     "git/bisect"
+    "portal/sample"
+    "portal/setup"
+    "playwright/test"
+    "modules/deploy:sourced"
+    "modules/changed:sourced"
+    "reference/set:sourced"
+    "reference/reset:sourced"
+    "reference/get:sourced"
+    "portal/sf"
 )
 
 @test "every registered command rejects an unknown option without running a step" {

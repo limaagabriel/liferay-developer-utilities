@@ -241,9 +241,9 @@ main() {
         local ec=$?
         [[ $ec -eq 255 ]] && return 0 || return $ec
     }
-    parse_arguments "$@"
-    validate_arguments
-    resolve_modules
+    parse_arguments "$@" || return $?
+    validate_arguments || return $?
+    resolve_modules || return $?
 
     if [[ ${#FINAL_MODULES[@]} -eq 0 ]]; then
         lp_info "No modules to deploy."

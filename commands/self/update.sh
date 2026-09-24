@@ -22,7 +22,7 @@ pull_latest_changes() {
 }
 
 main() {
-    validate_environment
+    validate_environment || return $?
     if pull_latest_changes; then
         lp_success "lp has been updated successfully."
     else

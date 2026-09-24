@@ -51,7 +51,8 @@ main() {
 
 	check_dependencies || return 1 2>/dev/null || exit 1
 
-	local git_dir="$(git rev-parse --show-toplevel)"
+	local git_dir
+	git_dir="$(git rev-parse --show-toplevel)" || return 1 2>/dev/null || exit 1
 	local module_dir=$(find_module_directory "$git_dir")
 
 	if [[ -n "${module_dir}" ]]; then

@@ -25,8 +25,8 @@ parse_arguments() {
 }
 
 main() {
-    parse_arguments "$@"
-    lp_branch_vars "$BRANCH"
+    parse_arguments "$@" || return $?
+    lp_branch_vars "$BRANCH" || return $?
     lp_validate_worktree || return $?
 
     cd "$WORKTREE_DIR" || return 1
