@@ -9,7 +9,7 @@ check_tmux_context() {
         return 1 2>/dev/null || exit 1
     fi
 
-    SESSION_NAME=$(tmux display-message -p '#S')
+    SESSION_NAME=$(tmux display-message -p '#S') || return $?
     BRANCH="$SESSION_NAME"
 }
 
@@ -30,57 +30,42 @@ confirm_restart() {
 
 stop_portal() {
     lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Stopping portal in 'bundle' window"
-    tmux send-keys -t "$SESSION_NAME:bundle" C-c
+    tmux send-keys -t "$SESSION_NAME:bundle" C-c || return $?
     ((CURRENT_STEP++))
 }
 
 wait_for_server_to_stop() {
     lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Waiting for server to stop"
 
-    local shell_name="${SHELL##*/}"
-    [[ -z "$shell_name" ]] && shell_name="bash"
-
-    local max_wait=60
-    local wait_count=0
-
-    while true; do
+    if ! lp_wait_until 60 _lp_bundle_window_idle "$SESSION_NAME"; then
         local current_cmd
         current_cmd=$(tmux display-message -t "$SESSION_NAME:bundle" -p "#{pane_current_command}")
-        
-        if [[ "$current_cmd" == "$shell_name" || "$current_cmd" == "zsh" || "$current_cmd" == "bash" ]]; then
-            break
-        fi
-        
-        if [[ $wait_count -ge $max_wait ]]; then
-            lp_error "Timed out waiting for server to stop in 'bundle' window."
-            lp_info "The 'bundle' window seems to be running: $current_cmd"
-            lp_info "You may need to manually stop it or check its state."
-            return 1 2>/dev/null || exit 1
-        fi
+        lp_error "Timed out waiting for server to stop in 'bundle' window."
+        lp_info "The 'bundle' window seems to be running: $current_cmd"
+        lp_info "You may need to manually stop it or check its state."
+        return 1 2>/dev/null || exit 1
+    fi
 
-        sleep 1
-        ((wait_count++))
-    done
     ((CURRENT_STEP++))
 }
 
 restart_portal() {
     lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Restarting portal"
-    tmux send-keys -t "$SESSION_NAME:bundle" "lp bundle start" Enter
+    tmux send-keys -t "$SESSION_NAME:bundle" "lp bundle start" Enter || return $?
     ((CURRENT_STEP++))
 }
 
 main() {
-    check_tmux_context
-    verify_lp_session
+    check_tmux_context || return $?
+    verify_lp_session || return $?
     confirm_restart || return 0
 
     TOTAL_STEPS=3
     CURRENT_STEP=1
 
-    stop_portal
-    wait_for_server_to_stop
-    restart_portal
+    stop_portal || return $?
+    wait_for_server_to_stop || return $?
+    restart_portal || return $?
     lp_success "Restart command sent to 'bundle' window."
 }
 

@@ -16,7 +16,7 @@ exit_session() {
 }
 
 main() {
-    check_tmux_session
+    check_tmux_session || return $?
     exit_session
 }
 

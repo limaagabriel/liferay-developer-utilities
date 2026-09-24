@@ -45,6 +45,19 @@ _lp_is_bundle_running() {
     return 1
 }
 
+# _lp_bundle_window_idle <session_name> — true when the 'bundle' window's
+# pane is back at a shell prompt (the server process has exited).
+_lp_bundle_window_idle() {
+    local session="$1"
+    local shell_name="${SHELL##*/}"
+    [[ -z "$shell_name" ]] && shell_name="bash"
+
+    local current_cmd
+    current_cmd=$(tmux display-message -t "$session:bundle" -p "#{pane_current_command}")
+
+    [[ "$current_cmd" == "$shell_name" || "$current_cmd" == "zsh" || "$current_cmd" == "bash" ]]
+}
+
 # _lp_update_tmux_status_line <session_name> — update tmux status-left
 _lp_update_tmux_status_line() {
     local session="$1"
@@ -61,9 +74,9 @@ _lp_update_tmux_status_line() {
     fi
 
     local label='#{?#{@lp-branch},#{@lp-branch},#S}'
-    tmux set-option -t "$session" status-left "  $label  $status_part"
-    tmux set-option -t "$session" status-left-length 100
-    tmux set-option -t "$session" status-interval 5
+    tmux set-option -t "$session" status-left "  $label  $status_part" || return $?
+    tmux set-option -t "$session" status-left-length 100 || return $?
+    tmux set-option -t "$session" status-interval 5 || return $?
 
     # Also update the terminal title
     _lp_set_tmux_titles "$session"
@@ -86,6 +99,6 @@ _lp_set_tmux_titles() {
         title_string="$title_string - $description"
     fi
     
-    tmux set-option -t "$session" set-titles on
+    tmux set-option -t "$session" set-titles on || return $?
     tmux set-option -t "$session" set-titles-string "$title_string"
 }

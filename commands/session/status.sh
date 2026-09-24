@@ -54,15 +54,15 @@ validate_status() {
 }
 update_status() {
     lp_step 1 1 "Setting status for session '$BRANCH' to '$STATUS_NAME'"
-    tmux set-option -t "$BRANCH" @lp-status "$STATUS_NAME"
+    tmux set-option -t "$BRANCH" @lp-status "$STATUS_NAME" || return $?
     _lp_update_tmux_status_line "$BRANCH"
 }
 
 main() {
-    check_dependencies
-    parse_arguments "$@"
-    validate_status
-    update_status
+    check_dependencies || return $?
+    parse_arguments "$@" || return $?
+    validate_status || return $?
+    update_status || return $?
     lp_success "Status updated."
 }
 

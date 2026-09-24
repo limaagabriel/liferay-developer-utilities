@@ -158,27 +158,27 @@ setup_tmux_session() {
     echo "rm -f \"$tmp_bundle\"" >> "$tmp_bundle"
 
     # Create session with the bundle command
-    tmux new-session -d -s "$SESSION_NAME" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_bundle; exec $USER_SHELL\""
+    tmux new-session -d -s "$SESSION_NAME" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_bundle; exec $USER_SHELL\"" || return $?
 
     # Set base-index to 1 and move the first window from 0 to 1
-    tmux set-option -t "$SESSION_NAME" base-index 1
+    tmux set-option -t "$SESSION_NAME" base-index 1 || return $?
     tmux move-window -t "$SESSION_NAME:0" -t "$SESSION_NAME:1" 2>/dev/null || true
 
-    tmux set-option -t "$SESSION_NAME" @lp-branch "$BRANCH"
+    tmux set-option -t "$SESSION_NAME" @lp-branch "$BRANCH" || return $?
 
     if [[ -n "$DESCRIPTION" ]]; then
-        tmux set-option -t "$SESSION_NAME" @lp-description "$DESCRIPTION"
+        tmux set-option -t "$SESSION_NAME" @lp-description "$DESCRIPTION" || return $?
     fi
 
     if [[ -n "$STATUS_NAME" ]]; then
-        tmux set-option -t "$SESSION_NAME" @lp-status "$STATUS_NAME"
+        tmux set-option -t "$SESSION_NAME" @lp-status "$STATUS_NAME" || return $?
     fi
 
-    _lp_set_tmux_titles "$SESSION_NAME"
-    
-    _lp_update_tmux_status_line "$SESSION_NAME"
-    tmux set-window-option -t "$SESSION_NAME" window-status-format "  #I:#W#F "
-    tmux set-window-option -t "$SESSION_NAME" window-status-current-format "  #I:#W#F "
+    _lp_set_tmux_titles "$SESSION_NAME" || return $?
+
+    _lp_update_tmux_status_line "$SESSION_NAME" || return $?
+    tmux set-window-option -t "$SESSION_NAME" window-status-format "  #I:#W#F " || return $?
+    tmux set-window-option -t "$SESSION_NAME" window-status-current-format "  #I:#W#F " || return $?
 
     ((CURRENT_STEP++))
 }
@@ -193,7 +193,7 @@ add_standard_windows() {
     tmp_git=$(mktemp)
     echo "$git_cmd" > "$tmp_git"
     echo "rm -f \"$tmp_git\"" >> "$tmp_git"
-    tmux new-window -t "$SESSION_NAME" -n "git" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_git; exec $USER_SHELL\""
+    tmux new-window -t "$SESSION_NAME" -n "git" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_git; exec $USER_SHELL\"" || return $?
 
     # Create and initialize workspace window (index 3)
     local workspace_preamble
@@ -203,7 +203,7 @@ add_standard_windows() {
     echo "clear" > "$tmp_workspace"
     echo "$workspace_preamble" >> "$tmp_workspace"
     echo "rm -f \"$tmp_workspace\"" >> "$tmp_workspace"
-    tmux new-window -t "$SESSION_NAME" -n "workspace" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_workspace; exec $USER_SHELL\""
+    tmux new-window -t "$SESSION_NAME" -n "workspace" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_workspace; exec $USER_SHELL\"" || return $?
 
     ((CURRENT_STEP++))
 }
@@ -222,7 +222,7 @@ add_custom_windows() {
                 tmp_custom=$(mktemp)
                 echo "source \"$_LP_SCRIPTS_DIR/lp.sh\"; lp worktree cd \"$BRANCH\" > /dev/null 2>&1; $CUSTOM_CMD" > "$tmp_custom"
                 echo "rm -f \"$tmp_custom\"" >> "$tmp_custom"
-                tmux new-window -t "$SESSION_NAME" -n "$CUSTOM_NAME" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_custom; exec $USER_SHELL\""
+                tmux new-window -t "$SESSION_NAME" -n "$CUSTOM_NAME" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_custom; exec $USER_SHELL\"" || return $?
                 ((CURRENT_STEP++))
             fi
         done
@@ -241,17 +241,17 @@ get_total_steps() {
 main() {
     check_dependencies || return 1
     parse_arguments "$@" || return 1
-    lp_branch_vars "$BRANCH"
+    lp_branch_vars "$BRANCH" || return $?
     lp_validate_worktree || return 1
     handle_existing_session || return 0
 
     TOTAL_STEPS=$(get_total_steps)
     CURRENT_STEP=1
 
-    setup_tmux_session
-    add_standard_windows
-    add_custom_windows
-    tmux select-window -t "$SESSION_NAME:workspace"
+    setup_tmux_session || return $?
+    add_standard_windows || return $?
+    add_custom_windows || return $?
+    tmux select-window -t "$SESSION_NAME:workspace" || return $?
     tmux attach-session -t "$SESSION_NAME"
 }
 

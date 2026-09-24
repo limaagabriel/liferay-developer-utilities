@@ -33,14 +33,14 @@ validate_session() {
 
 enter_session() {
     lp_info "Entering session '$SESSION_NAME'..."
-    _lp_set_tmux_titles "$SESSION_NAME"
+    _lp_set_tmux_titles "$SESSION_NAME" || return $?
     tmux attach-session -t "$SESSION_NAME"
 }
 
 main() {
-    check_dependencies
-    parse_arguments "$@"
-    validate_session
+    check_dependencies || return $?
+    parse_arguments "$@" || return $?
+    validate_session || return $?
     enter_session
 }
 

@@ -62,7 +62,7 @@ validate_arguments() {
 
 add_window() {
     local session_name
-    session_name=$(tmux display-message -p '#S')
+    session_name=$(tmux display-message -p '#S') || return $?
     local user_shell="${SHELL:-bash}"
     
     local branch
@@ -77,15 +77,14 @@ add_window() {
     echo "rm -f \"$tmp_cmd\"" >> "$tmp_cmd"
 
     lp_step 1 1 "Adding window '$WINDOW_NAME' to session '$session_name'"
-    
-    # Create window with the initialization and custom command
+
     tmux new-window -n "$WINDOW_NAME" "$user_shell -ic \"source $tmp_cmd; exec $user_shell\""
 }
 
 main() {
-    check_tmux_session
-    parse_arguments "$@"
-    validate_arguments
+    check_tmux_session || return $?
+    parse_arguments "$@" || return $?
+    validate_arguments || return $?
     add_window
 }
 

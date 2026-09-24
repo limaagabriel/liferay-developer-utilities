@@ -33,6 +33,9 @@ COMMANDS=(
     "bundle/properties"
     "bundle/db"
     "bundle/cd:sourced"
+    "session/add"
+    "session/update"
+    "session/start"
 )
 
 @test "every registered command rejects an unknown option without running a step" {
