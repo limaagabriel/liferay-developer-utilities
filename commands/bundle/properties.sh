@@ -57,9 +57,9 @@ set_web_xml_session_timeout() {
     while IFS= read -r web_xml; do
         [[ -f "$web_xml" ]] || continue
         if grep -q "<session-timeout>" "$web_xml"; then
-            sed -i 's|<session-timeout>[0-9]*</session-timeout>|<session-timeout>480</session-timeout>|' "$web_xml"
+            sed -i 's|<session-timeout>[0-9]*</session-timeout>|<session-timeout>480</session-timeout>|' "$web_xml" || return $?
         else
-            sed -i 's|<session-config>|<session-config>\n\t\t<session-timeout>480</session-timeout>|' "$web_xml"
+            sed -i 's|<session-config>|<session-config>\n\t\t<session-timeout>480</session-timeout>|' "$web_xml" || return $?
         fi
     done < <(find "$BUNDLE_DIR" -maxdepth 6 -path '*/tomcat-*/webapps/ROOT/WEB-INF/web.xml' 2>/dev/null)
 }
@@ -69,18 +69,18 @@ TOTAL_STEPS=3
 STEP=1
 
 lp_step "$STEP" "$TOTAL_STEPS" "Copying portal-ext.properties to $BUNDLE_DIR"
-mkdir -p "$BUNDLE_DIR"
-cp "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" "$properties_file"
-sed -i "s|localhost:3307/lportal|localhost:3307/$BRANCH|" "$properties_file"
-sed -i "s|localhost:5433/lportal|localhost:5433/$BRANCH|" "$properties_file"
+mkdir -p "$BUNDLE_DIR" || exit $?
+cp "$_LP_SCRIPTS_DIR/assets/portal-ext.properties" "$properties_file" || exit $?
+sed -i "s|localhost:3307/lportal|localhost:3307/$BRANCH|" "$properties_file" || exit $?
+sed -i "s|localhost:5433/lportal|localhost:5433/$BRANCH|" "$properties_file" || exit $?
 STEP=$((STEP + 1))
 
 lp_step "$STEP" "$TOTAL_STEPS" "Setting session-timeout to 480 in web.xml"
-set_web_xml_session_timeout
+set_web_xml_session_timeout || exit $?
 STEP=$((STEP + 1))
 
 lp_section "$STEP" "$TOTAL_STEPS" "Configuring database ($DB_TYPE)" \
-    "$_LP_SCRIPTS_DIR/commands/bundle/db.sh" "$DB_TYPE" "$BRANCH"
+    "$_LP_SCRIPTS_DIR/commands/bundle/db.sh" "$DB_TYPE" "$BRANCH" || exit $?
 STEP=$((STEP + 1))
 
 db_start_args=()
@@ -89,12 +89,12 @@ db_start_args+=("$BRANCH")
 
 if [[ "$DB_TYPE" == "mysql" ]]; then
     lp_section "$STEP" "$TOTAL_STEPS" "Starting MySQL" \
-        "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "${db_start_args[@]}"
+        "$_LP_SCRIPTS_DIR/commands/mysql/start.sh" "${db_start_args[@]}" || exit $?
 elif [[ "$DB_TYPE" == "postgresql" ]]; then
     lp_section "$STEP" "$TOTAL_STEPS" "Starting PostgreSQL" \
-        "$_LP_SCRIPTS_DIR/commands/postgresql/start.sh" "${db_start_args[@]}"
+        "$_LP_SCRIPTS_DIR/commands/postgresql/start.sh" "${db_start_args[@]}" || exit $?
 fi
 
 if lp_port_offset_enabled; then
-    "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"
+    "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH" || exit $?
 fi

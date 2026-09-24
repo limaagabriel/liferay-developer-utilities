@@ -26,6 +26,13 @@ COMMANDS=(
     "postgresql/start"
     "postgresql/reset"
     "postgresql/drop"
+    "bundle/reset"
+    "bundle/refresh"
+    "bundle/remove"
+    "bundle/ports"
+    "bundle/properties"
+    "bundle/db"
+    "bundle/cd:sourced"
 )
 
 @test "every registered command rejects an unknown option without running a step" {

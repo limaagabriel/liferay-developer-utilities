@@ -8,6 +8,10 @@ parse_arguments() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --verbose|-v) shift ;;
+            -*)
+                lp_error "Unknown option: $1"
+                return 1 2>/dev/null || exit 1
+                ;;
             *) BRANCH="$1"; shift ;;
         esac
     done
@@ -33,9 +37,9 @@ main() {
         local ec=$?
         [[ $ec -eq 255 ]] && return 0 || return $ec
     }
-    check_sourced
-    parse_arguments "$@"
-    lp_branch_vars "$BRANCH"
+    check_sourced || return $?
+    parse_arguments "$@" || return $?
+    lp_branch_vars "$BRANCH" || return $?
     lp_load_bundle_dir || return $?
     
     if [[ ! -d "$BUNDLE_DIR" ]]; then

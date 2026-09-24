@@ -87,7 +87,7 @@ prepare_bundle_directory() {
 
     lp_step "$STEP" "$TOTAL_STEPS" "Removing bundle directory '$BUNDLE_DIR'"
     lp_run rm -rf "$BUNDLE_DIR" || return $?
-    mkdir -p "$BUNDLE_DIR"
+    mkdir -p "$BUNDLE_DIR" || return $?
     BUNDLE_REMOVED=1
     STEP=$((STEP + 1))
 }
@@ -145,14 +145,14 @@ clone_from_base() {
         STEP=$((STEP + 1))
     fi
 
-    mkdir -p "$BUNDLES_DIR"
+    mkdir -p "$BUNDLES_DIR" || return $?
 
     lp_step "$STEP" "$TOTAL_STEPS" "Cloning base '$FROM_BASE' -> $BUNDLE_DIR"
     _lp_bundle_clone "$base_path" "$BUNDLE_DIR" || return $?
     STEP=$((STEP + 1))
 
     lp_step "$STEP" "$TOTAL_STEPS" "Resetting mutable state"
-    _lp_bundle_init_mutable_state "$BUNDLE_DIR"
+    _lp_bundle_init_mutable_state "$BUNDLE_DIR" || return $?
     STEP=$((STEP + 1))
 }
 
@@ -163,20 +163,20 @@ configure_properties() {
     properties_args+=("$BRANCH")
 
     lp_section "$STEP" "$TOTAL_STEPS" "Configuring portal properties" \
-        "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "${properties_args[@]}"
+        "$_LP_SCRIPTS_DIR/commands/bundle/properties.sh" "${properties_args[@]}" || return $?
     STEP=$((STEP + 1))
 }
 
 write_meta() {
     local source_label="${1:-scratch}"
     lp_step "$STEP" "$TOTAL_STEPS" "Writing provenance metadata"
-    _lp_bundle_write_meta "$BUNDLE_DIR" "$source_label" "$BRANCH" "$WORKTREE_DIR"
+    _lp_bundle_write_meta "$BUNDLE_DIR" "$source_label" "$BRANCH" "$WORKTREE_DIR" || return $?
     STEP=$((STEP + 1))
 }
 
 run_refresh() {
     lp_section "$STEP" "$TOTAL_STEPS" "Refreshing bundle (portal setup + ant deploy)" \
-        "$_LP_SCRIPTS_DIR/commands/bundle/refresh.sh" "$BRANCH"
+        "$_LP_SCRIPTS_DIR/commands/bundle/refresh.sh" "$BRANCH" || return $?
     STEP=$((STEP + 1))
 }
 

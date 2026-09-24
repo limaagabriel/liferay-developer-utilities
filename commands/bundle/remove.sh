@@ -32,10 +32,10 @@ remove_bundle() {
 }
 
 main() {
-    parse_arguments "$@"
-    lp_branch_vars "$BRANCH"
+    parse_arguments "$@" || return $?
+    lp_branch_vars "$BRANCH" || return $?
     confirm_removal || return 0
-    remove_bundle
+    remove_bundle || return $?
     lp_success "Done!"
 }
 

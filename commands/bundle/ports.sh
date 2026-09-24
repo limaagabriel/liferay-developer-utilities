@@ -155,11 +155,11 @@ apply_ports() {
 }
 
 main() {
-    parse_arguments "$@"
-    lp_branch_vars "$BRANCH"
+    parse_arguments "$@" || return $?
+    lp_branch_vars "$BRANCH" || return $?
     lp_validate_worktree || return $?
     lp_load_bundle_dir || return $?
-    
+
     OFFSET_FILE="$BUNDLE_DIR/.worktree-port-offset"
     apply_ports
 }
