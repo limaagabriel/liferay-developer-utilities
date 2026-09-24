@@ -83,6 +83,39 @@ EOF
     [ -f "$repo/.idea/marker.txt" ]
 }
 
+@test "clean runs inside the target worktree regardless of the caller's cwd" {
+    local repo="$HOME/dev/projects/liferay-portal-feat"
+    mkdir -p "$repo"
+    git init -q "$repo"
+    echo "ignored.txt" > "$repo/.gitignore"
+
+    local elsewhere="$TEST_HOME/elsewhere"
+    mkdir -p "$elsewhere"
+    git init -q "$elsewhere"
+    echo "ignored.txt" > "$elsewhere/.gitignore"
+    echo "marker" > "$elsewhere/ignored.txt"
+
+    local real_git
+    real_git=$(command -v git)
+
+    lp_stub ant 'echo "$PWD" >> '"$CALLS_LOG"
+    lp_stub git "$(cat <<EOF
+if [[ "\$*" == *"clean -fdX"* ]]; then
+    echo "\$PWD" >> "$CALLS_LOG"
+fi
+exec "$real_git" "\$@"
+EOF
+)"
+
+    cd "$elsewhere"
+    run "$_LP_SCRIPTS_DIR/commands/worktree/clean.sh" -y feat
+
+    [ "$status" -eq 0 ]
+    [ -f "$elsewhere/ignored.txt" ]
+    grep -qF "$repo" "$CALLS_LOG"
+    ! grep -qF "$elsewhere" "$CALLS_LOG"
+}
+
 @test "clean does not attempt git clean when ant fails" {
     local repo="$HOME/dev/projects/liferay-portal-feat"
     mkdir -p "$repo"

@@ -61,6 +61,7 @@ main() {
     parse_arguments "$@" || return $?
     lp_resolve_branch --reference --default-master --vars || return $?
     lp_validate_worktree || return $?
+    cd "$WORKTREE_DIR" || return $?
 
     if [[ $ASSUME_YES -eq 0 ]]; then
         if ! lp_confirm "Clean worktree '$WORKTREE_DIR' (ant clean + git clean -fdX)?"; then
