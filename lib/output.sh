@@ -83,6 +83,38 @@ lp_run() {
     fi
 }
 
+# lp_report_failures <label> [item...] — print collected failures as one line
+# via lp_error and return 1. With no items, does nothing and returns 0.
+lp_report_failures() {
+    local label="$1"
+    shift
+    [[ $# -eq 0 ]] && return 0
+
+    local joined="$1"
+    shift
+    local item
+    for item in "$@"; do
+        joined="$joined, $item"
+    done
+
+    lp_error "$label: $joined"
+    return 1
+}
+
+# lp_wait_until <attempts> <cmd...> — retry cmd once per second until it
+# succeeds or the attempt budget is exhausted.
+lp_wait_until() {
+    local attempts="$1"
+    shift
+
+    local i
+    for ((i = 1; i <= attempts; i++)); do
+        "$@" && return 0
+        [[ $i -lt $attempts ]] && sleep 1
+    done
+    return 1
+}
+
 # lp_format_duration <seconds> — format seconds into a human-readable string
 lp_format_duration() {
     local T=$1

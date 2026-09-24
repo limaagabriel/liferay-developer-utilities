@@ -84,3 +84,44 @@ setup() {
     run bash -c 'LP_OUTPUT_DEPTH=2 bash -c "source \"$_LP_SCRIPTS_DIR/lib/output.sh\"; echo y | lp_confirm \"Proceed?\""'
     [[ "$output" == *"      Proceed? [y/N]"* ]]
 }
+
+@test "lp_report_failures returns 0 and prints nothing with no items" {
+    run lp_report_failures "Failed items"
+    [ "$status" -eq 0 ]
+    [ "$output" == "" ]
+}
+
+@test "lp_report_failures prints joined items and returns 1" {
+    run lp_report_failures "Failed items" "a" "b"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Failed items: a, b"* ]]
+}
+
+@test "lp_wait_until succeeds once the command succeeds before attempts run out" {
+    sleep() { :; }
+    export -f sleep
+
+    COUNTER_FILE=$(mktemp)
+    echo 0 > "$COUNTER_FILE"
+    succeed_on_third() {
+        local count
+        count=$(<"$COUNTER_FILE")
+        count=$((count + 1))
+        echo "$count" > "$COUNTER_FILE"
+        [ "$count" -ge 3 ]
+    }
+    export -f succeed_on_third
+    export COUNTER_FILE
+
+    run lp_wait_until 5 succeed_on_third
+    [ "$status" -eq 0 ]
+    rm -f "$COUNTER_FILE"
+}
+
+@test "lp_wait_until returns 1 after exhausting attempts" {
+    sleep() { :; }
+    export -f sleep
+
+    run lp_wait_until 2 false
+    [ "$status" -eq 1 ]
+}
