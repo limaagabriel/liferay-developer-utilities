@@ -81,8 +81,8 @@ EOF
 
 main() {
     check_existing_config || return 0
-    prompt_for_all_values
-    write_config_file
+    prompt_for_all_values || return $?
+    write_config_file || return $?
 
     local config_file="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
     echo ""

@@ -80,14 +80,14 @@ clean_hypersonic_data() {
 }
 
 main() {
-    parse_arguments "$@"
-    lp_branch_vars "$BRANCH"
-    validate_bundle
+    parse_arguments "$@" || return $?
+    lp_branch_vars "$BRANCH" || return $?
+    validate_bundle || return $?
     confirm_reset || return 0
     lp_info "Resetting bundle database and caches for branch '$BRANCH'..."
 
     local backend
-    backend=$(lp_database_backend "$BRANCH")
+    backend=$(lp_database_backend "$BRANCH") || return $?
     local db_active=0
     [[ "$backend" == "mysql" || "$backend" == "postgresql" ]] && db_active=1
 
@@ -97,20 +97,20 @@ main() {
 
     if [[ "$backend" == "mysql" ]]; then
         lp_section "$CURRENT_STEP" "$TOTAL_STEPS" "Resetting MySQL database '$BRANCH'" \
-            "$_LP_SCRIPTS_DIR/commands/mysql/reset.sh" --yes "$BRANCH"
+            "$_LP_SCRIPTS_DIR/commands/mysql/reset.sh" --yes "$BRANCH" || return $?
         ((CURRENT_STEP++))
     elif [[ "$backend" == "postgresql" ]]; then
         lp_section "$CURRENT_STEP" "$TOTAL_STEPS" "Resetting PostgreSQL database '$BRANCH'" \
-            "$_LP_SCRIPTS_DIR/commands/postgresql/reset.sh" --yes "$BRANCH"
+            "$_LP_SCRIPTS_DIR/commands/postgresql/reset.sh" --yes "$BRANCH" || return $?
         ((CURRENT_STEP++))
     fi
 
-    clean_tomcat_caches
-    clean_bundle_root_caches
-    clean_hypersonic_data
+    clean_tomcat_caches || return $?
+    clean_bundle_root_caches || return $?
+    clean_hypersonic_data || return $?
 
     if lp_port_offset_enabled; then
-        "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH"
+        "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" "$BRANCH" || return $?
     fi
 
     lp_success "Bundle database and caches reset successfully for branch '$BRANCH'."

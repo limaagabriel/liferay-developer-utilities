@@ -79,44 +79,46 @@ process_branch() {
 
     if session_exists "$branch"; then
         lp_step $step $total "Stopping active session"
-        lp_run tmux kill-session -t "$branch"
+        lp_run tmux kill-session -t "$branch" || return $?
         ((step++))
     fi
 
     lp_step $step $total "Removing worktree '$WORKTREE_DIR'"
-    lp_run git -C "$MAIN_REPO_DIR" worktree remove "$WORKTREE_DIR" --force
+    lp_run git -C "$MAIN_REPO_DIR" worktree remove "$WORKTREE_DIR" --force || return $?
     ((step++))
 
     lp_step $step $total "Removing bundle '$BUNDLE_DIR'"
-    lp_run rm -rf "$BUNDLE_DIR"
+    lp_run rm -rf "$BUNDLE_DIR" || return $?
     ((step++))
 
     if lp_database_exists "$branch"; then
         lp_step $step $total "Dropping database '$branch'"
-        lp_run lp_database_drop "$branch"
+        lp_run lp_database_drop "$branch" || return $?
         ((step++))
     fi
 
     if [[ "$DELETE_BRANCH" -eq 1 ]]; then
         lp_step $step $total "Deleting local branch '$branch'"
-        lp_run git -C "$MAIN_REPO_DIR" branch -D "$branch"
+        lp_run git -C "$MAIN_REPO_DIR" branch -D "$branch" || return $?
         ((step++))
     fi
 }
 
 main() {
-    parse_arguments "$@"
-    validate_arguments
-    confirm_removal
+    parse_arguments "$@" || return $?
+    validate_arguments || return $?
+    confirm_removal || return $?
 
     local total=${#BRANCHES[@]}
     local idx=1
+    local failed=()
     for branch in "${BRANCHES[@]}"; do
         lp_section "$idx" "$total" "Branch '$branch'" \
-            process_branch "$branch"
+            process_branch "$branch" || failed+=("$branch")
         ((idx++))
     done
 
+    lp_report_failures "Failed to remove" "${failed[@]}" || return $?
     lp_success "Done!"
 }
 

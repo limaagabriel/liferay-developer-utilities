@@ -49,20 +49,22 @@ confirm_drop() {
 drop_database() {
     local branch="$1"
     lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Dropping database '$branch'"
-    lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "drop database if exists \`$branch\`;"
+    lp_run docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "drop database if exists \`$branch\`;" || return $?
     ((CURRENT_STEP++))
 }
 
 main() {
-    parse_arguments "$@"
-    confirm_drop
+    parse_arguments "$@" || return $?
+    confirm_drop || return $?
 
     TOTAL_STEPS=${#BRANCHES[@]}
     CURRENT_STEP=1
+    local failed=()
     for branch in "${BRANCHES[@]}"; do
-        drop_database "$branch"
+        drop_database "$branch" || failed+=("$branch")
     done
 
+    lp_report_failures "Failed to drop" "${failed[@]}" || return $?
     lp_success "Done!"
 }
 

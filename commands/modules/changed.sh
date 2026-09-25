@@ -118,16 +118,16 @@ main() {
         local ec=$?
         [[ $ec -eq 255 ]] && return 0 || return $ec
     }
-    parse_arguments "$@"
-    validate_environment
+    parse_arguments "$@" || return $?
+    validate_environment || return $?
 
     (
         cd "$GIT_ROOT" || { return 1 2>/dev/null || exit 1; }
 
-        get_changed_files
+        get_changed_files || exit $?
 
         local changed_modules
-        changed_modules=$(get_changed_modules)
+        changed_modules=$(get_changed_modules) || exit $?
 
         if [[ -z "$changed_modules" ]]; then
             local base_label

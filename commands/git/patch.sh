@@ -67,7 +67,7 @@ main() {
 	local tmp_patch=$(mktemp /tmp/lp-patch-XXXXXXXX.patch)
 	trap "rm -f '$tmp_patch'" EXIT
 
-	download_patch "$url" "$tmp_patch"
+	download_patch "$url" "$tmp_patch" || return $?
 	apply_patch "$commit" "$tmp_patch"
 }
 

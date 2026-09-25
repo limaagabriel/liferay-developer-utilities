@@ -47,15 +47,15 @@ validate_arguments() {
 }
 update_description() {
     lp_step 1 1 "Setting description for session '$BRANCH'"
-    tmux set-option -t "$BRANCH" @lp-description "$DESCRIPTION"
-    _lp_update_tmux_status_line "$BRANCH"
+    tmux set-option -t "$BRANCH" @lp-description "$DESCRIPTION" || return $?
+    _lp_update_tmux_status_line "$BRANCH" || return $?
     lp_success "Description updated."
 }
 
 main() {
-    check_dependencies
-    parse_arguments "$@"
-    validate_arguments
+    check_dependencies || return $?
+    parse_arguments "$@" || return $?
+    validate_arguments || return $?
     update_description
 }
 

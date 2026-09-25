@@ -112,11 +112,11 @@ display_final_report() {
 }
 
 main() {
-    parse_arguments "$@"
-    validate_environment
-    apply_port_offset
-    run_test_iterations
-    display_final_report
+    parse_arguments "$@" || return $?
+    validate_environment || return $?
+    apply_port_offset || return $?
+    run_test_iterations # lint: report-after-failure — report must run even if an iteration failed
+    display_final_report # lint: report-after-failure — must always print, its own status doesn't gate main
 
     if [[ $SUCCESS_COUNT -lt $ITERATIONS ]]; then
         return 1 2>/dev/null || exit 1

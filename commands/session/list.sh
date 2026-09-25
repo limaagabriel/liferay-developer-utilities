@@ -87,7 +87,7 @@ list_sessions() {
 }
 
 main() {
-    check_dependencies
+    check_dependencies || return $?
     list_sessions
 }
 

@@ -31,7 +31,7 @@ display_config_values() {
 }
 
 main() {
-    display_config_source
+    display_config_source || return $?
     display_config_values
 }
 

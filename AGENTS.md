@@ -62,7 +62,8 @@ parse_arguments() {
 
 main() {
     parse_arguments "$@" || return $?
-    # ... helpers, lp_step, lp_run, lp_success
+    do_step || return $?
+    lp_success "Done."
 }
 
 main "$@"
@@ -79,6 +80,9 @@ main "$@"
 - No `set -e`. Explicit `|| return $?` or `|| exit 1`.
 - Exit pattern: `return 1 2>/dev/null || exit 1` (works whether sourced or executed).
 - All errors via `lp_error` (writes to stderr).
+- **Guarded calls (fail-fast):** Chain every call that can fail: `helper || return $?` (top-level: `|| exit $?`). A call whose last statement is a success message or counter hides the failure, so guard the call itself. Do not call `return 1 2>/dev/null || exit 1` inside a function and expect the caller to detect failure — that returns only from the function; guard the outer call instead.
+- **Loops over independent items:** Collect failures and report at the end with `lp_report_failures "label" item1 item2…`. Waits use `lp_wait_until <attempts> <cmd…>` (never unbounded loops).
+- **Tests:** `tests/unit/main_guards.bats` enforces guarding in every `main()`. Opt out with `# lint: report-after-failure — <why>` (deliberate "run everything, report at end" pattern).
 
 ### Output Helpers (`lib/output.sh`)
 
@@ -91,6 +95,8 @@ Use these, not raw `echo`:
 | `lp_success "msg"` | success confirmation |
 | `lp_error "msg"` | errors → stderr |
 | `lp_run <cmd>` | exec respecting `VERBOSE` |
+| `lp_report_failures "label" items…` | list failed items, return 1 if any |
+| `lp_wait_until N cmd…` | retry cmd every 1 s, up to N tries |
 
 ### Sourcing & Compat
 

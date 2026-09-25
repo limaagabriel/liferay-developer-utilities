@@ -41,8 +41,8 @@ show_trace() {
 }
 
 main() {
-    parse_arguments "$@"
-    validate_environment
+    parse_arguments "$@" || return $?
+    validate_environment || return $?
     show_trace
 }
 

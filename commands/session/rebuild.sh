@@ -9,7 +9,7 @@ check_tmux_session() {
         return 1 2>/dev/null || exit 1
     fi
 
-    SESSION_NAME=$(tmux display-message -p '#S')
+    SESSION_NAME=$(tmux display-message -p '#S') || return $?
     BRANCH="$SESSION_NAME"
 }
 
@@ -30,37 +30,22 @@ confirm_action() {
 
 stop_server() {
     lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Stopping portal in 'bundle' window"
-    tmux send-keys -t "$SESSION_NAME:bundle" C-c
+    tmux send-keys -t "$SESSION_NAME:bundle" C-c || return $?
     ((CURRENT_STEP++))
 }
 
 wait_for_server_to_stop() {
     lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Waiting for server to stop"
 
-    local shell_name="${SHELL##*/}"
-    [[ -z "$shell_name" ]] && shell_name="bash"
-
-    local max_wait=60
-    local wait_count=0
-
-    while true; do
+    if ! lp_wait_until 60 _lp_bundle_window_idle "$SESSION_NAME"; then
         local current_cmd
         current_cmd=$(tmux display-message -t "$SESSION_NAME:bundle" -p "#{pane_current_command}")
-        
-        if [[ "$current_cmd" == "$shell_name" || "$current_cmd" == "zsh" || "$current_cmd" == "bash" ]]; then
-            break
-        fi
-        
-        if [[ $wait_count -ge $max_wait ]]; then
-            lp_error "Timed out waiting for server to stop in 'bundle' window."
-            lp_info "The 'bundle' window seems to be running: $current_cmd"
-            lp_info "You may need to manually stop it or check its state."
-            return 1 2>/dev/null || exit 1
-        fi
+        lp_error "Timed out waiting for server to stop in 'bundle' window."
+        lp_info "The 'bundle' window seems to be running: $current_cmd"
+        lp_info "You may need to manually stop it or check its state."
+        return 1 2>/dev/null || exit 1
+    fi
 
-        sleep 1
-        ((wait_count++))
-    done
     ((CURRENT_STEP++))
 }
 
@@ -68,23 +53,23 @@ send_rebuild_command() {
     lp_step "$CURRENT_STEP" "$TOTAL_STEPS" "Starting rebuild and restart"
 
     local build_cmd="lp bundle build -y && lp bundle start"
-    tmux send-keys -t "$SESSION_NAME:bundle" "$build_cmd" Enter
+    tmux send-keys -t "$SESSION_NAME:bundle" "$build_cmd" Enter || return $?
 
     lp_success "Rebuild and restart commands sent to 'bundle' window."
     ((CURRENT_STEP++))
 }
 
 main() {
-    check_tmux_session
-    validate_lp_session
+    check_tmux_session || return $?
+    validate_lp_session || return $?
     confirm_action || return 0
 
     TOTAL_STEPS=3
     CURRENT_STEP=1
 
-    stop_server
-    wait_for_server_to_stop
-    send_rebuild_command
+    stop_server || return $?
+    wait_for_server_to_stop || return $?
+    send_rebuild_command || return $?
 }
 
 main "$@"

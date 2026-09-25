@@ -81,7 +81,7 @@ configure_worktree() {
 
     if [[ -d "$MAIN_REPO_DIR/.serena" ]]; then
         lp_step 2 "$total_steps" "Copying .serena directory from master"
-        cp -r "$MAIN_REPO_DIR/.serena" "$WORKTREE_DIR/"
+        cp -r "$MAIN_REPO_DIR/.serena" "$WORKTREE_DIR/" || return $?
     fi
 
     lp_step "$((total_steps))" "$total_steps" "Creating app.server.${LIFERAY_USER}.properties"
@@ -111,11 +111,11 @@ main() {
         local ec=$?
         [[ $ec -eq 255 ]] && return 0 || return $ec
     }
-    parse_arguments "$@"
-    lp_branch_vars "$BRANCH"
-    check_worktree_limit
-    create_worktree
-    configure_worktree
+    parse_arguments "$@" || return $?
+    lp_branch_vars "$BRANCH" || return $?
+    check_worktree_limit || return $?
+    create_worktree || return $?
+    configure_worktree || return $?
     handle_post_add_actions
 }
 

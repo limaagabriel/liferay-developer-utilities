@@ -6,6 +6,10 @@ parse_arguments() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --verbose|-v) shift ;;
+            -*)
+                lp_error "Unknown option: $1"
+                return 1 2>/dev/null || exit 1
+                ;;
             *) shift ;;
         esac
     done
@@ -20,7 +24,7 @@ main() {
         local ec=$?
         [[ $ec -eq 255 ]] && return 0 || return $ec
     }
-    parse_arguments "$@"
+    parse_arguments "$@" || return $?
     display_reference_branch
 }
 

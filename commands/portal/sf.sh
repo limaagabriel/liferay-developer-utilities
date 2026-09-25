@@ -30,6 +30,18 @@ parse_arguments() {
 				ANT_ARGS+=("-Dsource.check.names=$2")
 				shift 2
 				;;
+			-q|--quiet)
+				VERBOSE=0
+				shift
+				;;
+			--verbose|-v)
+				VERBOSE=1
+				shift
+				;;
+			-*)
+				lp_error "Unknown option: $1"
+				return 1
+				;;
 			*) shift ;;
 		esac
 	done

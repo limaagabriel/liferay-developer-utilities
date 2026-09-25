@@ -77,3 +77,52 @@ teardown() {
     run test_verbose "-v"
     [[ "$output" == *"VERBOSE=1"* ]]
 }
+
+@test "lp_init_command fails fast when config fails to load" {
+    cat > "$MOCK_SCRIPTS_DIR/config.sh" <<EOF
+source "/no/such/config/file/here"
+EOF
+
+    source "$_LP_SCRIPTS_DIR/lib/init.sh"
+
+    test_init() {
+        lp_init_command "worktree" "add" || return $?
+        echo "SHOULD NOT PRINT"
+    }
+    run test_init
+    [ "$status" -eq 1 ]
+    [[ "$output" != *"SHOULD NOT PRINT"* ]]
+    [[ "$output" == *"Failed to load configuration."* ]]
+}
+
+@test "lp_init_command exits the process when config fails and the script is executed directly" {
+    cat > "$MOCK_SCRIPTS_DIR/config.sh" <<EOF
+source "/no/such/config/file/here"
+EOF
+
+    local script="$MOCK_SCRIPTS_DIR/run-executed.sh"
+    cat > "$script" <<EOF
+#!/bin/bash
+source "$MOCK_SCRIPTS_DIR/lib/init.sh"
+lp_init_command "worktree" "add"
+echo "SHOULD NOT PRINT"
+EOF
+    chmod +x "$script"
+
+    run "$script"
+    [ "$status" -eq 1 ]
+    [[ "$output" != *"SHOULD NOT PRINT"* ]]
+    [[ "$output" == *"Failed to load configuration."* ]]
+}
+
+@test "lp_init_command returns to the caller when sourced and config succeeds" {
+    source "$_LP_SCRIPTS_DIR/lib/init.sh"
+
+    test_init() {
+        lp_init_command "worktree" "add" || return $?
+        echo "CALLER SURVIVED"
+    }
+    run test_init
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"CALLER SURVIVED"* ]]
+}

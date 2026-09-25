@@ -81,14 +81,16 @@ configure_liferay_workspace() {
     HAD_GRADLE_PROPERTIES=0
     [[ -f "$gradle_properties" ]] && HAD_GRADLE_PROPERTIES=1
 
-    TMP_GRADLE_PROPERTIES=$(mktemp)
-    [[ "$HAD_GRADLE_PROPERTIES" -eq 1 ]] && cat "$gradle_properties" > "$TMP_GRADLE_PROPERTIES"
+    TMP_GRADLE_PROPERTIES=$(mktemp) || return 1 2>/dev/null || exit 1
+    if [[ "$HAD_GRADLE_PROPERTIES" -eq 1 ]]; then
+        cat "$gradle_properties" > "$TMP_GRADLE_PROPERTIES" || return 1 2>/dev/null || exit 1
+    fi
 
     trap cleanup EXIT
 
     if [[ "$HAD_GRADLE_PROPERTIES" -eq 1 ]]; then
-        sed -i "/^[[:space:]]*#[[:space:]]*liferay.workspace.home.dir[[:space:]]*=/d" "$gradle_properties"
-        sed -i "/^[[:space:]]*liferay.workspace.home.dir[[:space:]]*=/d" "$gradle_properties"
+        sed -i "/^[[:space:]]*#[[:space:]]*liferay.workspace.home.dir[[:space:]]*=/d" "$gradle_properties" || return 1 2>/dev/null || exit 1
+        sed -i "/^[[:space:]]*liferay.workspace.home.dir[[:space:]]*=/d" "$gradle_properties" || return 1 2>/dev/null || exit 1
         [[ -s "$gradle_properties" && -n "$(tail -c1 "$gradle_properties")" ]] && echo "" >> "$gradle_properties"
     fi
 
@@ -108,6 +110,7 @@ cleanup() {
 deploy_extensions() {
     local total=${#MATCHES[@]}
     local i=0
+    local failed=()
 
     IFS=$'\n' local sorted_matches=($(sort <<<"${MATCHES[*]}"))
     unset IFS
@@ -118,27 +121,28 @@ deploy_extensions() {
         ((i++))
         local cet_name=$(basename "$cet_dir")
         lp_step "$i" "$total" "Deploying client extension: $cet_name"
-        (cd "$cet_dir" && lp_run zsh -ic "gw deploy")
+        (cd "$cet_dir" && lp_run zsh -ic "gw deploy") || failed+=("$cet_name")
     done
 
+    lp_report_failures "Failed to deploy" "${failed[@]}" || return $?
     lp_success "Successfully deployed $total client extension(s) to $BUNDLE_DIR."
 }
 
 main() {
-    parse_arguments "$@" || return 1 2>/dev/null || exit 1
+    parse_arguments "$@" || return $?
     [[ -z "$CET_PATTERN" ]] && return 0
-    
-    lp_resolve_branch --reference --default-master --vars
-    lp_validate_worktree
-    validate_paths || return 1 2>/dev/null || exit 1
-    find_matching_extensions || return 1 2>/dev/null || exit 1
-    
+
+    lp_resolve_branch --reference --default-master --vars || return $?
+    lp_validate_worktree || return $?
+    validate_paths || return $?
+    find_matching_extensions || return $?
+
     if [[ "$LIST_ONLY" -eq 1 ]]; then
-        list_extensions
+        list_extensions || return $?
         return 0
     fi
 
-    configure_liferay_workspace
+    configure_liferay_workspace || return $?
     deploy_extensions
 }
 

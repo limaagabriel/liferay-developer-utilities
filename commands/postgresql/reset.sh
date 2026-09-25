@@ -32,18 +32,18 @@ confirm_reset() {
 
 drop_database() {
     lp_step 1 2 "Dropping database '$BRANCH'"
-    lp_run docker exec postgresql psql -U postgres -c "drop database if exists \"$BRANCH\";"
+    lp_run docker exec postgresql psql -U postgres -c "drop database if exists \"$BRANCH\";" || return $?
 }
 
 create_database() {
     lp_step 2 2 "Creating database '$BRANCH'"
-    lp_run docker exec postgresql psql -U postgres -c "create database \"$BRANCH\";"
+    lp_run docker exec postgresql psql -U postgres -c "create database \"$BRANCH\";" || return $?
 }
 
 main() {
     confirm_reset || return 0
-    drop_database
-    create_database
+    drop_database || return $?
+    create_database || return $?
     lp_success "Database reset complete."
 }
 

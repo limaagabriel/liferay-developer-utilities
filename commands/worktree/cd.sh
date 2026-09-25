@@ -7,6 +7,10 @@ parse_arguments() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --verbose|-v) shift ;;
+            -*)
+                lp_error "Unknown option: $1"
+                return 1 2>/dev/null || exit 1
+                ;;
             *) BRANCH="$1"; shift ;;
         esac
     done
@@ -34,7 +38,7 @@ main() {
         return 1 2>/dev/null || exit 1
     fi
 
-    parse_arguments "$@"
+    parse_arguments "$@" || return $?
 
     if [[ -z "$BRANCH" ]]; then
         lp_error "Error: branch name is required."
@@ -42,9 +46,9 @@ main() {
         return 1 2>/dev/null || exit 1
     fi
 
-    lp_branch_vars "$BRANCH"
+    lp_branch_vars "$BRANCH" || return $?
     lp_validate_worktree || return $?
-    change_directory
+    change_directory || return $?
     update_reference
 }
 

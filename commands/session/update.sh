@@ -47,7 +47,7 @@ parse_arguments() {
 detect_session() {
     if [[ -z "$BRANCH" ]]; then
         if [[ -n "$TMUX" ]]; then
-            BRANCH=$(tmux display-message -p '#S')
+            BRANCH=$(tmux display-message -p '#S') || return $?
         else
             lp_error "No session specified and not currently in a tmux session."
             echo "Usage: lp session update [branch] [-d description] [-s status]"
@@ -71,21 +71,21 @@ apply_updates() {
     local step=1
     if [[ -n "$DESCRIPTION" ]]; then
         lp_section "$step" "$total" "Updating description for '$BRANCH'" \
-            "$_LP_SCRIPTS_DIR/commands/session/describe.sh" "$BRANCH" "$DESCRIPTION"
+            "$_LP_SCRIPTS_DIR/commands/session/describe.sh" "$BRANCH" "$DESCRIPTION" || return $?
         ((step++))
     fi
 
     if [[ -n "$STATUS_NAME" ]]; then
         lp_section "$step" "$total" "Updating status for '$BRANCH'" \
-            "$_LP_SCRIPTS_DIR/commands/session/status.sh" "$BRANCH" "$STATUS_NAME"
+            "$_LP_SCRIPTS_DIR/commands/session/status.sh" "$BRANCH" "$STATUS_NAME" || return $?
         ((step++))
     fi
 }
 
 main() {
-    check_dependencies
-    parse_arguments "$@"
-    detect_session
+    check_dependencies || return $?
+    parse_arguments "$@" || return $?
+    detect_session || return $?
     apply_updates
 }
 

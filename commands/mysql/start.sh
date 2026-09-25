@@ -35,11 +35,17 @@ start_mysql_container() {
     fi
 }
 
+probe_mysql_ready() {
+    docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "select 1" &> /dev/null
+}
+
 wait_for_mysql_ready() {
     lp_step 2 3 "Waiting for MySQL to be ready"
-    until docker exec -e MYSQL_PWD=root mysql mysql -uroot -e "select 1" &> /dev/null; do
-        sleep 1
-    done
+    if ! lp_wait_until 120 probe_mysql_ready; then
+        lp_error "MySQL did not become ready in time."
+        lp_error "Check 'docker logs mysql'."
+        return 1
+    fi
 }
 
 initialize_database() {
@@ -64,10 +70,10 @@ initialize_database() {
 }
 
 main() {
-    prepare_environment
-    start_mysql_container
-    wait_for_mysql_ready
-    initialize_database
+    prepare_environment || return $?
+    start_mysql_container || return $?
+    wait_for_mysql_ready || return $?
+    initialize_database || return $?
     lp_success "MySQL is ready."
 }
 

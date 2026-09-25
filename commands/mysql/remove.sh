@@ -13,12 +13,12 @@ remove_mysql_container() {
     cd "$_LP_SCRIPTS_DIR/commands/mysql" || { return 1 2>/dev/null || exit 1; }
 
     lp_step 1 1 "Removing MySQL container"
-    lp_run docker compose -f template.yaml down -v
+    lp_run docker compose -f template.yaml down -v || return $?
 }
 
 main() {
     confirm_removal || return 0
-    remove_mysql_container
+    remove_mysql_container || return $?
     lp_success "MySQL has been removed."
 }
 

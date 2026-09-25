@@ -13,12 +13,12 @@ remove_postgresql_container() {
     cd "$_LP_SCRIPTS_DIR/commands/postgresql" || { return 1 2>/dev/null || exit 1; }
 
     lp_step 1 1 "Removing PostgreSQL container"
-    lp_run docker compose -f template.yaml down -v
+    lp_run docker compose -f template.yaml down -v || return $?
 }
 
 main() {
     confirm_removal || return 0
-    remove_postgresql_container
+    remove_postgresql_container || return $?
     lp_success "PostgreSQL has been removed."
 }
 
