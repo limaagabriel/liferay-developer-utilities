@@ -3,9 +3,21 @@ source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "session" "start" "$@"
 source "$_LP_SCRIPTS_DIR/lib/session.sh"
 
+tmux_supports_session_env() {
+    local version major minor
+    version=$(tmux -V | sed -n 's/^tmux \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/\1 \2/p')
+    [[ -n "$version" ]] || return 0
+    read -r major minor <<< "$version"
+    (( major > 3 || (major == 3 && minor >= 2) ))
+}
+
 check_dependencies() {
     if ! command -v tmux >/dev/null 2>&1; then
         lp_error "'tmux' is not installed. Please install it to use sessions."
+        return 1 2>/dev/null || exit 1
+    fi
+    if ! tmux_supports_session_env; then
+        lp_error "tmux 3.2 or newer is required to set session environment variables (found: $(tmux -V))."
         return 1 2>/dev/null || exit 1
     fi
 }
@@ -157,8 +169,7 @@ setup_tmux_session() {
     echo "$bundle_cmd" > "$tmp_bundle"
     echo "rm -f \"$tmp_bundle\"" >> "$tmp_bundle"
 
-    # Create session with the bundle command
-    tmux new-session -d -s "$SESSION_NAME" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_bundle; exec $USER_SHELL\"" || return $?
+    tmux new-session -d -s "$SESSION_NAME" -e "LP_SESSION_NAME=$SESSION_NAME" -e "LP_BRANCH=$BRANCH" -e "LP_WORKTREE_DIR=$WORKTREE_DIR" -e "LP_BUNDLE_DIR=$BUNDLE_DIR" -n "bundle" -c "$WORKTREE_DIR" "$USER_SHELL -ic \"source $tmp_bundle; exec $USER_SHELL\"" || return $?
 
     # Set base-index to 1 and move the first window from 0 to 1
     tmux set-option -t "$SESSION_NAME" base-index 1 || return $?
