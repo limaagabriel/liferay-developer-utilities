@@ -90,8 +90,8 @@ _lp_ns_cmds() {
         base)     echo "build list info refresh sync remove" ;;
         portal)   echo "buildLang cdm gw sf sample setup" ;;
         playwright) echo "test trace" ;;
-        mysql)    echo "reset start stop drop status" ;;
-        postgresql) echo "reset start stop drop status" ;;
+        mysql)    echo "reset start stop drop status remove" ;;
+        postgresql) echo "reset start stop drop status remove" ;;
         database) echo "status reset drop switch start stop remove" ;;
         session)  echo "list start stop enter exit detach add rebuild restart describe status update" ;;
         config)   echo "show init" ;;
@@ -155,11 +155,13 @@ _lp_cmd_desc() {
         mysql/stop)       echo "Stop the MySQL container (preserving data)" ;;
         mysql/drop)       echo "Drop a specific branch's database" ;;
         mysql/status)     echo "Check MySQL container status and list databases" ;;
+        mysql/remove)     echo "Remove the MySQL container + all databases" ;;
         postgresql/reset) echo "Reset a specific database (drop and recreate)" ;;
         postgresql/start) echo "Start PostgreSQL container and ensure a branch-specific database exists" ;;
         postgresql/stop)  echo "Stop the PostgreSQL container (preserving data)" ;;
         postgresql/drop)  echo "Drop a specific branch's database" ;;
         postgresql/status) echo "Check PostgreSQL container status and list databases" ;;
+        postgresql/remove) echo "Remove the PostgreSQL container + all databases" ;;
         session/list)     echo "List all active development sessions (tmux)" ;;
         session/start)    echo "Start a new development session using tmux" ;;
         session/stop)     echo "Stop a development session and kill tmux" ;;
@@ -240,11 +242,13 @@ _lp_cmd_usage() {
         mysql/stop)       echo "lp mysql stop" ;;
         mysql/drop)       echo "lp mysql drop [-y|--yes] [branch]" ;;
         mysql/status)     echo "lp mysql status" ;;
+        mysql/remove)     echo "lp mysql remove" ;;
         postgresql/reset) echo "lp postgresql reset [-y|--yes] [branch]" ;;
         postgresql/start) echo "lp postgresql start [branch]" ;;
         postgresql/stop)  echo "lp postgresql stop" ;;
         postgresql/drop)  echo "lp postgresql drop [-y|--yes] [branch]" ;;
         postgresql/status) echo "lp postgresql status" ;;
+        postgresql/remove) echo "lp postgresql remove" ;;
         session/list)     echo "lp session list" ;;
         session/start)    echo "lp session start [options] [branch]" ;;
         session/stop)     echo "lp session stop [branch]" ;;
@@ -773,6 +777,9 @@ _lp_cmd_examples() {
         mysql/status)
             echo "  lp mysql status"
             ;;
+        mysql/remove)
+            echo "  lp mysql remove"
+            ;;
         postgresql/reset)
             echo "  lp postgresql reset"
             echo "  lp postgresql reset -y"
@@ -791,6 +798,9 @@ _lp_cmd_examples() {
             ;;
         postgresql/status)
             echo "  lp postgresql status"
+            ;;
+        postgresql/remove)
+            echo "  lp postgresql remove"
             ;;
         session/list)
             echo "  lp session list"
