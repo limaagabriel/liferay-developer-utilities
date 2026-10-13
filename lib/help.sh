@@ -479,7 +479,9 @@ _lp_cmd_opts() {
             echo "  -s, --status             Set a status (pending, progress, review, important, ready)"
             echo "  -f, --from-base <name>   Clone from a base bundle instead of building from scratch"
             echo "  -h, --help               Show this help"
-            echo "  Note: Requires 'tmux' to be installed. 'lazygit' is recommended for the git window."
+            echo "  Note: Requires 'tmux' 3.2 or newer. 'lazygit' is recommended for the git window."
+            echo "  Note: Every window sees LP_SESSION_NAME, LP_BRANCH, LP_WORKTREE_DIR and LP_BUNDLE_DIR."
+            echo "        Example config line: SESSION_CUSTOM_WINDOWS='agent:claude --name \"\$LP_SESSION_NAME\"'"
             ;;
         session/stop)
             echo "  -h, --help      Show this help"
@@ -493,6 +495,7 @@ _lp_cmd_opts() {
         session/add)
             echo "  -c, --command <cmd>  Run a command in the new window"
             echo "  -h, --help           Show this help"
+            echo "  Note: The command can use LP_SESSION_NAME, LP_BRANCH, LP_WORKTREE_DIR and LP_BUNDLE_DIR."
             ;;
         session/rebuild)
             echo "  -h, --help      Show this help"

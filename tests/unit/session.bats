@@ -114,3 +114,48 @@ esac
     [ "$status" -ne 0 ]
     ! grep -q "new-window" "$CALLS_LOG"
 }
+
+stub_tmux_version() {
+    lp_stub tmux "
+case \"\$1\" in
+    -V) echo '$1' ;;
+    has-session) exit 1 ;;
+esac
+"
+}
+
+@test "start passes the LP_* session variables to new-session" {
+    mkdir -p "$HOME/dev/projects/liferay-portal-my rel-7.4"
+    stub_tmux_version "tmux 3.7c"
+    lp_stub mktemp 'echo "$HOME/tmpfile"'
+
+    run bash -c "'$_LP_SCRIPTS_DIR/commands/session/start.sh' 'my rel-7.4' < /dev/null"
+
+    local call
+    call=$(grep "^tmux new-session" "$CALLS_LOG")
+    [[ "$call" == *"-e LP_SESSION_NAME=my rel-7_4 "* ]]
+    [[ "$call" == *"-e LP_BRANCH=my rel-7.4 "* ]]
+    [[ "$call" == *"-e LP_WORKTREE_DIR=$HOME/dev/projects/liferay-portal-my rel-7.4 "* ]]
+    [[ "$call" == *"-e LP_BUNDLE_DIR=$HOME/dev/bundles/my rel-7.4 "* ]]
+}
+
+@test "start refuses tmux older than 3.2 without creating a session" {
+    mkdir -p "$HOME/dev/projects/liferay-portal-feat"
+    stub_tmux_version "tmux 3.1"
+
+    run bash -c "'$_LP_SCRIPTS_DIR/commands/session/start.sh' feat < /dev/null"
+
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"3.2"* ]]
+    ! grep -q "new-session" "$CALLS_LOG"
+}
+
+@test "start accepts non-numeric tmux versions" {
+    mkdir -p "$HOME/dev/projects/liferay-portal-feat"
+    stub_tmux_version "tmux next-3.4"
+    lp_stub mktemp 'echo "$HOME/tmpfile"'
+
+    run bash -c "'$_LP_SCRIPTS_DIR/commands/session/start.sh' feat < /dev/null"
+
+    grep -q "^tmux new-session" "$CALLS_LOG"
+}

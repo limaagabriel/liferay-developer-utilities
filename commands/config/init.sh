@@ -50,6 +50,14 @@ prompt_for_all_values() {
     prompt_for_value ENABLE_PORT_OFFSET_VAL "Enable per-bundle port offsets for parallel servers (yes/no)" "${ENABLE_PORT_OFFSET:-no}"
 }
 
+quote_for_config() {
+    local value="$1"
+    local quote="'"
+    local escaped_quote="'\\''"
+
+    printf "'%s'" "${value//$quote/$escaped_quote}"
+}
+
 write_config_file() {
     local config_file="${XDG_CONFIG_HOME:-$HOME/.config}/lp/config"
     local config_dir="$(dirname "$config_file")"
@@ -57,6 +65,9 @@ write_config_file() {
     if [[ ! -d "$config_dir" ]]; then
         mkdir -p "$config_dir"
     fi
+
+    local session_custom_windows_literal
+    session_custom_windows_literal="$(quote_for_config "$SESSION_CUSTOM_WINDOWS_VAL")"
 
     cat > "$config_file" <<EOF
 # lp per-user configuration
@@ -74,7 +85,7 @@ ENABLE_AUTOCOMPLETE=$ENABLE_AUTOCOMPLETE_VAL
 ENABLE_ALIASES=$ENABLE_ALIASES_VAL
 WORKTREE_LIMIT=$WORKTREE_LIMIT_VAL
 DEFAULT_DATABASE=$DEFAULT_DATABASE_VAL
-SESSION_CUSTOM_WINDOWS=$SESSION_CUSTOM_WINDOWS_VAL
+SESSION_CUSTOM_WINDOWS=$session_custom_windows_literal
 ENABLE_PORT_OFFSET=$ENABLE_PORT_OFFSET_VAL
 EOF
 }
