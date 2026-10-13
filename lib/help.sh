@@ -242,13 +242,13 @@ _lp_cmd_usage() {
         mysql/stop)       echo "lp mysql stop" ;;
         mysql/drop)       echo "lp mysql drop [-y|--yes] [branch]" ;;
         mysql/status)     echo "lp mysql status" ;;
-        mysql/remove)     echo "lp mysql remove" ;;
+        mysql/remove)     echo "lp mysql remove [-y|--yes]" ;;
         postgresql/reset) echo "lp postgresql reset [-y|--yes] [branch]" ;;
         postgresql/start) echo "lp postgresql start [branch]" ;;
         postgresql/stop)  echo "lp postgresql stop" ;;
         postgresql/drop)  echo "lp postgresql drop [-y|--yes] [branch]" ;;
         postgresql/status) echo "lp postgresql status" ;;
-        postgresql/remove) echo "lp postgresql remove" ;;
+        postgresql/remove) echo "lp postgresql remove [-y|--yes]" ;;
         session/list)     echo "lp session list" ;;
         session/start)    echo "lp session start [options] [branch]" ;;
         session/stop)     echo "lp session stop [branch]" ;;
@@ -277,7 +277,7 @@ _lp_cmd_usage() {
         database/switch)  echo "lp database switch [mysql|hypersonic|postgresql] [branch]" ;;
         database/start)   echo "lp database start [-v] [branch]" ;;
         database/stop)    echo "lp database stop [branch]" ;;
-        database/remove)  echo "lp database remove [branch]" ;;
+        database/remove)  echo "lp database remove [-y|--yes] [branch]" ;;
         *)                echo "" ;;
     esac
 }
@@ -459,9 +459,19 @@ _lp_cmd_opts() {
             echo "  -v, --verbose   Show full docker output"
             echo "  -h, --help      Show this help"
             ;;
+        mysql/remove)
+            echo "  -y, --yes       Skip confirmation prompt"
+            echo "  -v, --verbose   Show full output"
+            echo "  -h, --help      Show this help"
+            ;;
         mysql/start)
             echo "  -r, --reset-db  Drop and recreate the database if it already exists"
             echo "  -v, --verbose   Show full docker output"
+            echo "  -h, --help      Show this help"
+            ;;
+        postgresql/remove)
+            echo "  -y, --yes       Skip confirmation prompt"
+            echo "  -v, --verbose   Show full output"
             echo "  -h, --help      Show this help"
             ;;
         postgresql/reset)
@@ -595,6 +605,8 @@ _lp_cmd_opts() {
             echo "  -h, --help      Show this help"
             ;;
         database/remove)
+            echo "  -y, --yes       Skip confirmation prompt"
+            echo "  -v, --verbose   Show full output"
             echo "  -h, --help      Show this help"
             ;;
         *)                echo "" ;;
@@ -779,6 +791,7 @@ _lp_cmd_examples() {
             ;;
         mysql/remove)
             echo "  lp mysql remove"
+            echo "  lp mysql remove -y"
             ;;
         postgresql/reset)
             echo "  lp postgresql reset"
@@ -801,6 +814,7 @@ _lp_cmd_examples() {
             ;;
         postgresql/remove)
             echo "  lp postgresql remove"
+            echo "  lp postgresql remove -y"
             ;;
         session/list)
             echo "  lp session list"
@@ -912,6 +926,7 @@ _lp_cmd_examples() {
             ;;
         database/remove)
             echo "  lp database remove"
+            echo "  lp database remove -y"
             ;;
         *)
             echo "  (none)"

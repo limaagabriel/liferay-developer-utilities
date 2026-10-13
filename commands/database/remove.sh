@@ -8,7 +8,7 @@ parse_arguments() {
     FORWARD_ARGS=()
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --verbose|-v) FORWARD_ARGS+=("$1"); shift ;;
+            --yes|-y|--verbose|-v) FORWARD_ARGS+=("$1"); shift ;;
             -*)
                 lp_error "Unknown option: $1"
                 return 1 2>/dev/null || exit 1

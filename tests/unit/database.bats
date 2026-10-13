@@ -88,3 +88,29 @@ BACKENDS=(mysql postgresql)
         done
     done
 }
+
+@test "remove.sh -y removes the container without prompting" {
+    for backend in "${BACKENDS[@]}"; do
+        : > "$CALLS_LOG"
+        lp_stub docker 0
+
+        run "$_LP_SCRIPTS_DIR/commands/$backend/remove.sh" -y < /dev/null
+
+        [ "$status" -eq 0 ]
+        grep -q "compose.* down -v" "$CALLS_LOG"
+        [[ "$output" != *"[y/N]"* ]]
+    done
+}
+
+@test "remove.sh without -y aborts on a negative answer and removes nothing" {
+    for backend in "${BACKENDS[@]}"; do
+        : > "$CALLS_LOG"
+        lp_stub docker 0
+
+        run bash -c "printf 'n\n' | \"$_LP_SCRIPTS_DIR/commands/$backend/remove.sh\""
+
+        [ "$status" -eq 0 ]
+        [[ "$output" == *"Aborted."* ]]
+        [ -z "$(grep ' down' "$CALLS_LOG")" ]
+    done
+}
