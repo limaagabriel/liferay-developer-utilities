@@ -204,7 +204,7 @@ _lp_cmd_usage() {
         worktree/add)     echo "lp worktree add [options] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
-        worktree/path)    echo "lp worktree path [branch]" ;;
+        worktree/path)    echo "lp worktree path [--allow-missing] [branch]" ;;
         worktree/remove)  echo "lp worktree remove [-b] [-y] [-v] <branch>..." ;;
         worktree/root)    echo "lp worktree root" ;;
         reference/get)    echo "lp reference get" ;;
@@ -304,7 +304,8 @@ _lp_cmd_opts() {
             echo "  -h, --help   Show this help"
             ;;
         worktree/path)
-            echo "  -h, --help   Show this help"
+            echo "  --allow-missing   Print the path even if the worktree does not exist yet"
+            echo "  -h, --help        Show this help"
             ;;
         worktree/remove)
             echo "  -b, --branch    Also delete the local branch"
@@ -640,6 +641,7 @@ _lp_cmd_examples() {
         worktree/path)
             echo "  lp worktree path LPD-12345"
             echo "  lp worktree path"
+            echo "  lp worktree path --allow-missing LPD-12345"
             echo "  cd \"\$(lp worktree path LPD-12345)\""
             ;;
         worktree/remove)
