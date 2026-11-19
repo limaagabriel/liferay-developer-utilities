@@ -24,7 +24,7 @@ main() {
     }
 
     parse_arguments "$@" || return $?
-    lp_resolve_branch --reference --default-master --vars
+    lp_resolve_branch --reference --default-master --vars || return $?
     # WHY: lp_validate_worktree prints its tip via lp_info (stdout); keep stdout a bare path.
     lp_validate_worktree >&2 || return $?
     printf '%s\n' "$WORKTREE_DIR"
