@@ -84,7 +84,7 @@ _lp_ns_desc() {
 # _lp_ns_cmds <ns> — space-separated command list for a namespace (defines display order)
 _lp_ns_cmds() {
     case "$1" in
-        worktree) echo "add cd list remove root" ;;
+        worktree) echo "add cd list path remove root" ;;
         reference) echo "get set reset" ;;
         bundle)   echo "build refresh rebase db properties ports start kill reset cd remove info list env" ;;
         base)     echo "build list info refresh sync remove" ;;
@@ -118,6 +118,7 @@ _lp_cmd_desc() {
         worktree/add)     echo "Add a new git worktree for a branch" ;;
         worktree/cd)      echo "Change the current directory to a worktree" ;;
         worktree/list)    echo "List all active worktrees and their bundles" ;;
+        worktree/path)    echo "Print the directory of a worktree (defaults to the reference branch)" ;;
         worktree/remove)  echo "Remove a worktree, its bundle directory, and any active session" ;;
         worktree/root)    echo "Change the current directory to the root of a worktree" ;;
         reference/get)    echo "Get the current session's reference branch" ;;
@@ -203,6 +204,7 @@ _lp_cmd_usage() {
         worktree/add)     echo "lp worktree add [options] <branch>" ;;
         worktree/cd)      echo "lp worktree cd <branch>" ;;
         worktree/list)    echo "lp worktree list" ;;
+        worktree/path)    echo "lp worktree path [branch]" ;;
         worktree/remove)  echo "lp worktree remove [-b] [-y] [-v] <branch>..." ;;
         worktree/root)    echo "lp worktree root" ;;
         reference/get)    echo "lp reference get" ;;
@@ -299,6 +301,9 @@ _lp_cmd_opts() {
             echo "  -h, --help   Show this help"
             ;;
         worktree/list)
+            echo "  -h, --help   Show this help"
+            ;;
+        worktree/path)
             echo "  -h, --help   Show this help"
             ;;
         worktree/remove)
@@ -631,6 +636,11 @@ _lp_cmd_examples() {
             ;;
         worktree/list)
             echo "  lp worktree list"
+            ;;
+        worktree/path)
+            echo "  lp worktree path LPD-12345"
+            echo "  lp worktree path"
+            echo "  cd \"\$(lp worktree path LPD-12345)\""
             ;;
         worktree/remove)
             echo "  lp worktree remove main"

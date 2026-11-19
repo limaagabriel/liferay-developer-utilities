@@ -87,6 +87,14 @@ lp() {
     local real_command
     real_command=$(_lp_cmd_alias "$namespace" "$command")
 
+    # WHY: output is meant for command substitution, so no banner/footer on stdout
+    case "$namespace/$real_command" in
+        worktree/path)
+            _LP_SCRIPTS_DIR="$_LP_SCRIPTS_DIR" "$_LP_SCRIPTS_DIR/commands/$namespace/$real_command.sh" "${@:3}"
+            return $?
+            ;;
+    esac
+
     # Print preamble banner
     echo ""
     echo "Liferay Portal Developer CLI"
