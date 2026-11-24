@@ -101,14 +101,32 @@ configure_portal_ext() {
     lp_set_property "$properties_file" "portal.instance.inet.socket.address" "localhost:$http_port"
 }
 
+detect_es_version() {
+    local portal_osgi_dir="$BUNDLE_DIR/osgi/portal"
+    if [[ -f "$portal_osgi_dir/com.liferay.portal.search.elasticsearch8.impl.jar" ]]; then
+        echo "elasticsearch8"
+    elif [[ -f "$portal_osgi_dir/com.liferay.portal.search.elasticsearch7.impl.jar" ]]; then
+        echo "elasticsearch7"
+    fi
+}
+
 configure_elasticsearch() {
-    local es_config="$OSGI_CONFIGS_DIR/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config"
+    local es_version
+    es_version=$(detect_es_version)
+    if [[ -z "$es_version" ]]; then
+        lp_info "Skipping search config (no Elasticsearch engine jar found)"
+        return 0
+    fi
+
+    local es_config="$OSGI_CONFIGS_DIR/com.liferay.portal.search.$es_version.configuration.ElasticsearchConfiguration.config"
     local http_port transport_port
     http_port=$(port_for es-http) || return $?
     transport_port=$(port_for es-transport) || return $?
-    lp_info "Updating Elasticsearch config"
-    echo "sidecarHttpPort=\"$http_port\"" > "$es_config" || return $?
-    echo "transportTcpPort=\"$transport_port\"" >> "$es_config"
+    lp_info "Updating $es_version config"
+    lp_set_property "$es_config" "sidecarHttpPort" "\"$http_port\"" || return $?
+    lp_set_property "$es_config" "transportTcpPort" "\"$transport_port\"" || return $?
+    lp_set_property "$es_config" "networkBindHost" "\"127.0.0.1\"" || return $?
+    lp_set_property "$es_config" "networkPublishHost" "\"127.0.0.1\""
 }
 
 remove_stale_connector_configs() {

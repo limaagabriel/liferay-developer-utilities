@@ -132,3 +132,76 @@ _lp_set_property() {
     [ ! -e "$configs/com.liferay.arquillian.extension.portal.configuration.ArquillianConnector.config" ]
     [ ! -e "$configs/com.liferay.portal.dataguard.configuration.DataGuardConnector.config" ]
 }
+
+_lp_touch_osgi_jar() {
+    local jar_dir="$HOME/dev/bundles/feature/osgi/portal"
+    mkdir -p "$jar_dir"
+    touch "$jar_dir/$1"
+}
+
+_lp_es_config() {
+    echo "$HOME/dev/bundles/feature/osgi/configs/com.liferay.portal.search.$1.configuration.ElasticsearchConfiguration.config"
+}
+
+@test "ports.sh configures the ES8 sidecar on offset ports bound to loopback" {
+    _lp_make_port_fixture feature 3
+    _lp_touch_osgi_jar com.liferay.portal.search.elasticsearch8.impl.jar
+    mkdir -p "$(dirname "$(_lp_es_config elasticsearch8)")"
+    echo 'productionModeEnabled="false"' > "$(_lp_es_config elasticsearch8)"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    local config
+    config=$(_lp_es_config elasticsearch8)
+    [ "$status" -eq 0 ]
+    [ ! -e "$(_lp_es_config elasticsearch7)" ]
+    [ "$(grep -c '^sidecarHttpPort="9204"$' "$config")" -eq 1 ]
+    [ "$(grep -c '^transportTcpPort="9304"$' "$config")" -eq 1 ]
+    [ "$(grep -c '^networkBindHost="127.0.0.1"$' "$config")" -eq 1 ]
+    [ "$(grep -c '^networkPublishHost="127.0.0.1"$' "$config")" -eq 1 ]
+    [ "$(grep -c '^productionModeEnabled="false"$' "$config")" -eq 1 ]
+}
+
+@test "ports.sh configures the ES7 sidecar when only the ES7 engine jar exists" {
+    _lp_make_port_fixture feature 3
+    _lp_touch_osgi_jar com.liferay.portal.search.elasticsearch7.impl.jar
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ ! -e "$(_lp_es_config elasticsearch8)" ]
+    [ "$(grep -c '^sidecarHttpPort="9204"$' "$(_lp_es_config elasticsearch7)")" -eq 1 ]
+}
+
+@test "ports.sh ignores the commerce elasticsearch7 jar when detecting an ES8 bundle" {
+    _lp_make_port_fixture feature 3
+    _lp_touch_osgi_jar com.liferay.portal.search.elasticsearch8.impl.jar
+    _lp_touch_osgi_jar com.liferay.commerce.elasticsearch7.jar
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ -f "$(_lp_es_config elasticsearch8)" ]
+    [ ! -e "$(_lp_es_config elasticsearch7)" ]
+}
+
+@test "ports.sh skips search config without an engine jar" {
+    _lp_make_port_fixture feature 3
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ ! -e "$(_lp_es_config elasticsearch7)" ]
+    [ ! -e "$(_lp_es_config elasticsearch8)" ]
+}
+
+@test "ports.sh does not duplicate search config keys when run twice" {
+    _lp_make_port_fixture feature 3
+    _lp_touch_osgi_jar com.liferay.portal.search.elasticsearch8.impl.jar
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ "$(wc -l < "$(_lp_es_config elasticsearch8)")" -eq 4 ]
+}
