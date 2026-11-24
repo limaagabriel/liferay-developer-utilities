@@ -107,3 +107,28 @@ _lp_set_property() {
     [ "$status" -ne 0 ]
     [[ "$output" != *"Ports configured"* ]]
 }
+
+@test "ports.sh writes Arquillian and DataGuard configs under the real connector PIDs" {
+    _lp_make_port_fixture feature 3
+    local configs="$HOME/dev/bundles/feature/osgi/configs"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ "$(cat "$configs/com.liferay.arquillian.extension.junit.bridge.connector.ArquillianConnector.config")" = 'port="32766"' ]
+    [ "$(cat "$configs/com.liferay.data.guard.connector.DataGuardConnector.config")" = 'port="42766"' ]
+}
+
+@test "ports.sh removes the old wrong-name Arquillian and DataGuard configs" {
+    _lp_make_port_fixture feature 3
+    local configs="$HOME/dev/bundles/feature/osgi/configs"
+    mkdir -p "$configs"
+    echo 'port="1"' > "$configs/com.liferay.arquillian.extension.portal.configuration.ArquillianConnector.config"
+    echo 'port="2"' > "$configs/com.liferay.portal.dataguard.configuration.DataGuardConnector.config"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ ! -e "$configs/com.liferay.arquillian.extension.portal.configuration.ArquillianConnector.config" ]
+    [ ! -e "$configs/com.liferay.portal.dataguard.configuration.DataGuardConnector.config" ]
+}

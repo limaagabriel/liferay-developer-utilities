@@ -111,13 +111,23 @@ configure_elasticsearch() {
     echo "transportTcpPort=\"$transport_port\"" >> "$es_config"
 }
 
+remove_stale_connector_configs() {
+    local stale
+    for stale in \
+        "com.liferay.arquillian.extension.portal.configuration.ArquillianConnector.config" \
+        "com.liferay.portal.dataguard.configuration.DataGuardConnector.config"; do
+        rm -f "$OSGI_CONFIGS_DIR/$stale" || return $?
+    done
+}
+
 configure_arquillian_dataguard() {
     local arquillian_port dataguard_port
     arquillian_port=$(port_for arquillian) || return $?
     dataguard_port=$(port_for dataguard) || return $?
     lp_info "Updating Arquillian and DataGuard configs"
-    echo "port=\"$arquillian_port\"" > "$OSGI_CONFIGS_DIR/com.liferay.arquillian.extension.portal.configuration.ArquillianConnector.config" || return $?
-    echo "port=\"$dataguard_port\"" > "$OSGI_CONFIGS_DIR/com.liferay.portal.dataguard.configuration.DataGuardConnector.config"
+    remove_stale_connector_configs || return $?
+    echo "port=\"$arquillian_port\"" > "$OSGI_CONFIGS_DIR/com.liferay.arquillian.extension.junit.bridge.connector.ArquillianConnector.config" || return $?
+    echo "port=\"$dataguard_port\"" > "$OSGI_CONFIGS_DIR/com.liferay.data.guard.connector.DataGuardConnector.config"
 }
 
 configure_jpda() {
