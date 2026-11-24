@@ -27,45 +27,80 @@ port_for() {
     echo $((base + OFFSET))
 }
 
-ports_in_use() {
+_LP_MAX_PORT_OFFSET=99
+
+offset_ports() {
     local offset=$1
-    local ports=($((8080 + offset)) $((8005 + offset)) $((11311 + offset)) $((9201 + offset)) $((9301 + offset)) $((4000 + offset)) $((8000 + offset)))
-    for port in "${ports[@]}"; do
+    local kind
+    for kind in $_LP_PORT_KINDS; do
+        echo $(( $(_lp_port_base "$kind") + offset ))
+    done
+}
+
+ports_in_use() {
+    local port
+    for port in $(offset_ports "$1"); do
         nc -z localhost "$port" 2>/dev/null && return 0
     done
     return 1
 }
 
-offset_claimed_by_other_bundle() {
-    local offset=$1
+claimed_offsets() {
+    local other_bundle offset
+    echo 0
     for other_bundle in "$BUNDLES_DIR"/*; do
         [[ -d "$other_bundle" && "$other_bundle" != "$BUNDLE_DIR" ]] || continue
-        [[ -f "$other_bundle/.worktree-port-offset" ]] || continue
-        [[ "$(cat "$other_bundle/.worktree-port-offset")" == "$offset" ]] && return 0
+        [[ -f "$other_bundle/$_LP_BUNDLE_OFFSET_FILE" ]] || continue
+        offset=$(cat "$other_bundle/$_LP_BUNDLE_OFFSET_FILE")
+        case "$offset" in ""|*[!0-9]*) continue ;; esac
+        echo "$offset"
     done
+}
+
+claimed_ports() {
+    local offset
+    for offset in $(claimed_offsets); do
+        offset_ports "$offset"
+    done
+}
+
+offset_overlaps_claimed() {
+    local claimed port
+    claimed=" $(claimed_ports | tr '\n' ' ') "
+    for port in $(offset_ports "$1"); do
+        case "$claimed" in *" $port "*) return 0 ;; esac
+    done
+    return 1
+}
+
+find_free_offset() {
+    local offset=1
+    while [[ "$offset" -le "$_LP_MAX_PORT_OFFSET" ]]; do
+        if ! ports_in_use "$offset" && ! offset_overlaps_claimed "$offset"; then
+            echo "$offset"
+            return 0
+        fi
+        offset=$((offset + 1))
+    done
+    lp_error "No free port offset between 1 and $_LP_MAX_PORT_OFFSET."
     return 1
 }
 
 get_offset() {
     if [[ "$BRANCH" == "master" ]]; then
         echo 0
-        return
+        return 0
     fi
 
     if [[ -f "$OFFSET_FILE" ]]; then
         cat "$OFFSET_FILE"
-        return
+        return $?
     fi
 
-    local offset=1
-    while true; do
-        if ! ports_in_use "$offset" && ! offset_claimed_by_other_bundle "$offset"; then
-            echo "$offset" > "$OFFSET_FILE"
-            echo "$offset"
-            return
-        fi
-        ((offset++))
-    done
+    local offset
+    offset=$(find_free_offset) || return $?
+    echo "$offset" > "$OFFSET_FILE" || return $?
+    echo "$offset"
 }
 
 configure_tomcat() {
@@ -185,7 +220,7 @@ configure_glowroot() {
 }
 
 apply_ports() {
-    OFFSET=$(get_offset)
+    OFFSET=$(get_offset) || return $?
     lp_info "Using port offset: $OFFSET (Branch: $BRANCH)"
 
     if [[ "$OFFSET" -eq 0 && "$BRANCH" != "master" ]]; then

@@ -205,3 +205,71 @@ _lp_es_config() {
     [ "$status" -eq 0 ]
     [ "$(wc -l < "$(_lp_es_config elasticsearch8)")" -eq 4 ]
 }
+
+_lp_ports_at() {
+    local base
+    for base in 8080 8443 8005 8009 11311 9201 9301 32763 42763 4000 8000; do
+        echo $((base + $1))
+    done
+}
+
+_lp_claim_offsets() {
+    local offset
+    for offset in "$@"; do
+        mkdir -p "$HOME/dev/bundles/other$offset"
+        echo "$offset" > "$HOME/dev/bundles/other$offset/.worktree-port-offset"
+    done
+}
+
+_lp_fresh_port_fixture() {
+    _lp_make_port_fixture feature 3
+    rm "$HOME/dev/bundles/feature/.worktree-port-offset"
+}
+
+@test "ports.sh skips an offset whose ajp port is busy" {
+    _lp_fresh_port_fixture
+    lp_stub nc '[[ "${@: -1}" == 8010 ]] && exit 0; exit 1'
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ "$(cat "$HOME/dev/bundles/feature/.worktree-port-offset")" = "2" ]
+}
+
+@test "ports.sh picks an offset sharing no port with master or other claimed offsets" {
+    _lp_fresh_port_fixture
+    _lp_claim_offsets 1 2 3 4
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    local chosen taken
+    chosen=$(cat "$HOME/dev/bundles/feature/.worktree-port-offset")
+    [ "$chosen" -ne 5 ]
+    taken=" $(for offset in 0 1 2 3 4; do _lp_ports_at "$offset"; done | tr '\n' ' ') "
+    for port in $(_lp_ports_at "$chosen"); do
+        [[ "$taken" != *" $port "* ]]
+    done
+}
+
+@test "ports.sh reuses an existing offset file unchanged" {
+    _lp_make_port_fixture feature 7
+    _lp_claim_offsets 1 2 3
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ "$(cat "$HOME/dev/bundles/feature/.worktree-port-offset")" = "7" ]
+}
+
+@test "ports.sh fails without writing an offset file when no offset is free" {
+    _lp_fresh_port_fixture
+    lp_stub nc 0
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"No free port offset"* ]]
+    [[ "$output" != *"Ports configured"* ]]
+    [ ! -e "$HOME/dev/bundles/feature/.worktree-port-offset" ]
+}
