@@ -10,13 +10,6 @@ teardown() {
     lp_command_teardown
 }
 
-_lp_write_worktree_properties() {
-    local worktree_dir="$1"
-    local bundle_dir="$2"
-    mkdir -p "$worktree_dir"
-    echo "app.server.parent.dir=$bundle_dir" > "$worktree_dir/app.server.testuser.properties"
-}
-
 @test "reset.sh stops before resetting when the bundle directory is missing" {
     run "$_LP_SCRIPTS_DIR/commands/bundle/reset.sh" -y aaa
 

@@ -77,3 +77,14 @@ lp_source_run() {
         'source "$LP_SOURCE_RUN_SCRIPT" "$@"' \
         lp_source_run "$@"
 }
+
+# _lp_write_worktree_properties <worktree-dir> <bundle-dir>
+#
+# Creates the worktree dir with the app.server properties file that
+# lp_load_bundle_dir reads, pointing at <bundle-dir>.
+_lp_write_worktree_properties() {
+    local worktree_dir="$1"
+    local bundle_dir="$2"
+    mkdir -p "$worktree_dir"
+    echo "app.server.parent.dir=$bundle_dir" > "$worktree_dir/app.server.testuser.properties"
+}

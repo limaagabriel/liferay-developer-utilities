@@ -1,6 +1,7 @@
 #!/bin/bash
 source "$_LP_SCRIPTS_DIR/lib/init.sh"
 lp_init_command "bundle" "ports" "$@"
+source "$_LP_SCRIPTS_DIR/lib/bundle.sh"
 
 parse_arguments() {
     BRANCH=""
@@ -17,6 +18,13 @@ parse_arguments() {
     done
 
     BRANCH="${BRANCH:-$(lp_get_reference_branch)}"
+}
+
+port_for() {
+    local base
+    base=$(_lp_port_base "$1")
+    [[ -n "$base" ]] || { lp_error "Unknown port kind: $1"; return 1; }
+    echo $((base + OFFSET))
 }
 
 ports_in_use() {
@@ -66,38 +74,50 @@ configure_tomcat() {
     [[ -n "$tomcat_dir" && -f "$tomcat_dir/conf/server.xml" ]] || return 0
 
     local server_xml="$tomcat_dir/conf/server.xml"
+    local shutdown_port http_port ajp_port https_port
+    shutdown_port=$(port_for shutdown) || return $?
+    http_port=$(port_for http) || return $?
+    ajp_port=$(port_for ajp) || return $?
+    https_port=$(port_for https) || return $?
     lp_info "Updating Tomcat server.xml"
 
-    sed -i "s|<Server port=\"[0-9]*\"|<Server port=\"$((8005 + OFFSET))\"|" "$server_xml"
-    sed -i "s|\(<Connector [^>]*\)protocol=\"HTTP/1.1\"\([^>]*\)port=\"[0-9]*\"|\1protocol=\"HTTP/1.1\"\2port=\"$((8080 + OFFSET))\"|" "$server_xml"
-    sed -i "s|\(<Connector [^>]*\)port=\"[0-9]*\"\([^>]*\)protocol=\"HTTP/1.1\"|\1port=\"$((8080 + OFFSET))\"\2protocol=\"HTTP/1.1\"|" "$server_xml"
-    sed -i "s|\(<Connector [^>]*\)protocol=\"AJP/1.3\"\([^>]*\)port=\"[0-9]*\"|\1protocol=\"AJP/1.3\"\2port=\"$((8009 + OFFSET))\"|" "$server_xml"
-    sed -i "s|\(<Connector [^>]*\)port=\"[0-9]*\"\([^>]*\)protocol=\"AJP/1.3\"|\1port=\"$((8009 + OFFSET))\"\2protocol=\"AJP/1.3\"|" "$server_xml"
-    sed -i "s|redirectPort=\"[0-9]*\"|redirectPort=\"$((8443 + OFFSET))\"|g" "$server_xml"
+    sed -i "s|<Server port=\"[0-9]*\"|<Server port=\"$shutdown_port\"|" "$server_xml" || return $?
+    sed -i "s|\(<Connector [^>]*\)protocol=\"HTTP/1.1\"\([^>]*\)port=\"[0-9]*\"|\1protocol=\"HTTP/1.1\"\2port=\"$http_port\"|" "$server_xml" || return $?
+    sed -i "s|\(<Connector [^>]*\)port=\"[0-9]*\"\([^>]*\)protocol=\"HTTP/1.1\"|\1port=\"$http_port\"\2protocol=\"HTTP/1.1\"|" "$server_xml" || return $?
+    sed -i "s|\(<Connector [^>]*\)protocol=\"AJP/1.3\"\([^>]*\)port=\"[0-9]*\"|\1protocol=\"AJP/1.3\"\2port=\"$ajp_port\"|" "$server_xml" || return $?
+    sed -i "s|\(<Connector [^>]*\)port=\"[0-9]*\"\([^>]*\)protocol=\"AJP/1.3\"|\1port=\"$ajp_port\"\2protocol=\"AJP/1.3\"|" "$server_xml" || return $?
+    sed -i "s|redirectPort=\"[0-9]*\"|redirectPort=\"$https_port\"|g" "$server_xml"
 }
 
 configure_portal_ext() {
     local properties_file="$BUNDLE_DIR/portal-ext.properties"
     [[ -f "$properties_file" ]] || return 0
 
+    local osgi_port http_port
+    osgi_port=$(port_for osgi) || return $?
+    http_port=$(port_for http) || return $?
     lp_info "Updating portal-ext.properties"
-    sed -i "/^module.framework.properties.osgi.console=/d" "$properties_file"
-    sed -i "/^portal.instance.inet.socket.address=/d" "$properties_file"
-    echo "module.framework.properties.osgi.console=localhost:$((11311 + OFFSET))" >> "$properties_file"
-    echo "portal.instance.inet.socket.address=localhost:$((8080 + OFFSET))" >> "$properties_file"
+    lp_set_property "$properties_file" "module.framework.properties.osgi.console" "localhost:$osgi_port" || return $?
+    lp_set_property "$properties_file" "portal.instance.inet.socket.address" "localhost:$http_port"
 }
 
 configure_elasticsearch() {
     local es_config="$OSGI_CONFIGS_DIR/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config"
+    local http_port transport_port
+    http_port=$(port_for es-http) || return $?
+    transport_port=$(port_for es-transport) || return $?
     lp_info "Updating Elasticsearch config"
-    echo "sidecarHttpPort=\"$((9201 + OFFSET))\"" > "$es_config"
-    echo "transportTcpPort=\"$((9301 + OFFSET))\"" >> "$es_config"
+    echo "sidecarHttpPort=\"$http_port\"" > "$es_config" || return $?
+    echo "transportTcpPort=\"$transport_port\"" >> "$es_config"
 }
 
 configure_arquillian_dataguard() {
+    local arquillian_port dataguard_port
+    arquillian_port=$(port_for arquillian) || return $?
+    dataguard_port=$(port_for dataguard) || return $?
     lp_info "Updating Arquillian and DataGuard configs"
-    echo "port=\"$((32763 + OFFSET))\"" > "$OSGI_CONFIGS_DIR/com.liferay.arquillian.extension.portal.configuration.ArquillianConnector.config"
-    echo "port=\"$((42763 + OFFSET))\"" > "$OSGI_CONFIGS_DIR/com.liferay.portal.dataguard.configuration.DataGuardConnector.config"
+    echo "port=\"$arquillian_port\"" > "$OSGI_CONFIGS_DIR/com.liferay.arquillian.extension.portal.configuration.ArquillianConnector.config" || return $?
+    echo "port=\"$dataguard_port\"" > "$OSGI_CONFIGS_DIR/com.liferay.portal.dataguard.configuration.DataGuardConnector.config"
 }
 
 configure_jpda() {
@@ -106,29 +126,33 @@ configure_jpda() {
     [[ -n "$tomcat_dir" ]] || return 0
 
     local setenv="$tomcat_dir/bin/setenv.sh"
+    local jpda_port
+    jpda_port=$(port_for jpda) || return $?
     lp_info "Updating Tomcat setenv.sh JPDA_ADDRESS"
 
-    if [[ -f "$setenv" ]]; then
-        sed -i '/^export JPDA_ADDRESS=/d' "$setenv"
-    else
-        echo "#!/bin/bash" > "$setenv"
-        chmod +x "$setenv"
+    if [[ ! -f "$setenv" ]]; then
+        echo "#!/bin/bash" > "$setenv" || return $?
+        chmod +x "$setenv" || return $?
     fi
-    echo "export JPDA_ADDRESS=localhost:$((8000 + OFFSET))" >> "$setenv"
+    sed -i '/^export JPDA_ADDRESS=/d' "$setenv" || return $?
+    lp_set_property "$setenv" "JPDA_ADDRESS" "\"localhost:$jpda_port\""
 }
 
 configure_glowroot() {
     local glowroot_admin="$BUNDLE_DIR/glowroot/admin.json"
     [[ -f "$glowroot_admin" ]] || return 0
 
+    local glowroot_port
+    glowroot_port=$(port_for glowroot) || return $?
+
     if command -v jq &> /dev/null; then
         lp_info "Updating Glowroot admin.json using jq"
         local tmp_file
         tmp_file=$(mktemp)
-        jq ".web.port = $((4000 + OFFSET))" "$glowroot_admin" > "$tmp_file" && mv "$tmp_file" "$glowroot_admin"
+        jq ".web.port = $glowroot_port" "$glowroot_admin" > "$tmp_file" && mv "$tmp_file" "$glowroot_admin"
     else
         lp_info "Updating Glowroot admin.json using sed (jq not found)"
-        sed -i "s|\"port\":[[:space:]]*[0-9]*|\"port\": $((4000 + OFFSET))|" "$glowroot_admin"
+        sed -i "s|\"port\":[[:space:]]*[0-9]*|\"port\": $glowroot_port|" "$glowroot_admin"
     fi
 }
 
@@ -142,14 +166,14 @@ apply_ports() {
     fi
 
     OSGI_CONFIGS_DIR="$BUNDLE_DIR/osgi/configs"
-    mkdir -p "$OSGI_CONFIGS_DIR"
+    mkdir -p "$OSGI_CONFIGS_DIR" || return $?
 
-    configure_tomcat
-    configure_portal_ext
-    configure_elasticsearch
-    configure_arquillian_dataguard
-    configure_glowroot
-    configure_jpda
+    configure_tomcat || return $?
+    configure_portal_ext || return $?
+    configure_elasticsearch || return $?
+    configure_arquillian_dataguard || return $?
+    configure_glowroot || return $?
+    configure_jpda || return $?
 
     lp_success "Ports configured with offset $OFFSET."
 }
@@ -161,7 +185,7 @@ main() {
     lp_load_bundle_dir || return $?
 
     OFFSET_FILE="$BUNDLE_DIR/.worktree-port-offset"
-    apply_ports
+    apply_ports || return $?
 }
 
 main "$@"

@@ -1,0 +1,109 @@
+#!/usr/bin/env bats
+
+load "../command_helper"
+
+setup() {
+    lp_command_setup
+}
+
+teardown() {
+    lp_command_teardown
+}
+
+_lp_make_port_fixture() {
+    local branch="${1:-feature}"
+    local offset="${2:-3}"
+    local bundle_dir="$HOME/dev/bundles/$branch"
+
+    _lp_write_worktree_properties "$HOME/dev/projects/liferay-portal-$branch" "$bundle_dir"
+    mkdir -p "$bundle_dir/tomcat-x/bin" "$bundle_dir/tomcat-x/conf"
+    echo "module.framework.properties.osgi.console=localhost:11312" > "$bundle_dir/portal-ext.properties"
+    printf 'export JPDA_ADDRESS=localhost:8000\nJPDA_ADDRESS="8000"\n' > "$bundle_dir/tomcat-x/bin/setenv.sh"
+    echo '<Server port="8005" shutdown="SHUTDOWN"></Server>' > "$bundle_dir/tomcat-x/conf/server.xml"
+    echo "$offset" > "$bundle_dir/.worktree-port-offset"
+    lp_stub nc 1
+}
+
+_lp_set_property() {
+    run bash -c 'source "$_LP_SCRIPTS_DIR/lib/output.sh"; source "$_LP_SCRIPTS_DIR/lib/bundle.sh"; lp_set_property "$@"' _ "$@"
+}
+
+@test "lp_set_property creates a missing file" {
+    _lp_set_property "$TEST_HOME/new.properties" a.b 1
+
+    [ "$status" -eq 0 ]
+    [ "$(cat "$TEST_HOME/new.properties")" = "a.b=1" ]
+}
+
+@test "lp_set_property starts a new line when the file has no trailing newline" {
+    printf 'first=1' > "$TEST_HOME/f.properties"
+
+    _lp_set_property "$TEST_HOME/f.properties" a.b 2
+
+    [ "$status" -eq 0 ]
+    [ "$(cat "$TEST_HOME/f.properties")" = $'first=1\na.b=2' ]
+}
+
+@test "lp_set_property treats dots in the key literally" {
+    printf 'axb=1\na.b=old\n' > "$TEST_HOME/f.properties"
+
+    _lp_set_property "$TEST_HOME/f.properties" a.b new
+
+    [ "$status" -eq 0 ]
+    [ "$(cat "$TEST_HOME/f.properties")" = $'axb=1\na.b=new' ]
+}
+
+@test "lp_set_property is idempotent" {
+    printf 'x=1\n' > "$TEST_HOME/f.properties"
+
+    _lp_set_property "$TEST_HOME/f.properties" a.b 1
+    _lp_set_property "$TEST_HOME/f.properties" a.b 1
+
+    [ "$(grep -c '^a\.b=' "$TEST_HOME/f.properties")" -eq 1 ]
+    [ "$(wc -l < "$TEST_HOME/f.properties")" -eq 2 ]
+}
+
+@test "lp_set_property fails when the file is not writable" {
+    if [[ "$(id -u)" -eq 0 ]]; then
+        skip "permissions are not enforced when running as root"
+    fi
+    printf 'x=1\n' > "$TEST_HOME/f.properties"
+    chmod a-w "$TEST_HOME/f.properties"
+
+    _lp_set_property "$TEST_HOME/f.properties" a.b 1
+
+    [ "$status" -ne 0 ]
+    [ "$(cat "$TEST_HOME/f.properties")" = "x=1" ]
+}
+
+@test "ports.sh is idempotent and writes offset ports once" {
+    _lp_make_port_fixture feature 3
+    local bundle_dir="$HOME/dev/bundles/feature"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+    [ "$status" -eq 0 ]
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+    [ "$status" -eq 0 ]
+
+    local ext="$bundle_dir/portal-ext.properties"
+    local setenv="$bundle_dir/tomcat-x/bin/setenv.sh"
+    [ "$(grep -c '^module.framework.properties.osgi.console=localhost:11314$' "$ext")" -eq 1 ]
+    [ "$(grep -c '^portal.instance.inet.socket.address=localhost:8083$' "$ext")" -eq 1 ]
+    [ "$(grep -c '^JPDA_ADDRESS="localhost:8003"$' "$setenv")" -eq 1 ]
+    [ "$(grep -c 'JPDA_ADDRESS' "$setenv")" -eq 1 ]
+    [ "$(grep -c 'export JPDA_ADDRESS' "$setenv")" -eq 0 ]
+    grep -q '<Server port="8008"' "$bundle_dir/tomcat-x/conf/server.xml"
+}
+
+@test "ports.sh stops without reporting success when portal-ext.properties can't be written" {
+    if [[ "$(id -u)" -eq 0 ]]; then
+        skip "permissions are not enforced when running as root"
+    fi
+    _lp_make_port_fixture feature 3
+    chmod a-w "$HOME/dev/bundles/feature/portal-ext.properties"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -ne 0 ]
+    [[ "$output" != *"Ports configured"* ]]
+}

@@ -68,6 +68,31 @@ lp_bundle_port_table() {
     done
 }
 
+_lp_regex_escape() {
+    printf '%s' "$1" | sed 's/[][\.*^$/]/\\&/g'
+}
+
+_lp_ensure_trailing_newline() {
+    local file="$1"
+    [[ -s "$file" && -n "$(tail -c 1 "$file")" ]] || return 0
+    echo >> "$file"
+}
+
+# lp_set_property <file> <key> <value> — make <file> hold exactly one "key=value" line.
+lp_set_property() {
+    local file="$1"
+    local key="$2"
+    local value="$3"
+    local pattern
+    pattern=$(_lp_regex_escape "$key")
+
+    [[ -f "$file" ]] || : > "$file" || return $?
+    [[ -w "$file" ]] || { lp_error "Cannot write to $file"; return 1; }
+    sed -i "/^[[:space:]]*${pattern}=/d" "$file" || return $?
+    _lp_ensure_trailing_newline "$file" || return $?
+    printf '%s=%s\n' "$key" "$value" >> "$file"
+}
+
 _lp_bundle_probe_clone_mode() {
     if [[ -f "$_LP_BUNDLE_CLONE_MODE_FILE" ]]; then
         cat "$_LP_BUNDLE_CLONE_MODE_FILE"
