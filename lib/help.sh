@@ -136,7 +136,7 @@ _lp_cmd_desc() {
         bundle/rebase)    echo "Rebuild a bundle from a different base bundle (destructive)" ;;
         bundle/db)        echo "Control the database backend inside a bundle (hypersonic/mysql/postgresql)" ;;
         bundle/properties) echo "Copy portal-ext.properties and set database to branch name" ;;
-        bundle/ports)     echo "Configure TCP port offsets for the bundle" ;;
+        bundle/ports)     echo "Configure port offsets for the bundle and its worktree's test settings" ;;
         bundle/start)     echo "Start the Liferay server for a bundle" ;;
         bundle/kill)      echo "Kill the running bundle process by port" ;;
         bundle/reset)     echo "Reset the bundle database and caches (work, temp, osgi/state)" ;;

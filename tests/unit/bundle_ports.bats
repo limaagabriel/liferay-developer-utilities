@@ -326,3 +326,119 @@ _lp_fresh_port_fixture() {
     [[ "$output" != *"Ports configured"* ]]
     [ ! -e "$HOME/dev/bundles/feature/.worktree-port-offset" ]
 }
+
+_lp_feature_worktree() {
+    echo "$HOME/dev/projects/liferay-portal-feature"
+}
+
+@test "ports.sh points the worktree's test.<user>.properties at the offset portal and Arquillian port" {
+    _lp_make_port_fixture feature 3
+    local properties="$(_lp_feature_worktree)/test.testuser.properties"
+    printf 'test.url=http://remote:8080\nkeep.me=1\n' > "$properties"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"$properties"* ]]
+    [ "$(grep -c '^default.portal.url=http://localhost:8083$' "$properties")" -eq 1 ]
+    [ "$(grep -c '^instance.url=http://localhost:8083$' "$properties")" -eq 1 ]
+    [ "$(grep -c '^test.url=http://localhost:8083$' "$properties")" -eq 1 ]
+    [ "$(grep -c '^systemProp.liferay.arquillian.port=32766$' "$properties")" -eq 1 ]
+    [ "$(grep -c '^keep.me=1$' "$properties")" -eq 1 ]
+}
+
+@test "ports.sh updates an existing .gradle/gradle.properties and never creates one" {
+    _lp_make_port_fixture feature 3
+    local gradle_dir="$(_lp_feature_worktree)/.gradle"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+    [ "$status" -eq 0 ]
+    [ ! -e "$gradle_dir/gradle.properties" ]
+
+    printf 'org.gradle.daemon=false\n' > "$gradle_dir/gradle.properties"
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"$gradle_dir/gradle.properties"* ]]
+    [ "$(grep -c '^systemProp.liferay.arquillian.port=32766$' "$gradle_dir/gradle.properties")" -eq 1 ]
+    [ "$(grep -c '^org.gradle.daemon=false$' "$gradle_dir/gradle.properties")" -eq 1 ]
+}
+
+@test "ports.sh writes a Gradle init script that moves the integration Tomcat to the offset http port" {
+    _lp_make_port_fixture feature 3
+    local init_script="$(_lp_feature_worktree)/.gradle/init.d/worktree-ports.gradle"
+    local expected="$TEST_HOME/expected.gradle"
+    printf '%s\n' \
+        'allprojects {' \
+        $'\tafterEvaluate { project ->' \
+        $'\t\tdef extension = project.extensions.findByName("testIntegrationTomcat")' \
+        '' \
+        $'\t\tif (extension != null) {' \
+        $'\t\t\textension.portNumber = 8083' \
+        $'\t\t}' \
+        $'\t}' \
+        '}' > "$expected"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"$init_script"* ]]
+    diff "$expected" "$init_script"
+}
+
+@test "ports.sh sets PORTAL_URL in the Playwright .env.local and keeps other keys" {
+    _lp_make_port_fixture feature 3
+    local playwright_dir="$(_lp_feature_worktree)/modules/test/playwright"
+    mkdir -p "$playwright_dir"
+    printf 'PORTAL_URL=http://localhost:8080\nOTHER_KEY=kept\n' > "$playwright_dir/.env.local"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"$playwright_dir/.env.local"* ]]
+    [ "$(grep -c '^PORTAL_URL=http://localhost:8083$' "$playwright_dir/.env.local")" -eq 1 ]
+    [ "$(grep -c '^OTHER_KEY=kept$' "$playwright_dir/.env.local")" -eq 1 ]
+    [ "$(grep -c '^PORTAL_URL=' "$playwright_dir/.env.local")" -eq 1 ]
+}
+
+@test "ports.sh does not create the Playwright directory or .env.local when absent" {
+    _lp_make_port_fixture feature 3
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ ! -e "$(_lp_feature_worktree)/modules" ]
+}
+
+@test "ports.sh leaves no duplicate test keys when run twice" {
+    _lp_make_port_fixture feature 3
+    local worktree="$(_lp_feature_worktree)"
+    mkdir -p "$worktree/modules/test/playwright" "$worktree/.gradle"
+    echo 'a=1' > "$worktree/.gradle/gradle.properties"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+
+    [ "$status" -eq 0 ]
+    [ "$(wc -l < "$worktree/test.testuser.properties")" -eq 4 ]
+    [ "$(wc -l < "$worktree/.gradle/gradle.properties")" -eq 2 ]
+    [ "$(wc -l < "$worktree/modules/test/playwright/.env.local")" -eq 1 ]
+}
+
+@test "ports.sh writes no worktree test files for master" {
+    local master_dir="$HOME/dev/projects/liferay-portal"
+    local bundle_dir="$HOME/dev/bundles/master"
+    _lp_write_worktree_properties "$master_dir" "$bundle_dir"
+    mkdir -p "$bundle_dir/tomcat-x/conf" "$bundle_dir/tomcat-x/bin" "$master_dir/modules/test/playwright" "$master_dir/.gradle"
+    echo "module.framework.properties.osgi.console=localhost:11311" > "$bundle_dir/portal-ext.properties"
+    _lp_write_server_xml 8005 8080 8443 8009 > "$bundle_dir/tomcat-x/conf/server.xml"
+    echo 'a=1' > "$master_dir/.gradle/gradle.properties"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" master
+
+    [ "$status" -eq 0 ]
+    [ ! -e "$master_dir/test.testuser.properties" ]
+    [ ! -e "$master_dir/.gradle/init.d" ]
+    [ ! -e "$master_dir/modules/test/playwright/.env.local" ]
+    [ "$(cat "$master_dir/.gradle/gradle.properties")" = "a=1" ]
+}

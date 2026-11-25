@@ -234,6 +234,67 @@ configure_glowroot() {
     fi
 }
 
+write_test_properties() {
+    local properties_file="$WORKTREE_DIR/test.${LIFERAY_USER}.properties"
+    local portal_url="$1"
+    local arquillian_port key
+    arquillian_port=$(port_for arquillian) || return $?
+
+    lp_info "Updating $properties_file"
+    for key in default.portal.url instance.url test.url; do
+        lp_set_property "$properties_file" "$key" "$portal_url" || return $?
+    done
+    lp_set_property "$properties_file" "systemProp.liferay.arquillian.port" "$arquillian_port"
+}
+
+write_gradle_properties() {
+    local gradle_properties="$WORKTREE_DIR/.gradle/gradle.properties"
+    [[ -f "$gradle_properties" ]] || return 0
+
+    local arquillian_port
+    arquillian_port=$(port_for arquillian) || return $?
+    lp_info "Updating $gradle_properties"
+    lp_set_property "$gradle_properties" "systemProp.liferay.arquillian.port" "$arquillian_port"
+}
+
+write_gradle_init_script() {
+    local init_dir="$WORKTREE_DIR/.gradle/init.d"
+    local init_script="$init_dir/worktree-ports.gradle"
+    local http_port
+    http_port=$(port_for http) || return $?
+
+    lp_info "Writing $init_script"
+    mkdir -p "$init_dir" || return $?
+    printf '%s\n' \
+        'allprojects {' \
+        $'\tafterEvaluate { project ->' \
+        $'\t\tdef extension = project.extensions.findByName("testIntegrationTomcat")' \
+        '' \
+        $'\t\tif (extension != null) {' \
+        $'\t\t\textension.portNumber = '"$http_port" \
+        $'\t\t}' \
+        $'\t}' \
+        '}' > "$init_script"
+}
+
+write_playwright_env() {
+    local playwright_dir="$WORKTREE_DIR/modules/test/playwright"
+    [[ -d "$playwright_dir" ]] || return 0
+
+    lp_info "Updating $playwright_dir/.env.local"
+    lp_set_property "$playwright_dir/.env.local" "PORTAL_URL" "$1"
+}
+
+configure_worktree_tests() {
+    local portal_url
+    portal_url="http://localhost:$(port_for http)" || return $?
+
+    write_test_properties "$portal_url" || return $?
+    write_gradle_properties || return $?
+    write_gradle_init_script || return $?
+    write_playwright_env "$portal_url"
+}
+
 apply_ports() {
     OFFSET=$(get_offset) || return $?
     lp_info "Using port offset: $OFFSET (Branch: $BRANCH)"
@@ -252,6 +313,7 @@ apply_ports() {
     configure_arquillian_dataguard || return $?
     configure_glowroot || return $?
     configure_jpda || return $?
+    [[ "$OFFSET" -eq 0 ]] || configure_worktree_tests || return $?
 
     lp_success "Ports configured with offset $OFFSET."
 }
