@@ -103,25 +103,40 @@ get_offset() {
     echo "$offset"
 }
 
+# sed -z reads the whole file as one record, so [^>]* spans the newlines inside one element.
+connector_port_script() {
+    local marker="$1" port="$2"
+    local element_start='<Connector[[:space:]]'
+    local new_port='port="'"$port"'"'
+    local marker_before_port='s#\('"$element_start"'[^>]*'"$marker"'[^>]*[[:space:]]\)port="[0-9]*"#\1'"$new_port"'#g'
+    local port_before_marker='s#\('"$element_start"'\([^>]*[[:space:]]\)\{0,1\}\)port="[0-9]*"\([^>]*'"$marker"'\)#\1'"$new_port"'\3#g'
+    echo "$marker_before_port"
+    echo "$port_before_marker"
+}
+
+tomcat_ports_script() {
+    local shutdown_port="$1" http_port="$2" ajp_port="$3" https_port="$4"
+    echo 's#\(<Server[[:space:]]\([^>]*[[:space:]]\)\{0,1\}\)port="[0-9]*"#\1port="'"$shutdown_port"'"#g'
+    connector_port_script 'protocol="HTTP/1\.1"' "$http_port"
+    connector_port_script 'protocol="AJP/1\.3"' "$ajp_port"
+    connector_port_script '\(SSLEnabled="true"\|Http11NioProtocol\)' "$https_port"
+    echo 's#redirectPort="[0-9]*"#redirectPort="'"$https_port"'"#g'
+}
+
 configure_tomcat() {
     local tomcat_dir
     tomcat_dir=$(find "$BUNDLE_DIR" -maxdepth 1 -type d -name "tomcat-*" | head -n 1)
     [[ -n "$tomcat_dir" && -f "$tomcat_dir/conf/server.xml" ]] || return 0
 
-    local server_xml="$tomcat_dir/conf/server.xml"
-    local shutdown_port http_port ajp_port https_port
+    local shutdown_port http_port ajp_port https_port script
     shutdown_port=$(port_for shutdown) || return $?
     http_port=$(port_for http) || return $?
     ajp_port=$(port_for ajp) || return $?
     https_port=$(port_for https) || return $?
+    script=$(tomcat_ports_script "$shutdown_port" "$http_port" "$ajp_port" "$https_port") || return $?
     lp_info "Updating Tomcat server.xml"
 
-    sed -i "s|<Server port=\"[0-9]*\"|<Server port=\"$shutdown_port\"|" "$server_xml" || return $?
-    sed -i "s|\(<Connector [^>]*\)protocol=\"HTTP/1.1\"\([^>]*\)port=\"[0-9]*\"|\1protocol=\"HTTP/1.1\"\2port=\"$http_port\"|" "$server_xml" || return $?
-    sed -i "s|\(<Connector [^>]*\)port=\"[0-9]*\"\([^>]*\)protocol=\"HTTP/1.1\"|\1port=\"$http_port\"\2protocol=\"HTTP/1.1\"|" "$server_xml" || return $?
-    sed -i "s|\(<Connector [^>]*\)protocol=\"AJP/1.3\"\([^>]*\)port=\"[0-9]*\"|\1protocol=\"AJP/1.3\"\2port=\"$ajp_port\"|" "$server_xml" || return $?
-    sed -i "s|\(<Connector [^>]*\)port=\"[0-9]*\"\([^>]*\)protocol=\"AJP/1.3\"|\1port=\"$ajp_port\"\2protocol=\"AJP/1.3\"|" "$server_xml" || return $?
-    sed -i "s|redirectPort=\"[0-9]*\"|redirectPort=\"$https_port\"|g" "$server_xml"
+    sed -z -i -e "$script" "$tomcat_dir/conf/server.xml"
 }
 
 configure_portal_ext() {

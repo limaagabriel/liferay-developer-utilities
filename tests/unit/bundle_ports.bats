@@ -10,6 +10,44 @@ teardown() {
     lp_command_teardown
 }
 
+_lp_write_server_xml() {
+    local shutdown="$1" http="$2" https="$3" ajp="$4"
+    cat <<XML
+<Server port="$shutdown" shutdown="SHUTDOWN">
+  <Service name="Catalina">
+    <Connector maxThreads="75" port="$http" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="$https"
+               />
+    <Connector executor="tomcatThreadPool" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               port="$http"
+               redirectPort="$https"
+               />
+    <Connector port="$https" protocol="org.apache.coyote.http11.Http11NioProtocol"
+               maxThreads="150" SSLEnabled="true"
+               />
+    <Connector protocol="HTTP/1.1"
+               SSLEnabled="true"
+               port="$https"
+               />
+    <Connector protocol="HTTP/1.1" />
+    <Listener port="7777" className="HTTP/1.1"/>
+    <Connector protocol="AJP/1.3"
+               address="::1"
+               port="$ajp"
+               redirectPort="$https"
+               />
+    <Connector port="$ajp" protocol="AJP/1.3"
+               redirectPort="$https"
+               />
+    <Connector protocol="AJP/1.3" />
+    <Listener port="7777" className="AJP/1.3"/>
+  </Service>
+</Server>
+XML
+}
+
 _lp_make_port_fixture() {
     local branch="${1:-feature}"
     local offset="${2:-3}"
@@ -19,7 +57,7 @@ _lp_make_port_fixture() {
     mkdir -p "$bundle_dir/tomcat-x/bin" "$bundle_dir/tomcat-x/conf"
     echo "module.framework.properties.osgi.console=localhost:11312" > "$bundle_dir/portal-ext.properties"
     printf 'export JPDA_ADDRESS=localhost:8000\nJPDA_ADDRESS="8000"\n' > "$bundle_dir/tomcat-x/bin/setenv.sh"
-    echo '<Server port="8005" shutdown="SHUTDOWN"></Server>' > "$bundle_dir/tomcat-x/conf/server.xml"
+    _lp_write_server_xml 8005 8080 8443 8009 > "$bundle_dir/tomcat-x/conf/server.xml"
     echo "$offset" > "$bundle_dir/.worktree-port-offset"
     lp_stub nc 1
 }
@@ -93,6 +131,21 @@ _lp_set_property() {
     [ "$(grep -c 'JPDA_ADDRESS' "$setenv")" -eq 1 ]
     [ "$(grep -c 'export JPDA_ADDRESS' "$setenv")" -eq 0 ]
     grep -q '<Server port="8008"' "$bundle_dir/tomcat-x/conf/server.xml"
+}
+
+@test "ports.sh moves every tomcat port in multi-line connectors and is idempotent" {
+    _lp_make_port_fixture feature 3
+    local server_xml="$HOME/dev/bundles/feature/tomcat-x/conf/server.xml"
+    local expected="$TEST_HOME/expected-server.xml"
+    _lp_write_server_xml 8008 8083 8446 8012 > "$expected"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+    [ "$status" -eq 0 ]
+    diff "$expected" "$server_xml"
+
+    run "$_LP_SCRIPTS_DIR/commands/bundle/ports.sh" feature
+    [ "$status" -eq 0 ]
+    diff "$expected" "$server_xml"
 }
 
 @test "ports.sh stops without reporting success when portal-ext.properties can't be written" {
