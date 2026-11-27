@@ -191,14 +191,34 @@ write_port_offset() {
     grep -q "^nc -z localhost 8083" "$CALLS_LOG"
 }
 
-@test "icon shows nothing when the bundle pane runs but the port is closed" {
+@test "icon shows the starting icon when the server runs but the port is closed" {
     write_port_offset feat 3
     stub_bundle_probe feat 1
 
     run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
 
     [ "$status" -eq 0 ]
-    [ -z "$output" ]
+    [ "$output" = "🔄  " ]
+}
+
+@test "icon shows the build icon while build.sh runs in the bundle pane" {
+    stub_bundle_probe feat 1
+    lp_stub ps 'echo "bash /home/u/dev/scripts/commands/bundle/build.sh -y"'
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
+
+    [ "$status" -eq 0 ]
+    [ "$output" = "🔨  " ]
+}
+
+@test "icon shows the build icon while ant runs, even if the port is open" {
+    stub_bundle_probe feat 0
+    lp_stub ps 'printf "%s\n" "/bin/sh /usr/share/ant/bin/ant all" "java -cp ant-launcher.jar org.apache.tools.ant.launch.Launcher all"'
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
+
+    [ "$status" -eq 0 ]
+    [ "$output" = "🔨  " ]
 }
 
 @test "icon shows nothing when the port is open but no server runs in the pane" {

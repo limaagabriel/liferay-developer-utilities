@@ -15,19 +15,25 @@ resolve_branch() {
     echo "${branch:-$session_name}"
 }
 
-is_bundle_up() {
+show_server_icon() {
     local session_name="$1"
-    local port="$2"
-    _lp_is_bundle_running "$session_name" || return 1
-    nc -z localhost "$port" 2>/dev/null
+    local port
+    port=$(lp_bundle_port http "$(resolve_branch "$session_name")")
+    if nc -z localhost "$port" 2>/dev/null; then
+        echo "🚀 :$port  "
+    else
+        echo "🔄  "
+    fi
 }
 
 show_bundle_icon() {
     local session_name="$1"
-    local port
-    port=$(lp_bundle_port http "$(resolve_branch "$session_name")")
-    is_bundle_up "$session_name" "$port" || return 0
-    echo "🚀 :$port  "
+    if _lp_is_bundle_building "$session_name"; then
+        echo "🔨  "
+        return 0
+    fi
+    _lp_is_bundle_running "$session_name" || return 0
+    show_server_icon "$session_name"
 }
 
 main() {

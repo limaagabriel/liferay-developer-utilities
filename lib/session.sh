@@ -23,26 +23,29 @@ _lp_status_emoji() {
     esac
 }
 
-# _lp_is_bundle_running <session_name> — check if bundle process is running
-_lp_is_bundle_running() {
+# _lp_bundle_pane_processes <session_name> — print the command lines running
+# in the session's 'bundle' window (falls back to window index 1).
+_lp_bundle_pane_processes() {
     local session="$1"
     local bundle_pane_tty
-    
-    # We look for a window named 'bundle' and check if its pane has a relevant process
+
     bundle_pane_tty=$(tmux list-panes -t "$session:bundle" -F "#{pane_tty}" 2>/dev/null | head -n 1)
     if [[ -z "$bundle_pane_tty" ]]; then
-        # Fallback to index 1 if name doesn't match
         bundle_pane_tty=$(tmux list-panes -t "$session:1" -F "#{pane_tty}" 2>/dev/null | head -n 1)
     fi
 
-    if [[ -n "$bundle_pane_tty" ]]; then
-        # Check for java, ant, or our start/build scripts running on that TTY
-        if ps -t "$bundle_pane_tty" -o args= | grep -E "java|ant|catalina\.sh|/start\.sh|/build\.sh|worktree (build|start)" >/dev/null 2>&1; then
-            return 0
-        fi
-    fi
-    
-    return 1
+    [[ -n "$bundle_pane_tty" ]] || return 1
+    ps -t "$bundle_pane_tty" -o args=
+}
+
+# _lp_is_bundle_running <session_name> — check if bundle process is running
+_lp_is_bundle_running() {
+    _lp_bundle_pane_processes "$1" | grep -qE "java|ant|catalina\.sh|/start\.sh|/build\.sh|worktree (build|start)"
+}
+
+# _lp_is_bundle_building <session_name> — check if a bundle build is running
+_lp_is_bundle_building() {
+    _lp_bundle_pane_processes "$1" | grep -qE "/build\.sh|(^|/)ant( |$)|ant\.launch|worktree build"
 }
 
 # _lp_bundle_window_idle <session_name> — true when the 'bundle' window's
