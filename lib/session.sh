@@ -67,10 +67,10 @@ _lp_update_tmux_status_line() {
     status_name=$(tmux show-option -t "$session" -qv @lp-status)
     emoji=$(_lp_status_emoji "$status_name")
     
-    status_part="$emoji#($_LP_SCRIPTS_DIR/commands/session/icon.sh #S)"
+    status_part="${emoji:+$emoji }#($_LP_SCRIPTS_DIR/commands/session/icon.sh #S)"
 
     if [[ -n "$description" ]]; then
-        status_part="$status_part ($description)"
+        status_part="$status_part($description)  "
     fi
 
     local label='#{?#{@lp-branch},#{@lp-branch},#S}'
@@ -93,10 +93,10 @@ _lp_set_tmux_titles() {
     
     # Note: Terminal title also supports #(...) format
     local label='#{?#{@lp-branch},#{@lp-branch},#S}'
-    title_string="$label $emoji#($_LP_SCRIPTS_DIR/commands/session/icon.sh #S)"
+    title_string="$label ${emoji:+$emoji }#($_LP_SCRIPTS_DIR/commands/session/icon.sh #S)"
     
     if [[ -n "$description" ]]; then
-        title_string="$title_string - $description"
+        title_string="$title_string- $description"
     fi
     
     tmux set-option -t "$session" set-titles on || return $?

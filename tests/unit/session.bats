@@ -187,7 +187,7 @@ write_port_offset() {
     run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
 
     [ "$status" -eq 0 ]
-    [ "$output" = " 🚀 :8083" ]
+    [ "$output" = "🚀 :8083  " ]
     grep -q "^nc -z localhost 8083" "$CALLS_LOG"
 }
 
@@ -217,7 +217,7 @@ write_port_offset() {
     run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" master
 
     [ "$status" -eq 0 ]
-    [ "$output" = " 🚀 :8080" ]
+    [ "$output" = "🚀 :8080  " ]
 }
 
 @test "icon takes the port offset from the session's branch, not its tmux-safe name" {
@@ -227,7 +227,7 @@ write_port_offset() {
     run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" release-7_4
 
     [ "$status" -eq 0 ]
-    [ "$output" = " 🚀 :8085" ]
+    [ "$output" = "🚀 :8085  " ]
 }
 
 @test "icon falls back to the session name when the branch option is empty" {
@@ -237,5 +237,5 @@ write_port_offset() {
     run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
 
     [ "$status" -eq 0 ]
-    [ "$output" = " 🚀 :8082" ]
+    [ "$output" = "🚀 :8082  " ]
 }

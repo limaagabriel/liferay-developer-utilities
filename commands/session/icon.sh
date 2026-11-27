@@ -27,7 +27,7 @@ show_bundle_icon() {
     local port
     port=$(lp_bundle_port http "$(resolve_branch "$session_name")")
     is_bundle_up "$session_name" "$port" || return 0
-    echo " 🚀 :$port"
+    echo "🚀 :$port  "
 }
 
 main() {
