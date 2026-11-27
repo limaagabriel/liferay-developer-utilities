@@ -159,3 +159,83 @@ esac
 
     grep -q "^tmux new-session" "$CALLS_LOG"
 }
+
+stub_bundle_probe() {
+    local branch="$1"
+    local nc_exit="$2"
+    lp_stub tmux "
+case \"\$1\" in
+    show-option) echo '$branch' ;;
+    list-panes) echo /dev/pts/9 ;;
+esac
+"
+    lp_stub ps 'echo "/usr/bin/java -jar catalina.jar"'
+    lp_stub nc "$nc_exit"
+}
+
+write_port_offset() {
+    local branch="$1"
+    local offset="$2"
+    mkdir -p "$HOME/dev/bundles/$branch"
+    echo "$offset" > "$HOME/dev/bundles/$branch/.worktree-port-offset"
+}
+
+@test "icon shows the rocket with the offset http port when the bundle is up" {
+    write_port_offset feat 3
+    stub_bundle_probe feat 0
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
+
+    [ "$status" -eq 0 ]
+    [ "$output" = " 🚀 :8083" ]
+    grep -q "^nc -z localhost 8083" "$CALLS_LOG"
+}
+
+@test "icon shows nothing when the bundle pane runs but the port is closed" {
+    write_port_offset feat 3
+    stub_bundle_probe feat 1
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
+
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "icon shows nothing when the port is open but no server runs in the pane" {
+    stub_bundle_probe feat 0
+    lp_stub ps 'echo "-zsh"'
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
+
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "icon uses the default http port for master" {
+    stub_bundle_probe master 0
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" master
+
+    [ "$status" -eq 0 ]
+    [ "$output" = " 🚀 :8080" ]
+}
+
+@test "icon takes the port offset from the session's branch, not its tmux-safe name" {
+    write_port_offset release-7.4 5
+    stub_bundle_probe release-7.4 0
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" release-7_4
+
+    [ "$status" -eq 0 ]
+    [ "$output" = " 🚀 :8085" ]
+}
+
+@test "icon falls back to the session name when the branch option is empty" {
+    write_port_offset feat 2
+    stub_bundle_probe "" 0
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
+
+    [ "$status" -eq 0 ]
+    [ "$output" = " 🚀 :8082" ]
+}
