@@ -180,8 +180,30 @@ write_port_offset() {
     echo "$offset" > "$HOME/dev/bundles/$branch/.worktree-port-offset"
 }
 
+# write_catalina_log <branch> <date> [catalina-event...] — events are written as
+# Tomcat's "Catalina.load Server initialization in" / "Catalina.start Server startup in" lines.
+write_catalina_log() {
+    local branch="$1"
+    local date="$2"
+    shift 2
+    local logs_dir="$HOME/dev/bundles/$branch/tomcat-10.1.61/logs"
+    local log="$logs_dir/catalina.$date.log"
+    mkdir -p "$logs_dir"
+    : > "$log"
+    local event
+    for event in "$@"; do
+        echo "INFO [main] org.apache.catalina.startup.Catalina $event [100] milliseconds" >> "$log"
+    done
+    touch -t "${date//-/}1200" "$log"
+}
+
+write_started_catalina_log() {
+    write_catalina_log "$1" 2026-11-27 "Server initialization in" "Server startup in"
+}
+
 @test "icon shows the rocket with the offset http port when the bundle is up" {
     write_port_offset feat 3
+    write_started_catalina_log feat
     stub_bundle_probe feat 0
 
     run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
@@ -199,6 +221,27 @@ write_port_offset() {
 
     [ "$status" -eq 0 ]
     [ "$output" = "🔄  " ]
+}
+
+@test "icon shows the starting icon while tomcat holds the port but the portal is still initializing" {
+    write_catalina_log feat 2026-11-27 "Server initialization in" "Server startup in" "Server initialization in"
+    stub_bundle_probe feat 0
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
+
+    [ "$status" -eq 0 ]
+    [ "$output" = "🔄  " ]
+}
+
+@test "icon reads the startup from an older catalina log when the newest one has no events" {
+    write_catalina_log feat 2026-11-26 "Server initialization in" "Server startup in"
+    write_catalina_log feat 2026-11-27
+    stub_bundle_probe feat 0
+
+    run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
+
+    [ "$status" -eq 0 ]
+    [ "$output" = "🚀 :8080  " ]
 }
 
 @test "icon shows the build icon while build.sh runs in the bundle pane" {
@@ -232,6 +275,7 @@ write_port_offset() {
 }
 
 @test "icon uses the default http port for master" {
+    write_started_catalina_log master
     stub_bundle_probe master 0
 
     run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" master
@@ -242,6 +286,7 @@ write_port_offset() {
 
 @test "icon takes the port offset from the session's branch, not its tmux-safe name" {
     write_port_offset release-7.4 5
+    write_started_catalina_log release-7.4
     stub_bundle_probe release-7.4 0
 
     run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" release-7_4
@@ -252,6 +297,7 @@ write_port_offset() {
 
 @test "icon falls back to the session name when the branch option is empty" {
     write_port_offset feat 2
+    write_started_catalina_log feat
     stub_bundle_probe "" 0
 
     run "$_LP_SCRIPTS_DIR/commands/session/icon.sh" feat
